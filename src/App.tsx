@@ -1,13 +1,11 @@
-
 import './App.css'
+import MainRoutes from "./app/routes/MainRoutes";
 
 function App() {
 
   return (
     <>
-      <div className="bg-blue-500">
-        Hello
-      </div>
+      <MainRoutes />;
     </>
   )
 }
