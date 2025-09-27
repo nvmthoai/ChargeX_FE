@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './Home.css';
 
-const Home: React.FC = () => {
+export default function Home() {
 
     const [count, setCount] = useState(0);
 
@@ -15,5 +15,3 @@ const Home: React.FC = () => {
         </div>
     )
 }
-
-export default Home;
