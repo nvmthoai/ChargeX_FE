@@ -1,10 +1,9 @@
-import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Header from '../layouts/Header/Header';
-import Home from '../pages/Home/Home';
 import About from '../pages/About/About';
+import Home from '../pages/Home/Home';
 
-const MainRoutes: React.FC = () => {
+export default function MainRoutes() {
     return (
         <BrowserRouter>
             <Header />
@@ -13,7 +12,5 @@ const MainRoutes: React.FC = () => {
                 <Route path='/about' element={<About />} />
             </Routes>
         </BrowserRouter>
-    );
-};
-
-export default MainRoutes;
+    )
+}
