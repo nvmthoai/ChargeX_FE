@@ -1,0 +1,173 @@
+{
+  "accounts": [
+    {
+      "id": 1,
+      "email": "buyer@example.com",
+      "password": "hashed_password",
+      "phone": "0123456789",
+      "role": "member",
+      "email_unverified": false,
+      "is_active": true,
+      "created_at": "2025-10-01T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "email": "seller@example.com",
+      "password": "hashed_password",
+      "phone": "0987654321",
+      "role": "member",
+      "email_unverified": false,
+      "is_active": true,
+      "created_at": "2025-09-25T14:00:00Z"
+    }
+  ],
+  "wallets": [
+    {
+      "id": 1,
+      "account_id": 1,
+      "balance": 5000.00,
+      "updated_at": "2025-10-02T09:00:00Z"
+    },
+    {
+      "id": 2,
+      "account_id": 2,
+      "balance": 12000.00,
+      "updated_at": "2025-10-02T09:00:00Z"
+    }
+  ],
+  "product_listings": [
+    {
+      "id": 101,
+      "seller_id": 2,
+      "title": "Tesla Model 3 Long Range",
+      "description": "Used Tesla Model 3 LR, excellent condition",
+      "type": "vehicle",
+      "quantity": 1,
+      "price_start": 45000.00,
+      "price_now": 45500.00,
+      "status": "active",
+      "image_urls": [
+        "https://example.com/car1.jpg",
+        "https://example.com/car2.jpg"
+      ],
+      "soh_percent": 95.0,
+      "cycle_count": 250,
+      "nominal_voltage_v": 400.0,
+      "condition_grade": "A",
+      "weight_kg": 1625.0,
+      "dimensions": "4.7m x 1.85m x 1.44m",
+      "is_auction": true,
+      "price_buy_now": 49900.00,
+      "end_time": "2025-10-05T18:00:00Z",
+      "created_at": "2025-09-28T12:00:00Z",
+      "updated_at": "2025-10-02T10:30:00Z"
+    }
+  ],
+  "auctions": [
+    {
+      "id": 201,
+      "product_id": 101,
+      "auction_request_id": 301,
+      "start_time": "2025-09-30T10:00:00Z",
+      "end_time": "2025-10-05T18:00:00Z",
+      "reserve_price": 44000.00,
+      "current_price": 45500.00,
+      "current_winner_bid_id": 401,
+      "min_bid_increment": 100.00,
+      "anti_sniping_seconds": 60,
+      "bid_deposit_percent": 10.00,
+      "status": "live"
+    }
+  ],
+  "bids": [
+    {
+      "id": 401,
+      "bidder_id": 1,
+      "auction_id": 201,
+      "bid_amount": 45500.00,
+      "is_winner": true,
+      "status": "valid",
+      "created_at": "2025-10-02T11:00:00Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": 501,
+      "buyer_id": 1,
+      "seller_id": 2,
+      "payment_id": 601,
+      "auction_id": 201,
+      "product_id": 101,
+      "price": 45500.00,
+      "shipping_fee": 200.00,
+      "pickup_address_id": 701,
+      "delivery_address_id": 702,
+      "shipping_provider": "FedEx",
+      "shipping_code": "FDX123456",
+      "shipping_status": "in_transit",
+      "shipping_label_url": "https://example.com/label.pdf",
+      "status": "processing",
+      "contract_url": "https://example.com/contract.pdf",
+      "created_at": "2025-10-02T12:00:00Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": 801,
+      "order_id": 501,
+      "reviewer_id": 1,
+      "reviewee_id": 2,
+      "rating": 5,
+      "comment": "Excellent car and smooth transaction!",
+      "created_at": "2025-10-03T10:00:00Z"
+    }
+  ],
+  "addresses": [
+    {
+      "id": 701,
+      "account_id": 2,
+      "label": "Seller Garage",
+      "full_name": "Electro Drive Motors",
+      "phone": "0987654321",
+      "line1": "123 Market Street",
+      "ward_code": "W01",
+      "district_id": 10,
+      "province_id": 1,
+      "note": "Warehouse pickup",
+      "is_default": true,
+      "created_at": "2025-09-20T09:00:00Z",
+      "updated_at": "2025-09-25T09:00:00Z"
+    },
+    {
+      "id": 702,
+      "account_id": 1,
+      "label": "Home Address",
+      "full_name": "Sarah L.",
+      "phone": "0123456789",
+      "line1": "456 Elm Street",
+      "ward_code": "W02",
+      "district_id": 11,
+      "province_id": 1,
+      "note": "Deliver before 5pm",
+      "is_default": true,
+      "created_at": "2025-09-22T09:00:00Z",
+      "updated_at": "2025-09-25T09:00:00Z"
+    }
+  ],
+  "payments": [
+    {
+      "id": 601,
+      "wallet_id": 1,
+      "type": "pay_order",
+      "amount": 45700.00,
+      "description": "Payment for Tesla Model 3 Auction",
+      "related_order_id": 501,
+      "related_bid_id": 401,
+      "status": "succeeded",
+      "provider": "internal",
+      "method": "wallet",
+      "external_ref": "TX123ABC",
+      "created_at": "2025-10-02T12:05:00Z"
+    }
+  ]
+}
