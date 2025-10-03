@@ -4,6 +4,8 @@ import Header from '../layouts/Header/Header';
 import Home from '../pages/Home/Home';
 import About from '../pages/About/About';
 
+import ProductDetail from '../pages/Product/ProductDetail';
+
 const MainRoutes: React.FC = () => {
     return (
         <BrowserRouter>
@@ -11,6 +13,7 @@ const MainRoutes: React.FC = () => {
             <Routes>
                 <Route path='/' element={<Home />} />
                 <Route path='/about' element={<About />} />
+                <Route path='/productdetail' element={<ProductDetail />} />
             </Routes>
         </BrowserRouter>
     );
