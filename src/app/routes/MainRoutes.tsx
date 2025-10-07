@@ -5,6 +5,8 @@ import Home from "../pages/Home/Home";
 import Profile from "../pages/Profile/Profile";
 import ProfileDetail from "../pages/Profile/ProfileDetail/ProfileDetail";
 import ProfileSecurity from "../pages/Profile/ProfileSecurity/ProfileSecurity";
+import AuthPage from '../pages/Auth/auth';
+
 
 export default function MainRoutes() {
     return (
@@ -13,6 +15,7 @@ export default function MainRoutes() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
+                <Route path='/auth' element={<AuthPage />} />
                 <Route path="profile" element={<Profile />}>
                     <Route path="detail" element={<ProfileDetail />} />
                     <Route path="security" element={<ProfileSecurity />} />
