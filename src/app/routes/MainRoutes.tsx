@@ -6,7 +6,8 @@ import Profile from "../pages/Profile/Profile";
 import ProfileDetail from "../pages/Profile/ProfileDetail/ProfileDetail";
 import ProfileSecurity from "../pages/Profile/ProfileSecurity/ProfileSecurity";
 import AuthPage from '../pages/Auth/auth';
-
+import ProductDetail from '../pages/Product/ProductDetail';
+import Cart from '../pages/Cart/Cart';
 
 export default function MainRoutes() {
     return (
@@ -20,6 +21,8 @@ export default function MainRoutes() {
                     <Route path="detail" element={<ProfileDetail />} />
                     <Route path="security" element={<ProfileSecurity />} />
                 </Route>
+                 <Route path='/productdetail' element={<ProductDetail />} />
+                <Route path='/cart' element={<Cart />} />
             </Routes>
         </BrowserRouter>
     )
