@@ -13,15 +13,12 @@ import userAuth from "../../hooks/useAuth";
 
 function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
-  const { handleRegister } = userAuth();
+  const { handleRegister, handleLogin } = userAuth();
   const handeSignUp = async (values: any) => {
     const response = await handleRegister(values);
     if (response) {
       setActiveTab("login");
     }
-  };
-  const handleLogin = async (values: any) => {
-    console.log(values)
   };
 
   const handleSocialLogin = (provider: string) => {
