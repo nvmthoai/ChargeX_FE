@@ -1,27 +1,32 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Form, Input, Button, Tabs, Divider, message } from "antd"
-import { GoogleOutlined, FacebookOutlined, EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons"
-import "./auth.css"
-
+import { useState } from "react";
+import { Form, Input, Button, Tabs, Divider, message } from "antd";
+import {
+  GoogleOutlined,
+  FacebookOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+} from "@ant-design/icons";
+import "./auth.css";
+import userAuth from "../../hooks/useAuth";
 
 function AuthPage() {
-  const [activeTab, setActiveTab] = useState("login")
-
+  const [activeTab, setActiveTab] = useState("login");
+  const { handleRegister } = userAuth();
+  const handeSignUp = async (values: any) => {
+    const response = await handleRegister(values);
+    if (response) {
+      setActiveTab("login");
+    }
+  };
   const handleLogin = async (values: any) => {
-    console.log("Login values:", values)
-    message.success("Đăng nhập thành công!")
-  }
-
-  const handleSignup = async (values: any) => {
-    console.log("Signup values:", values)
-    message.success("Tạo tài khoản thành công!")
-  }
+    console.log(values)
+  };
 
   const handleSocialLogin = (provider: string) => {
-    message.info(`Tiếp tục với ${provider}`)
-  }
+    message.info(`Tiếp tục với ${provider}`);
+  };
 
   return (
     <div className="auth-container">
@@ -41,7 +46,11 @@ function AuthPage() {
               key: "login",
               label: "Login",
               children: (
-                <Form layout="vertical" onFinish={handleLogin} className="auth-form">
+                <Form
+                  layout="vertical"
+                  onFinish={handleLogin}
+                  className="auth-form"
+                >
                   <Form.Item
                     label="Email"
                     name="email"
@@ -56,11 +65,15 @@ function AuthPage() {
                   <Form.Item
                     label="Password"
                     name="password"
-                    rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
+                    rules={[
+                      { required: true, message: "Vui lòng nhập mật khẩu!" },
+                    ]}
                   >
                     <Input.Password
                       placeholder="••••••••"
-                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                      iconRender={(visible) =>
+                        visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                      }
                     />
                   </Form.Item>
 
@@ -69,7 +82,12 @@ function AuthPage() {
                   </div>
 
                   <Form.Item>
-                    <Button type="primary" htmlType="submit" className="login-button" block>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      className="login-button"
+                      block
+                    >
                       Login
                     </Button>
                   </Form.Item>
@@ -80,11 +98,17 @@ function AuthPage() {
               key: "signup",
               label: "Sign Up",
               children: (
-                <Form layout="vertical" onFinish={handleSignup} className="auth-form">
+                <Form
+                  layout="vertical"
+                  onFinish={handeSignUp}
+                  className="auth-form"
+                >
                   <Form.Item
                     label="Họ và tên"
                     name="fullName"
-                    rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
+                    rules={[
+                      { required: true, message: "Vui lòng nhập họ tên!" },
+                    ]}
                   >
                     <Input placeholder="Nguyễn Văn A" />
                   </Form.Item>
@@ -110,7 +134,9 @@ function AuthPage() {
                   >
                     <Input.Password
                       placeholder="••••••••"
-                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                      iconRender={(visible) =>
+                        visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                      }
                     />
                   </Form.Item>
 
@@ -119,25 +145,48 @@ function AuthPage() {
                     name="confirmPassword"
                     dependencies={["password"]}
                     rules={[
-                      { required: true, message: "Vui lòng xác nhận mật khẩu!" },
+                      {
+                        required: true,
+                        message: "Vui lòng xác nhận mật khẩu!",
+                      },
                       ({ getFieldValue }) => ({
                         validator(_, value) {
                           if (!value || getFieldValue("password") === value) {
-                            return Promise.resolve()
+                            return Promise.resolve();
                           }
-                          return Promise.reject(new Error("Mật khẩu không khớp!"))
+                          return Promise.reject(
+                            new Error("Mật khẩu không khớp!")
+                          );
                         },
                       }),
                     ]}
                   >
                     <Input.Password
                       placeholder="••••••••"
-                      iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                      iconRender={(visible) =>
+                        visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                      }
                     />
                   </Form.Item>
 
+                  <Form.Item
+                    label="Số điện thoại"
+                    name="phone"
+                    dependencies={["phone"]}
+                    rules={[
+                      { required: true, message: "Vui lòng nhập mật khầu!" },
+                    ]}
+                  >
+                    <Input />
+                  </Form.Item>
+
                   <Form.Item>
-                    <Button type="primary" htmlType="submit" className="login-button" block>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      className="login-button"
+                      block
+                    >
                       Sign Up
                     </Button>
                   </Form.Item>
@@ -150,19 +199,27 @@ function AuthPage() {
         <Divider className="divider-text">or</Divider>
 
         <div>
-          <Button onClick={() => handleSocialLogin("Google")} className="social-button" block>
+          <Button
+            onClick={() => handleSocialLogin("Google")}
+            className="social-button"
+            block
+          >
             <GoogleOutlined className="social-icon" />
             Continue with Google
           </Button>
 
-          <Button onClick={() => handleSocialLogin("Facebook")} className="social-button" block>
+          <Button
+            onClick={() => handleSocialLogin("Facebook")}
+            className="social-button"
+            block
+          >
             <FacebookOutlined className="social-icon" />
             Continue with Facebook
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default AuthPage
+export default AuthPage;
