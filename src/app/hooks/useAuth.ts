@@ -37,7 +37,8 @@ const userAuth = () => {
       phone: values.phone,
     });
     if (response) {
-      navigate("/auth", { replace: true });
+      localStorage.setItem('emailNeedToVerify', values.email)
+      navigate("/verify-otp", { replace: true });
       message.success("Register successfully!");
       return response
     }

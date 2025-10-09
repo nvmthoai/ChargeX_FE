@@ -10,6 +10,7 @@ import Profile from "../pages/Profile/Profile";
 import ProfileDetail from "../pages/Profile/ProfileDetail/ProfileDetail";
 import ProfileSecurity from "../pages/Profile/ProfileSecurity/ProfileSecurity";
 import AuthRoute from "./AuthRoute";
+import VerifyOTPPage from "../pages/Verify-Otp";
 
 export default function MainRoutes() {
   return (
@@ -18,6 +19,7 @@ export default function MainRoutes() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path="/verify-otp" element={<VerifyOTPPage />} />
         <Route element={<AuthRoute />}>
           <Route path="/auth" element={<AuthPage />} />
         </Route>
