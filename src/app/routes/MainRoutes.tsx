@@ -3,13 +3,15 @@ import Header from "../layouts/Header/Header";
 import About from "../pages/About/About";
 import Auction from "../pages/Auction/Auction";
 import AuthPage from "../pages/Auth/auth";
-import Cart from "../pages/Cart/Cart";
+// import Cart from "../pages/Cart/Cart";
 import Home from "../pages/Home/Home";
 import ProductDetail from "../pages/Product/ProductDetail";
 import Profile from "../pages/Profile/Profile";
 import ProfileDetail from "../pages/Profile/ProfileDetail/ProfileDetail";
 import ProfileSecurity from "../pages/Profile/ProfileSecurity/ProfileSecurity";
 import AuthRoute from "./AuthRoute";
+import KnowYourCus from '../pages/KYC/KnowYourCus';
+
 import VerifyOTPPage from "../pages/Verify-Otp";
 
 export default function MainRoutes() {
@@ -27,10 +29,13 @@ export default function MainRoutes() {
           <Route index element={<Navigate to="detail" replace />} />
           <Route path="detail" element={<ProfileDetail />} />
           <Route path="security" element={<ProfileSecurity />} />
+          <Route path='kyc' element={<KnowYourCus />} />
+
         </Route>
-        <Route path="/productdetail" element={<ProductDetail />} />
+          {/* <Route path='/kyc' element={<KnowYourCus />} /> */}
+        <Route path="/productdetail/:id" element={<ProductDetail />} />
         <Route path="/auction/:id" element={<Auction />} />
-        <Route path="/cart" element={<Cart />} />
+        {/* <Route path="/cart" element={<Cart />} /> */}
       </Routes>
     </BrowserRouter>
   );
