@@ -13,6 +13,8 @@ import AuthRoute from "./AuthRoute";
 import KnowYourCus from '../pages/KYC/KnowYourCus';
 
 import VerifyOTPPage from "../pages/Verify-Otp";
+import PaymentSuccess from "../pages/Payment/success";
+import PaymentError from "../pages/Payment/error";
 
 export default function MainRoutes() {
   return (
@@ -21,6 +23,8 @@ export default function MainRoutes() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-error" element={<PaymentError />} />
         <Route path="/verify-otp" element={<VerifyOTPPage />} />
         <Route element={<AuthRoute />}>
           <Route path="/auth" element={<AuthPage />} />
