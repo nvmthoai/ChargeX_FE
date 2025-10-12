@@ -14,12 +14,7 @@ import userAuth from "../../hooks/useAuth";
 function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
   const { handleRegister, handleLogin } = userAuth();
-  const handeSignUp = async (values: any) => {
-    const response = await handleRegister(values);
-    if (response) {
-      setActiveTab("login");
-    }
-  };
+
 
   const handleSocialLogin = (provider: string) => {
     message.info(`Tiếp tục với ${provider}`);
@@ -97,7 +92,7 @@ function AuthPage() {
               children: (
                 <Form
                   layout="vertical"
-                  onFinish={handeSignUp}
+                  onFinish={handleRegister}
                   className="auth-form"
                 >
                   <Form.Item
