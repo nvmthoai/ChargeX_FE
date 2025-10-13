@@ -22,7 +22,7 @@ export default function ProductInfo({ product }: { product: Product }) {
     );
   };
 
-  const avgRating = 4.5; // TODO: thay bằng API review
+  const avgRating = 4.5; 
   const reviews = [
     { id: 1, reviewer_id: 12, rating: 5, comment: "Giao nhanh, sản phẩm tốt" },
     { id: 2, reviewer_id: 45, rating: 4, comment: "Pin còn khá mới" },
@@ -138,9 +138,9 @@ export default function ProductInfo({ product }: { product: Product }) {
         <button className="flex-1 bg-[#0F74C7] hover:bg-[#3888ca] text-white px-4 py-2 rounded font-medium">
           Buy Now • ${Number(product.price_buy_now).toLocaleString()}
         </button>
-        {/* <button className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium">
+        <button className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium">
           Add to Watchlist
-        </button> */}
+        </button>
       </div>
 
 
