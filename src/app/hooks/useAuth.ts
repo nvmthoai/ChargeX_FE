@@ -4,7 +4,10 @@ import authSerivce from "../services/AuthService";
 import { useNavigate } from "react-router-dom";
 import { getDeviceInfoString } from "../utils";
 import { jwtDecode } from "jwt-decode";
-interface handleRegisterProps {
+import { useAuth } from "./AuthContext";
+import type { User } from "./AuthContext";
+
+interface HandleRegisterProps {
   email: string;
   password: string;
   fullName: string;
@@ -12,16 +15,17 @@ interface handleRegisterProps {
   confirmPassword: string;
 }
 
-interface handleLoginProps {
+interface HandleLoginProps {
   email: string;
   password: string;
   deviceInfo: string;
 }
 
-const userAuth = () => {
+const UserAuth = () => {
   const { register, login } = authSerivce();
   const { message } = App.useApp();
   const navigate = useNavigate();
+  const { login: setAuthUser } = useAuth();
 
   const [deviceInfo, setDeviceInfo] = useState("");
 
@@ -29,7 +33,7 @@ const userAuth = () => {
     setDeviceInfo(getDeviceInfoString());
   }, []);
 
-  const handleRegister = async (values: handleRegisterProps) => {
+  const handleRegister = async (values: HandleRegisterProps) => {
     const response = await register({
       email: values.email,
       password: values.password,
@@ -37,25 +41,27 @@ const userAuth = () => {
       phone: values.phone,
     });
     if (response) {
-      localStorage.setItem('emailNeedToVerify', values.email)
+      localStorage.setItem("emailNeedToVerify", values.email);
       navigate("/verify-otp", { replace: true });
       message.success("Register successfully!");
-      return response
+      return response;
     }
     return null;
   };
 
-  const handleLogin = async (values: handleLoginProps) => {
-    console.log('Login: ', {...values, deviceInfo: deviceInfo})
-    const response = await login({...values, deviceInfo: deviceInfo});
+  const handleLogin = async (values: HandleLoginProps) => {
+    const response = await login({ ...values, deviceInfo });
     if (response) {
-      const token = response.data.accessToken
-      const decoded = jwtDecode(token);
-      console.log('decoded: ', decoded);
+      const token = response.data.accessToken;
+      const decoded = jwtDecode<User>(token); // ✅ ép kiểu User
+
+      console.log("decoded:", decoded);
+
+      // ✅ cập nhật context để Header tự re-render
+      setAuthUser(decoded, token);
+
       message.success("Login successfully!");
-      localStorage.setItem('token', token)
-      localStorage.setItem('user', JSON.stringify(decoded));
-      navigate('/')
+      navigate("/");
     }
 
     return null;
@@ -64,4 +70,4 @@ const userAuth = () => {
   return { handleRegister, handleLogin };
 };
 
-export default userAuth;
+export default UserAuth;
