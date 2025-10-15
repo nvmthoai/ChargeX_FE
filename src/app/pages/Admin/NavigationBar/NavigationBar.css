@@ -1,0 +1,98 @@
+.navigation-bar-container {
+    width: 260px;
+    height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 0 16px;
+    background-color: #fff;
+    border-right: 2px solid #ddd;
+    position: fixed !important;
+    scrollbar-width: none;
+    user-select: none;
+    font-family: 'Quicksand', Arial, sans-serif;
+    z-index: 2;
+
+    a {
+        .logo {
+            padding: 16px;
+            color: #ffb107;
+            font-size: 40px;
+            font-weight: bold;
+            text-align: center;
+        }
+    }
+
+    .items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .item {
+            border: 2px solid transparent;
+            border-radius: 12px;
+            box-sizing: border-box;
+
+            a {
+                padding: 14px 16px;
+                color: #555;
+                display: flex;
+                justify-content: start;
+                align-items: center;
+                gap: 16px;
+                font-weight: bold;
+            }
+        }
+
+        .item:hover {
+            border: 2px solid #eee;
+            background-color: #eee;
+        }
+
+        .located,
+        .located:hover {
+            border: 2px solid #7ed957;
+            background-color: #7ed95740;
+
+            a {
+                color: #28a745;
+            }
+        }
+    }
+}
+
+.simple-navigation-bar-container {
+    background-color: #555;
+    border-right: 2px solid #333;
+
+    .items {
+        .item {
+            a {
+                color: #aaa;
+
+                &.management {
+                    justify-content: space-between;
+                }
+            }
+        }
+
+        .item:hover {
+            border: 2px solid #666;
+            background-color: #666;
+        }
+
+        .located,
+        .located:hover {
+            border: 2px solid #7ed95780;
+            background-color: #7ed95740;
+
+            a {
+                color: #7ed957;
+            }
+        }
+    }
+}
+
+.admin-container {
+    width: 100%;
+    margin: 0 0 0 260px;
+}

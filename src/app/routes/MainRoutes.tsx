@@ -10,14 +10,18 @@ import Profile from "../pages/Profile/Profile";
 import ProfileDetail from "../pages/Profile/ProfileDetail/ProfileDetail";
 import ProfileSecurity from "../pages/Profile/ProfileSecurity/ProfileSecurity";
 import AuthRoute from "./AuthRoute";
-import KnowYourCus from '../pages/KYC/KnowYourCus';
+import KnowYourCus from "../pages/KYC/KnowYourCus";
 
 import VerifyOTPPage from "../pages/Verify-Otp";
+
+import NavigationBar from "../pages/Admin/NavigationBar/NavigationBar";
+import UserManagement from "../pages/Admin/UserManagement/UserManagement";
+import TransactionManagement from "../pages/Admin/TransactionManagement/TransactionManagement";
 
 export default function MainRoutes() {
   return (
     <BrowserRouter>
-      <Header />
+      {/* <Header /> */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -29,13 +33,19 @@ export default function MainRoutes() {
           <Route index element={<Navigate to="detail" replace />} />
           <Route path="detail" element={<ProfileDetail />} />
           <Route path="security" element={<ProfileSecurity />} />
-          <Route path='kyc' element={<KnowYourCus />} />
+          <Route path="kyc" element={<KnowYourCus />} />
 
         </Route>
-          {/* <Route path='/kyc' element={<KnowYourCus />} /> */}
+        {/* <Route path="/kyc" element={<KnowYourCus />} /> */}
         <Route path="/productdetail/:id" element={<ProductDetail />} />
         <Route path="/auction/:id" element={<Auction />} />
         {/* <Route path="/cart" element={<Cart />} /> */}
+
+        <Route path="/admin" element={<Navigate to="/admin/user-management" replace />} />
+        <Route path="/admin" element={<NavigationBar />} >
+          <Route path="user-management" element={<UserManagement />} />
+          <Route path="transaction-management" element={<TransactionManagement />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
