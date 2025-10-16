@@ -15,6 +15,7 @@ import KnowYourCus from '../pages/KYC/KnowYourCus';
 import VerifyOTPPage from "../pages/Verify-Otp";
 import PaymentSuccess from "../pages/Payment/success";
 import PaymentError from "../pages/Payment/error";
+import AddressManagement from "../pages/Manage-Address";
 
 export default function MainRoutes() {
   return (
@@ -34,7 +35,7 @@ export default function MainRoutes() {
           <Route path="detail" element={<ProfileDetail />} />
           <Route path="security" element={<ProfileSecurity />} />
           <Route path='kyc' element={<KnowYourCus />} />
-
+          <Route path="address" element={<AddressManagement />} />
         </Route>
           {/* <Route path='/kyc' element={<KnowYourCus />} /> */}
         <Route path="/productdetail/:id" element={<ProductDetail />} />
