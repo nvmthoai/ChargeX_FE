@@ -29,7 +29,7 @@ export default function VerifyOptions({ profileId }: { profileId?: string }) {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-6 space-y-10">
+    <div className="max-w-5xl mx-auto py-10 px-6 space-y-10 profile-content">
       {/* Header */}
       <header>
         <h1 className="text-3xl font-bold text-gray-900">Verify your identity</h1>

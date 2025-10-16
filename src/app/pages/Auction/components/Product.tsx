@@ -1,25 +1,15 @@
 import { useEffect, useState } from "react";
 
-
 export default function Product() {
 
-    const [information, setInformation] = useState({
+    const information = {
         title: "Tesla Model 3 Long Range",
         year: "2022",
         imageUrl: "",
         startingBid: 35000,
         currentBid: 38500,
         endTime: "00h 45m 32s",
-    })
-
-    interface AuctionItemProps {
-        title: string;
-        year: number;
-        imageUrl: string;
-        startingBid: number;
-        currentBid: number;
-        endTime: Date; // Thời gian kết thúc phiên đấu giá
-    }
+    };
 
     // Hàm tính thời gian còn lại
     const calculateTimeLeft = () => {
