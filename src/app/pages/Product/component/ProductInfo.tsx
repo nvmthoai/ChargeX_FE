@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { Clock3, MapPin, Phone, Star } from "lucide-react";
 import type { Product } from "../../../../api/product/type";
+import { createOrder } from "../../../../api/order/api";
+import { useNavigate } from "react-router-dom";
+import { OrderStatus } from "../../../../api/order/type";
 
 export default function ProductInfo({ product }: { product: Product }) {
   const [bid, setBid] = useState<number>(
     Number(product.price_now ?? product.price_start) + 10
   );
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
+  // ⭐ Render stars
   const renderStars = (rating: number) => {
     const rounded = Math.round(rating);
     return (
@@ -22,7 +28,53 @@ export default function ProductInfo({ product }: { product: Product }) {
     );
   };
 
-  const avgRating = 4.5; 
+  // 🛒 Handle Buy Now
+  const handleBuyNow = async () => {
+    try {
+      setLoading(true);
+
+      // ✅ Lấy user từ localStorage
+      const userData = localStorage.getItem("user");
+      const user = userData ? JSON.parse(userData) : null;
+
+      if (!user?.sub) {
+        alert("Bạn cần đăng nhập trước khi mua hàng!");
+        return;
+      }
+
+      // ✅ Chuẩn bị payload đúng schema backend
+      const payload = {
+         buyer_id: user?.sub,
+        seller_id: product.seller.userId,
+        productId: product.id,
+        price: Number(product.price_buy_now),
+        shipping_fee: 20000,
+        shipping_provider: "GHTK",
+        shipping_code: "AUTO-" + Date.now(),
+        status: OrderStatus.PENDING,
+        contract_url: "https://example.com/contracts/sample.pdf",
+        pickup_address_id: "a1234-5678-seller",
+        delivery_address_id: "b1234-5678-buyer",
+      };
+
+      console.log("📦 Order payload gửi backend:", payload);
+      console.log("product", product);
+
+      // ✅ Gọi API tạo order
+      const order = await createOrder(payload);
+      console.log("✅ Order created:", order);
+
+      // 🔁 Điều hướng sang Checkout
+      navigate(`/checkout?orderId=${order.order_id}`);
+    } catch (error) {
+      console.error("❌ Buy Now error:", error);
+      alert("Không thể tạo đơn hàng, vui lòng thử lại!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const avgRating = 4.5;
   const reviews = [
     { id: 1, reviewer_id: 12, rating: 5, comment: "Giao nhanh, sản phẩm tốt" },
     { id: 2, reviewer_id: 45, rating: 4, comment: "Pin còn khá mới" },
@@ -32,17 +84,14 @@ export default function ProductInfo({ product }: { product: Product }) {
     <div className="max-w-2xl space-y-6 p-6 item bg-white rounded-lg">
       {/* Product Info */}
       <div className="space-y-3 border-b border-gray-100 pb-6">
-        {/* Title */}
         <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight leading-snug">
           {product.title}
         </h1>
 
-        {/* Description */}
         <p className="text-lg text-gray-700 leading-relaxed max-w-prose">
           {product.description}
         </p>
 
-        {/* Sub-info */}
         <div className="flex items-center justify-between text-sm text-gray-500 mt-4">
           <span className="flex items-center gap-1">
             <svg
@@ -61,17 +110,14 @@ export default function ProductInfo({ product }: { product: Product }) {
             </svg>
             {product.createdAt
               ? new Date(product.createdAt).toLocaleDateString("vi-VN", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })
               : "—"}
           </span>
-
-
         </div>
       </div>
-
 
       {/* Current Bid + Timer */}
       {product.is_auction && (
@@ -93,7 +139,6 @@ export default function ProductInfo({ product }: { product: Product }) {
             </span>
           </div>
 
-          {/* Bid Input */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Your Bid</label>
             <div className="flex gap-2">
@@ -135,15 +180,19 @@ export default function ProductInfo({ product }: { product: Product }) {
 
       {/* Buy Now */}
       <div className="flex gap-3">
-        <button className="flex-1 bg-[#0F74C7] hover:bg-[#3888ca] text-white px-4 py-2 rounded font-medium">
-          Buy Now • ${Number(product.price_buy_now).toLocaleString()}
+        <button
+          onClick={handleBuyNow}
+          disabled={loading}
+          className="flex-1 bg-[#0F74C7] hover:bg-[#3888ca] text-white px-4 py-2 rounded font-medium"
+        >
+          {loading
+            ? "Đang xử lý..."
+            : `Buy Now • $${Number(product.price_buy_now).toLocaleString()}`}
         </button>
         <button className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium">
           Add to Watchlist
         </button>
       </div>
-
-
 
       {/* Specifications */}
       <div className="pt-6">
@@ -198,9 +247,6 @@ export default function ProductInfo({ product }: { product: Product }) {
           </table>
         </div>
       </div>
-
-
-
 
       {/* Reviews */}
       <div className="bg-white p-6 space-y-6">

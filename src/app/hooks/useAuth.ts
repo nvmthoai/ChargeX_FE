@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { getDeviceInfoString } from "../utils";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "./AuthContext";
-import type { User } from "./AuthContext";
+import type { User } from "../.././api/user/type";
+
 
 interface HandleRegisterProps {
   email: string;
