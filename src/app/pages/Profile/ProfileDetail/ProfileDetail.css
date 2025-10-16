@@ -1,0 +1,49 @@
+.profiledetail-container {
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px 24px;
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+
+            label {
+                font-size: 14px;
+                font-weight: bold;
+                margin-bottom: 6px;
+                color: #333;
+            }
+
+            input {
+
+                &:focus {
+                    border-color: #2563eb;
+                    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+                }
+            }
+        }
+
+        .form-actions {
+            grid-column: span 2;
+            margin-top: 12px;
+
+            .btn {
+                color: #fff;
+                background-color: #0F74C7FF;
+                border-radius: 6px;
+
+                &:hover {
+                    background-color: #0A4D84FF;
+                }
+            }
+        }
+    }
+
+    @media (max-width: 600px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+}
