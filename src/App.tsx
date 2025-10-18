@@ -1,11 +1,13 @@
 import './App.css'
 import MainRoutes from "./app/routes/MainRoutes";
-
+import { App as AntdApp } from "antd";
 function App() {
 
   return (
     <>
-      <MainRoutes />;
+ <AntdApp>
+      <MainRoutes />
+      </AntdApp>
     </>
   )
 }
