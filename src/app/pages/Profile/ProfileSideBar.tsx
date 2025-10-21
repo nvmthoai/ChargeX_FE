@@ -14,6 +14,7 @@ export default function ProfileSideBar() {
 
     const ListOption = [
         { name: "Profile Details", link: "detail" },
+        { name: "Address", link: "address" },
         { name: "Security Settings", link: "security" },
         { name: "Notification Preferences", link: "notification" },
         { name: "Linked Accounts", link: "linked-account" },
