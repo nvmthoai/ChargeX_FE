@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { AlertTriangle, User, UploadCloud } from "lucide-react";
+import { AlertTriangle, User } from "lucide-react";
 import { postKycProfile } from "../.././../../api/kyc/api";
 import KycUploadModal from "./KycUploadModal";
 
-export default function VerifyOptions() {
+export default function VerifyOptions({ profileId }: { profileId?: string }) {
+
   const [modalMode, setModalMode] = useState<"basic" | "advanced" | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -18,7 +19,7 @@ export default function VerifyOptions() {
       const res = await postKycProfile({ level: mode, note });
       console.log("✅ KYC created:", res);
 
-      setModalMode(mode); // mở popup upload tài liệu
+      setModalMode(mode);
     } catch (error) {
       console.error("❌ Failed to create KYC:", error);
       alert("Cannot create KYC profile, please try again later.");
@@ -44,7 +45,7 @@ export default function VerifyOptions() {
       </div>
 
       {/* Options */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <section className=" gap-6">
         {/* Basic */}
         <div className="border rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition">
           <div className="flex flex-col space-y-4">
@@ -56,9 +57,8 @@ export default function VerifyOptions() {
             <button
               disabled={loading}
               onClick={() => handleVerification("basic")}
-              className={`${
-                loading ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
-              } text-white text-sm font-medium rounded-lg py-2 px-5 mt-2`}
+              className={`${loading ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
+                } text-white text-sm font-medium rounded-lg py-2 px-5 mt-2`}
             >
               {loading ? "Processing..." : "Start Basic Verification"}
             </button>
@@ -66,7 +66,7 @@ export default function VerifyOptions() {
         </div>
 
         {/* Advanced */}
-        <div className="border rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition">
+        {/* <div className="border rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition">
           <div className="flex flex-col space-y-4">
             <UploadCloud size={46} className="text-indigo-600" />
             <h3 className="font-semibold text-lg text-gray-900">Advanced Verification</h3>
@@ -83,12 +83,16 @@ export default function VerifyOptions() {
               {loading ? "Processing..." : "Upgrade Now"}
             </button>
           </div>
-        </div>
+        </div> */}
       </section>
 
       {/* Modal */}
       {modalMode && (
-        <KycUploadModal mode={modalMode} onClose={() => setModalMode(null)} />
+        <KycUploadModal
+          mode={modalMode}
+          profileId={profileId ?? ""}
+          onClose={() => setModalMode(null)}
+        />
       )}
     </div>
   );
