@@ -3,7 +3,7 @@ import Header from "../layouts/Header/Header";
 import About from "../pages/About/About";
 import Auction from "../pages/Auction/Auction";
 import AuthPage from "../pages/Auth/auth";
-// import Cart from "../pages/Cart/Cart";
+import Cart from "../pages/Cart/Cart";
 import Home from "../pages/Home/Home";
 import ProductDetail from "../pages/Product/ProductDetail";
 import Profile from "../pages/Profile/Profile";
@@ -35,7 +35,7 @@ export default function MainRoutes() {
           {/* <Route path='/kyc' element={<KnowYourCus />} /> */}
         <Route path="/productdetail/:id" element={<ProductDetail />} />
         <Route path="/auction/:id" element={<Auction />} />
-        {/* <Route path="/cart" element={<Cart />} /> */}
+        <Route path="/cart" element={<Cart />} />
       </Routes>
     </BrowserRouter>
   );
