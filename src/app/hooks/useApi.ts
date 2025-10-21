@@ -6,7 +6,7 @@ const useApiService = () => {
   const [loading, setIsLoading] = useState<boolean>(false);
   const callApi = useCallback(
     async (
-      method: "get" | "post" | "put" | "delete",
+      method: "get" | "post" | "put" | "delete" | "patch",
       url: string,
       data?: any
     ) => {
@@ -22,7 +22,9 @@ const useApiService = () => {
           response = await api.put(url, data);
         } else if (method === "delete") {
           response = await api.delete(url, { data });
-        } else {
+        } else if (method === "patch") {
+          response = await api.patch(url, data);
+        }else {
           throw new Error(`Unsupported method: ${method}`);
         }
 
