@@ -1,5 +1,4 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import Header from "../layouts/Header/Header";
 import About from "../pages/About/About";
 import Auction from "../pages/Auction/Auction";
 import AuthPage from "../pages/Auth/auth";
@@ -24,7 +23,6 @@ import TransactionManagement from "../pages/Admin/TransactionManagement/Transact
 export default function MainRoutes() {
   return (
     <BrowserRouter>
-      {/* <Header /> */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -44,6 +42,7 @@ export default function MainRoutes() {
         {/* <Route path="/kyc" element={<KnowYourCus />} /> */}
         <Route path="/productdetail/:id" element={<ProductDetail />} />
         <Route path="/auction/:id" element={<Auction />} />
+
         <Route path="/admin" element={<Navigate to="/admin/user-management" replace />} />
         <Route path="/admin" element={<NavigationBar />} >
           <Route path="user-management" element={<UserManagement />} />
