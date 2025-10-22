@@ -13,7 +13,7 @@ export default function ProductDetail() {
     if (!id) return;
     getProductById(id)
       .then((res) => {
-        setProduct(res.data); 
+        setProduct(res); 
       })
       .catch((err) => console.error("Lỗi lấy sản phẩm:", err))
       .finally(() => setLoading(false));
