@@ -40,7 +40,7 @@
         gap: 8px;
         padding: 8px 16px;
         border-radius: 6px;
-        border: 1px solid var(--gray-3);
+        border: 2px solid var(--gray-3);
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
@@ -50,7 +50,7 @@
     .btn-primary {
         background-color: var(--button-primary-bg);
         color: var(--button-primary-text);
-        gray-3: var(--button-primary-bg);
+        border-color: var(--button-primary-bg);
     }
 
     .btn-primary:hover {
@@ -93,7 +93,7 @@
         /* Cho phép thanh tìm kiếm co dãn */
         align-items: center;
         background-color: var(--gray-2);
-        border: 1px solid var(--gray-3);
+        border: 2px solid var(--gray-3);
         border-radius: 6px;
         padding: 0 12px;
     }
@@ -129,7 +129,7 @@
 
     .stat-card {
         background-color: var(--gray-2);
-        border: 1px solid var(--gray-3);
+        border: 2px solid var(--gray-3);
         border-radius: 8px;
         padding: 20px;
         display: flex;
@@ -151,7 +151,7 @@
     /* 4. Customer Table */
     .customer-table-container {
         background-color: var(--gray-2);
-        border: 1px solid var(--gray-3);
+        border: 2px solid var(--gray-3);
         border-radius: 8px;
         overflow: hidden;
         /* Để bo góc cho bảng */
@@ -167,7 +167,7 @@
         padding: 16px 20px;
         text-align: left;
         vertical-align: middle;
-        border-bottom: 1px solid var(--gray-3);
+        border-bottom: 2px solid var(--gray-3);
     }
 
     .customer-table th {
