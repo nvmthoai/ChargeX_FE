@@ -54,7 +54,7 @@ export default function ProductInfo({ product }: { product: Product }) {
         status: OrderStatus.PENDING,
         contract_url: "https://example.com/contracts/sample.pdf",
         pickup_address_id: "a1234-5678-seller",
-        delivery_address_id: "b1234-5678-buyer",
+        delivery_address_id: user.delivery_address_id,
       };
 
       console.log("📦 Order payload gửi backend:", payload);
