@@ -1,5 +1,5 @@
 // api.ts
-const apiUrl: string = import.meta.env.VITE_REACT_APP_API_URL as string;
+const apiUrl: string = import.meta.env.VITE_API_URL as string;
 
 console.log(apiUrl);
 

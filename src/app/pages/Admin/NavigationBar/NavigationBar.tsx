@@ -8,7 +8,7 @@ export default function NavigationBar() {
     console.log('NavigationBar', location.pathname);
 
     const menuItems = [
-        { name: 'USER', icon: 'user', path: '/admin/user-management' },
+        { name: 'MEMBER', icon: 'user', path: '/admin/user-management' },
         { name: 'TRANSACTION', icon: 'dollar', path: '/admin/transaction-management' },
         { name: 'POST', icon: 'clipboard', path: '/post-management' },
         { name: 'REPORT', icon: 'circle-exclamation', path: '/report-management' },
