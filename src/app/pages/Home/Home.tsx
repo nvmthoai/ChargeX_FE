@@ -1,5 +1,7 @@
+
 import { useState } from "react";
-import { products } from "./data";
+import useProduct from "../../hooks/useProduct";
+
 
 export default function EVMarketplace() {
   const [priceRange, setPriceRange] = useState([0, 100000]);
@@ -10,7 +12,8 @@ export default function EVMarketplace() {
   const [selectedVehicleTypes, setSelectedVehicleTypes] = useState<string[]>(
     []
   );
-
+  const {products} = useProduct();
+  
   const makes = ["Audi", "BMW", "Lucid", "Nissan", "Chevrolet", "Porsche"];
   const conditions = ["New", "Used", "Refurbished"];
   const vehicleTypes = ["EV", "E-bike", "Scooter"];
@@ -39,14 +42,25 @@ export default function EVMarketplace() {
     }
   };
 
+  const getDisplayPrice = (product: (typeof products)[0]) => {
+    if (product.price_now)
+      return `$${Number(product.price_now).toLocaleString()}`;
+    if (product.price_buy_now)
+      return `$${Number(product.price_buy_now).toLocaleString()}`;
+    return `$${Number(product.price_start).toLocaleString()}`;
+  };
+
+  const getCondition = (product: (typeof products)[0]) => {
+    if (product.condition_grade) return `Grade ${product.condition_grade}`;
+    return product.status === "active" ? "Active" : "Draft";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          {/* Left side - Logo and breadcrumb */}
           <div className="flex items-center space-x-6">
-            <div className="text-sm text-gray-500 ">Marketplace Home</div>
+            <div className="text-sm text-gray-500">Marketplace Home</div>
             <div className="flex items-center space-x-2">
               <div className="text-indigo-600 font-bold text-xl">
                 ⚡EVTradeHub
@@ -54,7 +68,6 @@ export default function EVMarketplace() {
             </div>
           </div>
 
-          {/* Center - Search */}
           <div className="flex-1 max-w-md mx-8">
             <div className="relative">
               <input
@@ -80,7 +93,6 @@ export default function EVMarketplace() {
             </div>
           </div>
 
-          {/* Right side - Actions */}
           <div className="flex items-center space-x-4">
             <button className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-900">
               <svg
@@ -125,7 +137,6 @@ export default function EVMarketplace() {
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="flex gap-6">
-          {/* Left Sidebar - Filters */}
           <div className="w-80 bg-white rounded-lg p-6 h-fit">
             <div className="flex items-center space-x-2 mb-6">
               <svg
@@ -144,7 +155,6 @@ export default function EVMarketplace() {
               <h3 className="font-semibold text-lg">Filters</h3>
             </div>
 
-            {/* Vehicle Type */}
             <div className="mb-6">
               <h4 className="font-medium mb-3">Vehicle Type</h4>
               <div className="space-y-2">
@@ -164,7 +174,6 @@ export default function EVMarketplace() {
               </div>
             </div>
 
-            {/* Make */}
             <div className="mb-6">
               <h4 className="font-medium mb-3">Make</h4>
               <div className="space-y-2">
@@ -182,7 +191,6 @@ export default function EVMarketplace() {
               </div>
             </div>
 
-            {/* Condition */}
             <div className="mb-6">
               <h4 className="font-medium mb-3">Condition</h4>
               <div className="space-y-2">
@@ -204,7 +212,6 @@ export default function EVMarketplace() {
               </div>
             </div>
 
-            {/* Price Range */}
             <div className="mb-6">
               <h4 className="font-medium mb-3">Price Range</h4>
               <input
@@ -223,7 +230,6 @@ export default function EVMarketplace() {
               </div>
             </div>
 
-            {/* Battery Capacity */}
             <div className="mb-6">
               <h4 className="font-medium mb-3">Battery Capacity</h4>
               <input
@@ -242,7 +248,6 @@ export default function EVMarketplace() {
               </div>
             </div>
 
-            {/* Year */}
             <div className="mb-6">
               <h4 className="font-medium mb-3">Year</h4>
               <input
@@ -261,7 +266,6 @@ export default function EVMarketplace() {
               </div>
             </div>
 
-            {/* Location */}
             <div className="mb-6">
               <h4 className="font-medium mb-3">Location</h4>
               <input
@@ -271,7 +275,6 @@ export default function EVMarketplace() {
               />
             </div>
 
-            {/* Action Buttons */}
             <div className="space-y-3">
               <button className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
                 Apply Filters
@@ -286,7 +289,6 @@ export default function EVMarketplace() {
           <div className="flex-1">
             <h1 className="text-2xl font-bold mb-6">Explore EVs & Batteries</h1>
 
-            {/* Product Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {products.map((product) => (
                 <div
@@ -294,41 +296,57 @@ export default function EVMarketplace() {
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   <img
-                    src={product.image || "/placeholder.svg"}
+                    src={product.imageUrls[0] || "/placeholder.svg"}
                     alt={product.title}
                     className="h-48 w-full object-cover"
                   />
                   <div className="p-4 space-y-3">
-                    <h3 className="font-semibold text-lg line-clamp-2">
-                      {product.title}
-                    </h3>
-                    <div className="text-2xl font-bold text-indigo-600">
-                      {product.price}
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-semibold text-lg line-clamp-2 flex-1">
+                        {product.title}
+                      </h3>
+                      {product.is_auction && (
+                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded whitespace-nowrap">
+                          Auction
+                        </span>
+                      )}
                     </div>
+
+                    <div className="text-2xl font-bold text-indigo-600">
+                      {getDisplayPrice(product)}
+                    </div>
+
                     <p className="text-gray-600 text-sm line-clamp-3">
                       {product.description}
                     </p>
 
+                    {product.soh_percent && (
+                      <div className="text-xs text-gray-600 space-y-1">
+                        <div>SOH: {product.soh_percent}%</div>
+                        {product.cycle_count && (
+                          <div>Cycles: {product.cycle_count}</div>
+                        )}
+                        {product.nominal_voltage_v && (
+                          <div>Voltage: {product.nominal_voltage_v}V</div>
+                        )}
+                        {product.weight_kg && (
+                          <div>Weight: {product.weight_kg}kg</div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          product.condition === "New"
+                          getCondition(product) === "Active"
                             ? "bg-green-100 text-green-800"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {product.condition}
+                        {getCondition(product)}
                       </span>
-                      <div className="flex items-center space-x-1">
-                        <svg
-                          className="h-4 w-4 text-yellow-400 fill-current"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        <span className="text-sm font-medium">
-                          {product.rating}
-                        </span>
+                      <div className="text-xs text-gray-500">
+                        by {product.seller.fullName}
                       </div>
                     </div>
 
@@ -340,7 +358,6 @@ export default function EVMarketplace() {
               ))}
             </div>
 
-            {/* Pagination */}
             <div className="flex justify-center space-x-2">
               <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
                 Previous
@@ -359,7 +376,6 @@ export default function EVMarketplace() {
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex justify-between items-center">
