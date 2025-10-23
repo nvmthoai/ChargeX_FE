@@ -17,269 +17,236 @@
 .user-management-container {
     background-color: var(--gray-1);
 
-    /* 1. Header */
     .main-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
+        margin: 0 0 24px;
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border-color: var(--button-primary-bg);
+
+            &:hover {
+                background-color: #E6EDF3;
+            }
+
+            svg {
+                color: var(--button-primary-text);
+            }
+        }
     }
 
-    .main-header h1 {
-        font-size: 28px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
-    }
-
-    /* Nút chung */
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 6px;
-        border: 2px solid var(--gray-3);
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .btn-primary {
-        background-color: var(--button-primary-bg);
-        color: var(--button-primary-text);
-        border-color: var(--button-primary-bg);
-    }
-
-    .btn-primary:hover {
-        background-color: #E6EDF3;
-    }
-
-    .btn-primary svg {
-        color: var(--button-primary-text);
-    }
-
-    .btn-secondary {
-        background-color: var(--button-secondary-bg);
-        color: var(--text-primary);
-    }
-
-    .btn-secondary:hover {
-        background-color: #30363D;
-    }
-
-    .btn-secondary svg {
-        color: var(--text-secondary);
-    }
-
-    .btn-export {
-        margin-left: auto;
-        /* Đẩy nút "Xuất danh sách" sang phải */
-    }
-
-
-    /* 2. Controls */
     .controls {
         display: flex;
         gap: 16px;
-        margin-bottom: 24px;
+        margin: 0 0 24px;
+
+        .search-bar {
+            display: flex;
+            flex-grow: 1;
+            align-items: center;
+            background-color: var(--gray-2);
+            border: 2px solid var(--gray-3);
+            border-radius: 6px;
+            padding: 0 12px;
+
+            .icon {
+                color: var(--text-secondary);
+                margin: 0 8px 0 0;
+                display: flex;
+                align-items: center;
+            }
+
+            input {
+                width: 100%;
+                color: var(--text-primary);
+                padding: 8px 0;
+            }
+        }
+
+        .btn-secondary {
+            background-color: var(--button-secondary-bg);
+            color: var(--text-primary);
+
+            &:hover {
+                background-color: #30363D;
+            }
+
+            svg {
+                color: var(--text-secondary);
+            }
+        }
+
+        .btn-export {
+            margin-left: auto;
+        }
     }
 
-    .search-bar {
-        display: flex;
-        flex-grow: 1;
-        /* Cho phép thanh tìm kiếm co dãn */
-        align-items: center;
-        background-color: var(--gray-2);
-        border: 2px solid var(--gray-3);
-        border-radius: 6px;
-        padding: 0 12px;
-    }
-
-    .search-bar .icon {
-        color: var(--text-secondary);
-        margin-right: 8px;
-        display: flex;
-        align-items: center;
-    }
-
-    .search-bar input {
-        width: 100%;
-        background: none;
-        border: none;
-        outline: none;
-        color: var(--text-primary);
-        font-size: 14px;
-        padding: 10px 0;
-    }
-
-    .search-bar input::placeholder {
-        color: var(--text-secondary);
-    }
-
-    /* 3. Stats Grid */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 16px;
-        margin-bottom: 24px;
+        margin: 0 0 24px;
+
+        .stat-card {
+            background-color: var(--gray-2);
+            border: 2px solid var(--gray-3);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+
+            .stat-title {
+                font-size: 14px;
+                color: var(--text-secondary);
+                margin: 0 0 8px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+        }
     }
 
-    .stat-card {
-        background-color: var(--gray-2);
-        border: 2px solid var(--gray-3);
-        border-radius: 8px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .stat-title {
-        font-size: 14px;
-        color: var(--text-secondary);
-        margin-bottom: 8px;
-    }
-
-    .stat-value {
-        font-size: 28px;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    /* 4. Customer Table */
     .customer-table-container {
+        color: var(--text-1);
         background-color: var(--gray-2);
         border: 2px solid var(--gray-3);
         border-radius: 8px;
         overflow: hidden;
-        /* Để bo góc cho bảng */
-    }
 
-    .customer-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+        .customer-table {
+            width: 100%;
+            border-collapse: collapse;
 
-    .customer-table th,
-    .customer-table td {
-        padding: 16px 20px;
-        text-align: left;
-        vertical-align: middle;
-        border-bottom: 2px solid var(--gray-3);
-    }
+            th,
+            td {
+                padding: 16px 20px;
+                text-align: left;
+                vertical-align: middle;
+                border-bottom: 2px solid var(--gray-3);
+            }
 
-    .customer-table th {
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
+            th {
+                font-size: 12px;
+                font-weight: 500;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
 
-    .customer-table tbody tr:last-child td {
-        border-bottom: none;
-        /* Xóa đường viền của hàng cuối cùng */
-    }
+            tbody {
+                tr:last-child {
+                    td {
+                        border-bottom: none;
+                    }
+                }
 
-    /* Căn chỉnh nội dung ô */
-    .customer-name-cell {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
+                .customer-name-cell {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
 
-    .avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        font-weight: 600;
-        color: #FFFFFF;
-        flex-shrink: 0;
-    }
+                    .avatar {
+                        width: 36px;
+                        height: 36px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #FFFFFF;
+                        flex-shrink: 0;
 
-    /* Màu avatar */
-    .avatar-t {
-        background-color: var(--avatar-t);
-    }
+                        &.avatar-t {
+                            background-color: var(--avatar-t);
+                        }
 
-    .avatar-l {
-        background-color: var(--avatar-l);
-    }
+                        &.avatar-l {
+                            background-color: var(--avatar-l);
+                        }
 
-    .avatar-p {
-        background-color: var(--avatar-p);
-    }
+                        &.avatar-p {
+                            background-color: var(--avatar-p);
+                        }
 
-    .avatar-v {
-        background-color: var(--avatar-v);
-    }
+                        &.avatar-v {
+                            background-color: var(--avatar-v);
+                        }
+                    }
 
-    .customer-info {
-        display: flex;
-        flex-direction: column;
-    }
+                    .customer-info {
+                        display: flex;
+                        flex-direction: column;
 
-    .customer-info .name {
-        font-weight: 500;
-        color: var(--text-primary);
-    }
+                        .name {
+                            font-weight: 500;
+                            color: var(--text-primary);
+                        }
 
-    .customer-info .role {
-        font-size: 13px;
-        color: var(--text-secondary);
-    }
+                        .role {
+                            font-size: 13px;
+                            color: var(--text-secondary);
+                        }
+                    }
+                }
 
-    .booking-badge {
-        background-color: var(--badge-bg);
-        color: var(--badge-text);
-        padding: 4px 10px;
-        border-radius: 16px;
-        font-size: 13px;
-        font-weight: 500;
-    }
+                .badge {
+                    background-color: var(--badge-bg);
+                    color: var(--badge-text);
+                    padding: 4px 10px;
+                    border-radius: 16px;
+                    font-size: 13px;
+                    font-weight: 500;
+                }
 
-    .status {
-        font-size: 14px;
-    }
+                .status {
+                    font-size: 14px;
 
-    .status.active {
-        color: var(--text-primary);
-    }
+                    &.inactive {
+                        color: var(--text-secondary);
+                    }
+                }
 
-    .status.inactive {
-        color: var(--text-secondary);
-    }
+                .action-buttons {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
 
-    .action-buttons {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
+                    .action-btn {
+                        background: none;
+                        border: none;
+                        color: var(--text-secondary);
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        padding: 0;
 
-    .action-btn {
-        background: none;
-        border: none;
-        color: var(--text-secondary);
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-        font-size: 14px;
-        padding: 0;
-    }
+                        &:hover {
+                            color: var(--text-primary);
+                        }
 
-    .action-btn svg {
-        width: 14px;
-        height: 14px;
-    }
-
-    .action-btn:hover {
-        color: var(--text-primary);
+                        svg {
+                            width: 14px;
+                            height: 14px;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

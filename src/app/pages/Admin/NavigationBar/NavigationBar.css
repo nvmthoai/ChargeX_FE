@@ -16,7 +16,7 @@
     position: fixed !important;
     scrollbar-width: none;
     user-select: none;
-    font-family: 'Roboto', Arial, sans-serif;
+    font-family: 'Inter', Arial, sans-serif;
     z-index: 2;
 
     a {
@@ -70,11 +70,38 @@
 .admin-container {
     width: 100%;
     padding: 0 0 0 260px;
+    font-family: 'Inter', Arial, sans-serif;
 
     .inner-container {
         width: 100%;
         min-height: 100vh;
         padding: 20px;
         box-sizing: border-box;
+
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 2px solid var(--gray-3);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        input {
+            background-color: transparent;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            padding: 8px;
+
+            &::placeholder {
+                color: var(--text-secondary);
+            }
+        }
     }
 }
