@@ -16,7 +16,7 @@ export interface Order {
   shipping_provider?: string;
   shipping_code?: string;
   contract_pdf?: string;
-  pickup_address_id?: string;
+  pickup_address_id?: string | null;
   delivery_address_id?: string;
   status: OrderStatus;
   created_at?: string;

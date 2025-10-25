@@ -13,8 +13,8 @@ export const createOrder = async (
 ): Promise<Order> => {
   try {
     const res = await axiosInstance.post("/orders", payload);
-    console.log("✅ Order created:", res.data);
-    return res.data;
+    console.log("✅ Order created:", res.data.data);
+    return res.data.data;
   } catch (err) {
     console.error("❌ Error creating order:", err);
     throw err;
