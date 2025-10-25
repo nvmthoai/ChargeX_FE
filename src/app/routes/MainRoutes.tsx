@@ -24,16 +24,24 @@ import AddressManagement from "../pages/Manage-Address";
 import NavigationBar from "../pages/Admin/NavigationBar/NavigationBar";
 import UserManagement from "../pages/Admin/UserManagement/UserManagement";
 import TransactionManagement from "../pages/Admin/TransactionManagement/TransactionManagement";
+import Checkout from "../pages/Checkout/Checkout";
+import Header from "../layouts/Header/Header";
+// import Payment from "../pages/Payment/Payment";
 
 export default function MainRoutes() {
   return (
     <BrowserRouter>
+     <Header />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-error" element={<PaymentError />} />
         <Route path="/verify-otp" element={<VerifyOTPPage />} />
+        <Route path="/checkout" element={<Checkout />} />
+        {/* <Route path="/payment" element={<Payment />} /> */}
+
+
         <Route element={<AuthRoute />}>
           <Route path="/auth" element={<AuthPage />} />
         </Route>
