@@ -1,70 +1,81 @@
-import { Link, useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Info, Gavel, ShoppingBag } from "lucide-react";
 import { useAuth } from "../../hooks/AuthContext";
 
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
+  const menuItems = [
+    { to: "/", label: "Home", icon: ShoppingBag },
+    { to: "/auction", label: "Auction", icon: Gavel },
+    { to: "/shop", label: "Shop", icon: ShoppingBag },
+    { to: "/about", label: "About", icon: Info },
+  ];
+
   return (
-    <header className="bg-white border-b border-gray-200 shadow-sm mx-auto px-8 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
-          ☎
-        </div>
+    <header className="mx-auto bg-[#e8f0f5] px-8 py-3 shadow-sm flex items-center justify-between">
+      {/* Logo */}
+      <Link to="/">
+      <div className="flex items-center ">
+        <img
+          src="/chargeX_Logo.png"
+          alt="Logo"
+          className="w-12 h-12 object-contain"
+        />
       </div>
+      </Link>
 
-      <nav className="flex items-center gap-8 text-sm font-medium text-gray-600">
-        <Link to="/about" className="hover:text-gray-900 transition-colors">
-          About
-        </Link>
-        <Link to="/features" className="hover:text-gray-900 transition-colors">
-          Features
-        </Link>
-        <Link to="/pricing" className="hover:text-gray-900 transition-colors">
-          Pricing
-        </Link>
-
-        <div className="relative px-6">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-100/60 to-transparent skew-x-[-20deg] rounded-md" />
-          <Link
-            to="/"
-            className="relative z-10 text-center text-sm font-semibold tracking-wide"
-          >
-            <span className="block text-[10px] text-gray-400">THIS IS</span>
-            <span className="block text-lg font-bold text-gray-900">MY LOGO</span>
-          </Link>
-        </div>
-
-        <Link to="/wallet" className="hover:text-gray-900 transition-colors">
-          Wallet
-        </Link>
-        <Link to="/shop" className="hover:text-gray-900 transition-colors">
-          Shop
-        </Link>
+      {/* Menu */}
+      <nav className="flex items-center gap-6">
+        {menuItems.map((item) => {
+          const active =
+            location.pathname === item.to ||
+            location.pathname.startsWith(`${item.to}/`);
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${active
+                  ? "bg-sky-300/80 text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                }`}
+            >
+              <item.icon size={16} />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="flex items-center gap-4">
-        <button className="text-gray-500 hover:text-gray-800 transition-colors">
-          <Search size={18} />
-        </button>
 
+      {/* User Section */}
+      <div className="flex items-center gap-4">
         {user ? (
           <>
             <Link
               to="/profile"
-              className="border border-gray-300 text-gray-700 text-sm px-4 py-1.5 rounded-md hover:border-gray-800 hover:text-gray-900 transition-all"
+              className="flex items-center gap-3 bg-white rounded-full px-3 py-1.5 shadow-sm hover:bg-gray-50 transition-all"
             >
-              Profile
+              <span className="text-sm font-semibold text-gray-700">
+                Hello, {user.fullname || "User"} 👋
+              </span>
+              <img
+                src={"https://i.pravatar.cc/40"}
+                alt="avatar"
+                className="w-8 h-8 rounded-full object-cover"
+              />
             </Link>
+
             <button
               onClick={handleLogout}
-              className="text-gray-500 hover:text-gray-800 text-sm"
+              className="text-sm text-gray-500 hover:text-gray-800 transition"
             >
               Logout
             </button>
@@ -72,7 +83,7 @@ export default function Header() {
         ) : (
           <button
             onClick={() => navigate("/auth")}
-            className="border border-gray-300 text-gray-700 text-sm px-4 py-1.5 rounded-md hover:border-gray-800 hover:text-gray-900 transition-all"
+            className="px-4 py-1.5 bg-white rounded-full shadow text-sm font-medium text-gray-700 hover:text-gray-900 transition"
           >
             Login
           </button>
