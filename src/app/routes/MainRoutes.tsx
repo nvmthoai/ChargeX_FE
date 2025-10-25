@@ -31,7 +31,7 @@ import Header from "../layouts/Header/Header";
 export default function MainRoutes() {
   return (
     <BrowserRouter>
-     <Header />
+      <Header />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />

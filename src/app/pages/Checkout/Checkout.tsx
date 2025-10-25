@@ -71,7 +71,7 @@ export default function Checkout() {
         shipping_code: "AUTO-" + Date.now(),
         status: OrderStatus.PENDING,
         contract_url: "https://example.com/contracts/sample.pdf",
-        pickup_address_id: "",
+        pickup_address_id:product.seller.addressId,
         delivery_address_id: selectedAddressId,
       };
 
@@ -121,8 +121,8 @@ export default function Checkout() {
                 }}
                 onSelect={(id) => setSelectedAddressId(id)}
                 selectedAddressId={selectedAddressId}
-                onDelete={() => { }}        // không dùng
-                onSetDefault={() => { }}    // không dùng
+                onDelete={() => { }}    
+                onSetDefault={() => { }}   
               />
 
             )}
@@ -143,14 +143,14 @@ export default function Checkout() {
             <>
               <div className="flex items-center gap-4">
                 <img
-                  src={product.imageUrl || "/placeholder.png"}
-                  alt={product.title}
-                  className="w-24 h-24 rounded-md object-cover border"
+                  src={product?.imageUrls?.[0] || "/placeholder.png"}
+                  alt={product?.title || "product"}
+                  className="w-24 h-24 rounded-md object-cover"
                 />
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-900">{product.title}</span>
+                  <span className="font-semibold text-gray-900">{product?.title}</span>
                   <span className="text-gray-600 text-sm line-clamp-2">
-                    {product.description}
+                    {product?.description}
                   </span>
                 </div>
               </div>
