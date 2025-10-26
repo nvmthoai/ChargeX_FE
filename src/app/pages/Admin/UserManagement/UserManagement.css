@@ -7,11 +7,6 @@
     --button-secondary-bg: #21262D;
     --badge-bg: #1F2E4A;
     --badge-text: #58A6FF;
-
-    --avatar-t: #2DA44E;
-    --avatar-l: #8957E5;
-    --avatar-p: #D83A8F;
-    --avatar-v: #0D8ABC;
 }
 
 .user-management-container {
@@ -52,24 +47,23 @@
 
         .search-bar {
             display: flex;
-            flex-grow: 1;
+            flex: 1;
+            max-width: 400px;
             align-items: center;
             background-color: var(--gray-2);
             border: 2px solid var(--gray-3);
             border-radius: 6px;
             padding: 0 12px;
 
-            .icon {
+            i {
                 color: var(--text-secondary);
-                margin: 0 8px 0 0;
+                margin: 0 12px 0 0;
                 display: flex;
                 align-items: center;
             }
 
             input {
-                width: 100%;
                 color: var(--text-primary);
-                padding: 8px 0;
             }
         }
 
@@ -144,6 +138,10 @@
                 color: var(--text-secondary);
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
+
+                &.actions {
+                    width: 0px;
+                }
             }
 
             tbody {
@@ -157,35 +155,6 @@
                     display: flex;
                     align-items: center;
                     gap: 12px;
-
-                    .avatar {
-                        width: 36px;
-                        height: 36px;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 16px;
-                        font-weight: 600;
-                        color: #FFFFFF;
-                        flex-shrink: 0;
-
-                        &.avatar-t {
-                            background-color: var(--avatar-t);
-                        }
-
-                        &.avatar-l {
-                            background-color: var(--avatar-l);
-                        }
-
-                        &.avatar-p {
-                            background-color: var(--avatar-p);
-                        }
-
-                        &.avatar-v {
-                            background-color: var(--avatar-v);
-                        }
-                    }
 
                     .customer-info {
                         display: flex;
