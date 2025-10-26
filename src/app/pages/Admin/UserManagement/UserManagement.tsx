@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchData, getQueryString } from '../../../../mocks/CallingAPI';
+import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Pagination from '../../../components/Pagination/Pagination';
 import './UserManagement.css';
 
@@ -28,6 +29,7 @@ const UserManagement = () => {
     const [changeIsDeleteLoading, setChangeIsDeleteLoading] = useState(-1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [popupProps, setPopupProps] = useState<Record<string, any>>({});
 
     useEffect(() => {
         const token = localStorage.getItem('token') || '';
@@ -86,7 +88,7 @@ const UserManagement = () => {
         return;
     }
 
-    const changeIsDelete = (index: any, id: any, value: boolean) => {// Fix===
+    const changeIsDelete = ({ index, id, value }: any) => {// Fix===
         console.log('=F= changeStatus');
         console.log('index', index);
         setChangeIsDeleteLoading(index);
@@ -102,7 +104,7 @@ const UserManagement = () => {
     if (error) return <div className='admin-container'>Error</div>
     return (
         <div className='admin-container'>
-            <div className='inner-container user-management-container'>
+            <div className='inner-container management-container user-management-container'>
 
                 <header className='main-header'>
                     <h1>User Management</h1>
@@ -146,7 +148,7 @@ const UserManagement = () => {
                     </button>
                     <button className='btn btn-secondary btn-export'>
                         <span>Export list</span>
-                        <i className='fa-solid fa-chevron-down'/>
+                        <i className='fa-solid fa-chevron-down' />
                     </button>
                 </div>
 
@@ -177,7 +179,7 @@ const UserManagement = () => {
                                 <th>CUSTOMER</th>
                                 <th>EMAIL</th>
                                 <th>PHONE NUMBER</th>
-                                <th>ASIGN DATE</th>
+                                <th>ASIGN</th>
                                 {/* <th>POST</th> */}
                                 <th>STATUS</th>
                                 <th>ACTIONS</th>
@@ -190,7 +192,7 @@ const UserManagement = () => {
                                     <td>
                                         <div className='customer-name-cell'>
                                             <div className='avatar'>
-                                                <img src={`${customer.image || 'https://www.svgrepo.com/show/200115/lightning-thunder.svg'}`} alt='avatar' />
+                                                <img src={`${customer.avatar || 'https://www.svgrepo.com/show/200115/lightning-thunder.svg'}`} alt='avatar' />
                                             </div>
                                             <div className='customer-info'>
                                                 <span className='name'>{customer.fullName}</span>
@@ -216,7 +218,7 @@ const UserManagement = () => {
                                         </div>
                                     </td>
                                     <td>{customer.phone}</td>
-                                    <td>{customer.createdAt?.split('T')[0]}</td>
+                                    <td>{new Date(customer.createdAt).toLocaleDateString()}</td>
                                     {/* <td>
                                         <span className='badge'>{customer.posts} posts</span>
                                     </td> */}
@@ -246,25 +248,23 @@ const UserManagement = () => {
                                     </td>
                                     <td>
                                         <div className='action-buttons'>
-                                            {/* <button className='action-btn'>
-                                                {ICONS.edit} Detail
+                                            {/* <button>
+                                                <span>Detail</span>
+                                                <i className='fa-solid fa-pencil' />
                                             </button> */}
                                             {changeIsDeleteLoading == index ? <i className='fa-solid fa-spinner' />
                                                 : (customer.isDelete ?
-                                                    <button className='action-btn' onClick={() => changeIsDelete(index, customer.id, false)}>
+                                                    <button onClick={() => setPopupProps({ index: index, id: customer.id, value: false })}>
                                                         <span>Restore</span>
                                                         <i className='fa-solid fa-unlock' />
                                                     </button>
                                                     :
-                                                    <button className='action-btn' onClick={() => changeIsDelete(index, customer.id, true)}>
+                                                    <button onClick={() => setPopupProps({ index: index, id: customer.id, value: true })}>
                                                         <span>Delete</span>
                                                         <i className='fa-solid fa-lock' />
                                                     </button>
                                                 )
                                             }
-                                            {/* <button className='action-btn'>
-                                                {ICONS.history} History
-                                            </button> */}
                                         </div>
                                     </td>
                                 </tr>
@@ -278,6 +278,17 @@ const UserManagement = () => {
                     totalPages={USERs?.totalPages}
                     onPageChange={setPage}
                 />
+
+                {popupProps && Object.keys(popupProps).length > 0 && (
+                    <ConfirmDialog
+                        title={'DELETE CONFIRMATION'}
+                        message={'Are you sure you want to delete this customer?'}
+                        button={'DELETE'}
+                        color={'#dc354580'}
+                        onConfirm={() => { changeIsDelete(popupProps), setPopupProps({}) }}
+                        onCancel={() => setPopupProps({})}
+                    />
+                )}
             </div>
         </div>
     );

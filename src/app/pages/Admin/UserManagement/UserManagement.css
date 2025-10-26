@@ -9,7 +9,7 @@
     --badge-text: #58A6FF;
 }
 
-.user-management-container {
+.management-container {
     background-color: var(--gray-1);
 
     .main-header {
@@ -148,9 +148,7 @@
                 letter-spacing: 0.5px;
             }
 
-            th:nth-child(1),
-            th:nth-child(6),
-            th:nth-child(7) {
+            th:nth-child(1) {
                 width: 0px;
             }
 
