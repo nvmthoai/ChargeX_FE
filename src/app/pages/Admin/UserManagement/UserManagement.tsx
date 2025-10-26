@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
-import { fetchData, getQueryString } from '../../../../mocks/CallingAPI';
+import { fetchData, getQueryString, patchData } from '../../../../mocks/CallingAPI';
+import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Pagination from '../../../components/Pagination/Pagination';
+import SmallSpinner from '../../../components/SmallSpinner/SmallSpinner';
 import './UserManagement.css';
+
+const DefaultAvatar = '../../../../../public/lightning_thunder.png';
 
 // const ICONS = {
 //     add: <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M8 3.33331V12.6666' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round' /><path d='M3.33331 8H12.6666' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round' /></svg>,
@@ -28,6 +32,7 @@ const UserManagement = () => {
     const [changeIsDeleteLoading, setChangeIsDeleteLoading] = useState(-1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [popupProps, setPopupProps] = useState<Record<string, any>>({});
 
     useEffect(() => {
         const token = localStorage.getItem('token') || '';
@@ -64,29 +69,49 @@ const UserManagement = () => {
         setter(value);
     };
 
-    const changeEmailVerified = (index: any, value: any) => {// Fix===
+    const changeEmailVerified = async ({ index, id, value }: any) => {
         console.log('=F= changeEmailVerified');
-        console.log('index', index);
+
         setChangeEmailVerifiedLoading(index);
-        console.log('value', value);
-
-        // setChangeEmailVerifiedLoading(-1);
-        // setRefresh(p => p + 1);
+        const token = localStorage.getItem('token') || '';
+        const EmailVerifieData = {
+            emailVerified: value == 'true' ? true : false
+        }
+        try {
+            const PatchUserResponse = await patchData(`/users/${id}`, EmailVerifieData, token);
+            console.log('PatchUserResponse', PatchUserResponse);
+        } catch (error) {
+            console.error(error);
+            setError('Error');
+        } finally {
+            setChangeEmailVerifiedLoading(-1);
+            setRefresh(p => p + 1);
+        }
         return;
     }
 
-    const changeIsActive = (index: any, value: any) => {// Fix===
+    const changeIsActive = async ({ index, id, value }: any) => {
         console.log('=F= changeStatus');
-        console.log('index', index);
-        setChangeIsActiveLoading(index);
-        console.log('value', value);
 
-        // setChangeIsActiveLoading(-1);
-        // setRefresh(p => p + 1);
+        setChangeIsActiveLoading(index);
+        const token = localStorage.getItem('token') || '';
+        const IsActiveData = {
+            isActive: value == 'true' ? true : false
+        }
+        try {
+            const PatchUserResponse = await patchData(`/users/${id}`, IsActiveData, token);
+            console.log('PatchUserResponse', PatchUserResponse);
+        } catch (error) {
+            console.error(error);
+            setError('Error');
+        } finally {
+            setChangeIsActiveLoading(-1);
+            setRefresh(p => p + 1);
+        }
         return;
     }
 
-    const changeIsDelete = (index: any, id: any, value: boolean) => {// Fix===
+    const changeIsDelete = ({ index, id, value }: any) => {// Fix===api isDelete
         console.log('=F= changeStatus');
         console.log('index', index);
         setChangeIsDeleteLoading(index);
@@ -102,7 +127,7 @@ const UserManagement = () => {
     if (error) return <div className='admin-container'>Error</div>
     return (
         <div className='admin-container'>
-            <div className='inner-container user-management-container'>
+            <div className='inner-container management-container user-management-container'>
 
                 <header className='main-header'>
                     <h1>User Management</h1>
@@ -113,22 +138,26 @@ const UserManagement = () => {
                 </header>
 
                 <div className='controls'>
+                    {/* FIX==search input */}
                     <div className='search-bar'>
                         <i className='fa-solid fa-magnifying-glass' />
                         <input type='text' placeholder='Find by name or email...' />
                     </div>
                     <form>
-                        <label className='checkbox-item'>
+                        <label className={`checkbox-item ${selectedEmailVerified ? '' : 'disabled'}`}>
                             <input type='checkbox' checked={selectedEmailVerified === 'true'} onChange={(e) => handleCheckboxChange(e, setSelectedEmailVerified)} />
                             Email Verified
+                            <button type='button' onClick={() => setSelectedEmailVerified('')}><i className='fa-solid fa-xmark' /></button>
                         </label>
-                        <label className='checkbox-item'>
+                        <label className={`checkbox-item ${selectedIsActive ? '' : 'disabled'}`}>
                             <input type='checkbox' checked={selectedIsActive === 'true'} onChange={(e) => handleCheckboxChange(e, setSelectedIsActive)} />
                             Active
+                            <button type='button' onClick={() => setSelectedIsActive('')}><i className='fa-solid fa-xmark' /></button>
                         </label>
-                        <label className='checkbox-item'>
+                        <label className={`checkbox-item ${selectedIsDelete ? '' : 'disabled'}`}>
                             <input type='checkbox' checked={selectedIsDelete === 'true'} onChange={(e) => handleCheckboxChange(e, setSelectedIsDelete)} />
                             Deleted
+                            <button type='button' onClick={() => setSelectedIsDelete('')}><i className='fa-solid fa-xmark' /></button>
                         </label>
                         <select id='formsetSelectedSortBy' value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value)}>
                             <option value=''>-- Sort --</option>
@@ -146,7 +175,7 @@ const UserManagement = () => {
                     </button>
                     <button className='btn btn-secondary btn-export'>
                         <span>Export list</span>
-                        <i className='fa-solid fa-chevron-down'/>
+                        <i className='fa-solid fa-chevron-down' />
                     </button>
                 </div>
 
@@ -177,7 +206,7 @@ const UserManagement = () => {
                                 <th>CUSTOMER</th>
                                 <th>EMAIL</th>
                                 <th>PHONE NUMBER</th>
-                                <th>ASIGN DATE</th>
+                                <th>ASIGN</th>
                                 {/* <th>POST</th> */}
                                 <th>STATUS</th>
                                 <th>ACTIONS</th>
@@ -190,7 +219,7 @@ const UserManagement = () => {
                                     <td>
                                         <div className='customer-name-cell'>
                                             <div className='avatar'>
-                                                <img src={`${customer.image || 'https://www.svgrepo.com/show/200115/lightning-thunder.svg'}`} alt='avatar' />
+                                                <img src={`${customer.avatar || DefaultAvatar}`} alt='avatar' />
                                             </div>
                                             <div className='customer-info'>
                                                 <span className='name'>{customer.fullName}</span>
@@ -203,12 +232,12 @@ const UserManagement = () => {
                                             <span>{customer.email}</span>
                                             {customer.emailVerified && <i className='fa-solid fa-circle-check' title='Verified' />}
                                             <span>
-                                                {changeEmailVerifiedLoading == index ? <i className='fa-solid fa-spinner' />
+                                                {changeEmailVerifiedLoading == index ? <SmallSpinner />
                                                     :
                                                     <form>
-                                                        <select id='formEmailVerified' value={customer.emailVerified ? 'Verified' : 'Unverified'} onChange={(e) => changeEmailVerified(index, e.target.value)}>
-                                                            <option value={'Verified'}>Verified</option>
-                                                            <option value={'Unverified'}>Unverified</option>
+                                                        <select id='formEmailVerified' value={customer.emailVerified ? 'true' : 'false'} onChange={(e) => changeEmailVerified({ index: index, id: customer.userId, value: e.target.value })}>
+                                                            <option value={'true'}>Verified</option>
+                                                            <option value={'false'}>Unverified</option>
                                                         </select>
                                                     </form>
                                                 }
@@ -216,7 +245,7 @@ const UserManagement = () => {
                                         </div>
                                     </td>
                                     <td>{customer.phone}</td>
-                                    <td>{customer.createdAt?.split('T')[0]}</td>
+                                    <td>{new Date(customer.createdAt).toLocaleDateString()}</td>
                                     {/* <td>
                                         <span className='badge'>{customer.posts} posts</span>
                                     </td> */}
@@ -225,16 +254,16 @@ const UserManagement = () => {
                                             {customer.isActive ? 'Active' : (customer.isDelete ? 'Deleted' : 'Inactive')}
                                             {customer.isDelete && <i className='fa-solid fa-user-slash' title='Deleted' />}
                                         </span> */}
-                                        {changeIsActiveLoading == index ? <i className='fa-solid fa-spinner' />
+                                        {changeIsActiveLoading == index ? <SmallSpinner />
                                             :
                                             <form>
-                                                <select id='formIsActive' value={customer.isActive ? 'true' : 'false'} onChange={(e) => changeIsActive(index, e.target.value)}>
+                                                <select id='formIsActive' value={customer.isActive ? 'true' : 'false'} onChange={(e) => changeIsActive({ index: index, id: customer.userId, value: e.target.value })}>
                                                     <option value={'true'}>Active</option>
                                                     <option value={'false'}>Inactive</option>
                                                 </select>
                                             </form>
                                         }
-                                        {/* {changeIsDeleteLoading == index ? <i className='fa-solid fa-spinner' />
+                                        {/* {changeIsDeleteLoading == index ? <SmallSpinner />
                                             :
                                             <form>
                                                 <select id='formIsDelete' value={customer.isDelete ? 'true' : 'false'} onChange={(e) => changeIsDelete(index, e.target.value, true)}>
@@ -246,25 +275,23 @@ const UserManagement = () => {
                                     </td>
                                     <td>
                                         <div className='action-buttons'>
-                                            {/* <button className='action-btn'>
-                                                {ICONS.edit} Detail
+                                            {/* <button>
+                                                <span>Detail</span>
+                                                <i className='fa-solid fa-pencil' />
                                             </button> */}
-                                            {changeIsDeleteLoading == index ? <i className='fa-solid fa-spinner' />
+                                            {changeIsDeleteLoading == index ? <SmallSpinner />
                                                 : (customer.isDelete ?
-                                                    <button className='action-btn' onClick={() => changeIsDelete(index, customer.id, false)}>
+                                                    <button onClick={() => setPopupProps({ index: index, id: customer.id, value: false })}>
                                                         <span>Restore</span>
                                                         <i className='fa-solid fa-unlock' />
                                                     </button>
                                                     :
-                                                    <button className='action-btn' onClick={() => changeIsDelete(index, customer.id, true)}>
+                                                    <button onClick={() => setPopupProps({ index: index, id: customer.id, value: true })}>
                                                         <span>Delete</span>
                                                         <i className='fa-solid fa-lock' />
                                                     </button>
                                                 )
                                             }
-                                            {/* <button className='action-btn'>
-                                                {ICONS.history} History
-                                            </button> */}
                                         </div>
                                     </td>
                                 </tr>
@@ -278,6 +305,17 @@ const UserManagement = () => {
                     totalPages={USERs?.totalPages}
                     onPageChange={setPage}
                 />
+
+                {popupProps && Object.keys(popupProps).length > 0 && (
+                    <ConfirmDialog
+                        title={'DELETE CONFIRMATION'}
+                        message={'Are you sure you want to delete this customer?'}
+                        button={'DELETE'}
+                        color={'#dc354580'}
+                        onConfirm={() => { changeIsDelete(popupProps), setPopupProps({}) }}
+                        onCancel={() => setPopupProps({})}
+                    />
+                )}
             </div>
         </div>
     );

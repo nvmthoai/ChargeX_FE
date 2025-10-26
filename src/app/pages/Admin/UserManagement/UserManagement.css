@@ -9,7 +9,7 @@
     --badge-text: #58A6FF;
 }
 
-.user-management-container {
+.management-container {
     background-color: var(--gray-1);
 
     .main-header {
@@ -42,13 +42,13 @@
 
     .controls {
         display: flex;
+        flex-wrap: wrap;
         gap: 16px;
         margin: 0 0 24px;
 
         .search-bar {
             display: flex;
-            flex: 1;
-            max-width: 400px;
+            flex: 1 1 200px;
             align-items: center;
             background-color: var(--gray-2);
             border: 2px solid var(--gray-3);
@@ -69,6 +69,15 @@
 
         form {
             display: flex;
+
+            .disabled {
+                opacity: 0.5;
+            }
+
+            button {
+                padding: 0 4px;
+                border: none;
+            }
         }
 
         .btn-secondary {
@@ -148,9 +157,7 @@
                 letter-spacing: 0.5px;
             }
 
-            th:nth-child(1),
-            th:nth-child(6),
-            th:nth-child(7) {
+            th:nth-child(1) {
                 width: 0px;
             }
 
@@ -167,14 +174,19 @@
                     gap: 12px;
 
                     .avatar {
+                        width: 40px;
+                        min-width: 40px;
+
                         img {
+                            display: block;
                             width: 40px;
                             height: 40px;
-                            object-fit: contain;
+                            object-fit: cover;
                             object-position: center;
                             box-sizing: border-box;
                             border: 2px solid var(--gray-3);
                             border-radius: 50%;
+                            overflow: hidden;
                         }
                     }
 
@@ -197,9 +209,10 @@
                 .email {
                     display: flex;
                     align-items: center;
-                    
+                    gap: 8px;
+
                     i {
-                        margin: 0 8px;
+                        margin: 0;
                     }
                 }
 
