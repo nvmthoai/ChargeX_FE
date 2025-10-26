@@ -67,6 +67,10 @@
             }
         }
 
+        form {
+            display: flex;
+        }
+
         .btn-secondary {
             background-color: var(--button-secondary-bg);
             color: var(--text-primary);
@@ -75,7 +79,7 @@
                 background-color: #30363D;
             }
 
-            svg {
+            i {
                 color: var(--text-secondary);
             }
         }
@@ -124,6 +128,10 @@
             width: 100%;
             border-collapse: collapse;
 
+            i {
+                margin: 0 0 0 8px;
+            }
+
             th,
             td {
                 padding: 16px 20px;
@@ -138,10 +146,12 @@
                 color: var(--text-secondary);
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
+            }
 
-                &.actions {
-                    width: 0px;
-                }
+            th:nth-child(1),
+            th:nth-child(6),
+            th:nth-child(7) {
+                width: 0px;
             }
 
             tbody {
@@ -155,6 +165,18 @@
                     display: flex;
                     align-items: center;
                     gap: 12px;
+
+                    .avatar {
+                        img {
+                            width: 40px;
+                            height: 40px;
+                            object-fit: contain;
+                            object-position: center;
+                            box-sizing: border-box;
+                            border: 2px solid var(--gray-3);
+                            border-radius: 50%;
+                        }
+                    }
 
                     .customer-info {
                         display: flex;
@@ -172,6 +194,15 @@
                     }
                 }
 
+                .email {
+                    display: flex;
+                    align-items: center;
+                    
+                    i {
+                        margin: 0 8px;
+                    }
+                }
+
                 .badge {
                     background-color: var(--badge-bg);
                     color: var(--badge-text);
@@ -182,10 +213,10 @@
                 }
 
                 .status {
-                    font-size: 14px;
+                    display: flex;
 
                     &.inactive {
-                        color: var(--text-secondary);
+                        color: var(--text-2);
                     }
                 }
 
@@ -194,24 +225,19 @@
                     align-items: center;
                     gap: 16px;
 
-                    .action-btn {
+                    button {
+                        padding: 0;
                         background: none;
                         border: none;
                         color: var(--text-secondary);
                         display: inline-flex;
                         align-items: center;
-                        gap: 5px;
+                        gap: 0;
                         cursor: pointer;
                         font-size: 14px;
-                        padding: 0;
 
                         &:hover {
                             color: var(--text-primary);
-                        }
-
-                        svg {
-                            width: 14px;
-                            height: 14px;
                         }
                     }
                 }

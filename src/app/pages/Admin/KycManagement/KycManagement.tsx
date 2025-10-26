@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchData, getQueryString } from '../../../../mocks/CallingAPI';
+import Pagination from '../../../components/Pagination/Pagination';
 import './KycManagement.css';
 
 const KycManagement = () => {
 
-    const [KYCs, setKYCs] = useState<any[]>([]);
+    const [KYCs, setKYCs] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [selectedStatus, setSelectedStatus] = useState('');
     const [selectedLevel, setSelectedLevel] = useState('');
+    const [refresh, setRefresh] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -18,7 +20,7 @@ const KycManagement = () => {
                 setLoading(true);
                 const PageKycsResponse = await fetchData(`/kyc-profiles${getQueryString({ page: page, limit: 10, status: selectedStatus, level: selectedLevel })}`, token);
                 console.log('PageKycsResponse', PageKycsResponse);
-                setKYCs(PageKycsResponse.data.data);
+                setKYCs(PageKycsResponse.data);
             } catch (error) {
                 console.error(error);
                 setError('Error');
@@ -28,16 +30,7 @@ const KycManagement = () => {
         };
 
         fetchDataAPI();
-    }, [page, selectedStatus, selectedLevel]);
-
-    // const getQueryString = (params: Record<string, string | number | undefined>) => {
-    //     return params
-    //         ? '?' + Object.entries(params)
-    //             .filter(([_, value]) => value !== undefined && value !== '')
-    //             .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
-    //             .join('&')
-    //         : '';
-    // };
+    }, [refresh, page, selectedStatus, selectedLevel]);
 
     if (loading) return <div className='admin-container'>Loading</div>
     if (error) return <div className='admin-container'>Error</div>
@@ -46,7 +39,7 @@ const KycManagement = () => {
             <div className='inner-container user-management-container'>
 
                 <header className='main-header'>
-                    <h1>User Management</h1>
+                    <h1>Kyc Management</h1>
                 </header>
 
                 <div className='controls'>
@@ -55,20 +48,22 @@ const KycManagement = () => {
                         <input type='text' placeholder='Find by name or email...' />
                     </div>
                     <form>
-                        <select id='options' value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+                        <select id='formsetSelectedStatus' value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+                            {/* FIX=== */}
                             <option value=''>-- Status --</option>
                             <option value='pending'>Pending</option>
                             <option value='approved'>Approved</option>
                             <option value='rejected'>Rejected</option>
                         </select>
-                        <select id='options' value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}>
-                            <option value=''>-- Status --</option>
+                        <select id='formSelectedLevel' value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}>
+                            {/* FIX=== */}
+                            <option value=''>-- Level --</option>
                             <option value='basic'>Basic</option>
                             <option value='advanced'>Advanced</option>
                         </select>
                     </form>
-                    <button className='btn btn-secondary'>
-                        Filter
+                    <button className='btn btn-secondary' onClick={() => setRefresh(p => p + 1)}>
+                        Refresh
                     </button>
                     <button className='btn btn-secondary'>
                         Sort
@@ -79,18 +74,20 @@ const KycManagement = () => {
                     <table className='customer-table'>
                         <thead>
                             <tr>
+                                <th>#</th>
                                 <th>AVATAR</th>
                                 <th>NAME</th>
                                 <th>EMAIL</th>
-                                <th className='actions'>ACTIONS</th>
+                                <th>ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {KYCs?.map(kyc => (
+                            {KYCs?.data?.map((kyc: any, index: any) => (
                                 <tr key={kyc.kycProfileId}>
+                                    <td>{index + 1 + (page - 1) * 10}</td>
                                     <td>
                                         <div className='avatar'>
-                                            <img src={`${kyc.user.image}`} alt='Customer avatar' />
+                                            <img src={`${kyc.user.image}`} alt='avatar' />
                                         </div>
                                     </td>
                                     <td>
@@ -113,12 +110,13 @@ const KycManagement = () => {
                             ))}
                         </tbody>
                     </table>
-                    <div>
-                        <button onClick={() => { if (page > 1) { setPage(p => p - 1) } }}>Previous</button>
-                        <span>{page}</span>
-                        <button onClick={() => setPage(p => p + 1)}>Next</button>
-                    </div>
                 </section>
+
+                <Pagination
+                    currentPage={page}
+                    totalPages={KYCs?.totalPages}
+                    onPageChange={setPage}
+                />
             </div >
         </div >
     );
