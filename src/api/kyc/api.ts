@@ -42,26 +42,35 @@ export const postKycProfile = async (
 
 export const uploadKycDocument = async (
   profileId: string,
-  data: Pick<KycDocument, "type" | "fileUrl">
+  data: { type: "front_id" | "back_id" | "selfie" | "passport"; fileUrl: string }
 ): Promise<ApiResponse<KycDocument>> => {
   try {
     const response = await axiosInstance.post<ApiResponse<KycDocument>>(
       `/kyc-profiles/${profileId}/documents`,
-      data
+      data,
+      { headers: { "Content-Type": "application/json" } }
     );
+
     console.log("✅ Uploaded KYC document:", response.data);
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      return (error.response?.data ?? {
-        success: false,
-        statusCode: error.response?.status ?? 500,
-        message: "Axios error: failed to upload KYC document",
-      }) as ApiResponse<KycDocument>;
+      console.error("❌ Upload failed:", error.response?.data);
+      return (
+        error.response?.data ?? {
+          success: false,
+          statusCode: error.response?.status ?? 500,
+          message: "Axios error: failed to upload KYC document",
+        }
+      ) as ApiResponse<KycDocument>;
     }
     throw new Error("Unknown error when uploading KYC document");
   }
 };
+
+
+
+
 
 
 export const updateKycProfileStatus = async (
@@ -107,3 +116,29 @@ export const getAllKycProfiles = async (
     throw new Error("Unknown error when fetching KYC profiles");
   }
 };
+
+export const updateKycDocument = async (
+  documentId: string,
+  fileUrl: string
+): Promise<ApiResponse<KycDocument>> => {
+  try {
+    const response = await axiosInstance.patch<ApiResponse<KycDocument>>(
+      `/kyc-profiles/documents/${documentId}`,
+      { fileUrl }
+    );
+    console.log("✅ Updated KYC document:", response.data);
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      return (
+        error.response?.data ?? {
+          success: false,
+          statusCode: error.response?.status ?? 500,
+          message: "Axios error: failed to update KYC document",
+        }
+      ) as ApiResponse<KycDocument>;
+    }
+    throw new Error("Unknown error when updating KYC document");
+  }
+};
+
