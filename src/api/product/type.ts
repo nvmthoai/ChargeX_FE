@@ -21,3 +21,9 @@ export interface Product {
   createdAt: string;
   end_time: string | null;
 }
+
+export interface ProductListResponse {
+  products: Product[];
+  total: number;
+  data:  any;
+}
