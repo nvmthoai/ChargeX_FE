@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
-import { fetchData, getQueryString } from '../../../../mocks/CallingAPI';
+import { fetchData, getQueryString, patchData } from '../../../../mocks/CallingAPI';
 import Pagination from '../../../components/Pagination/Pagination';
+import SmallSpinner from '../../../components/SmallSpinner/SmallSpinner';
 import './KycManagement.css';
+
+const DefaultAvatar = '../../../../../public/lightning_thunder.png';
 
 const KycManagement = () => {
 
@@ -10,6 +13,8 @@ const KycManagement = () => {
     const [page, setPage] = useState(1);
     const [selectedStatus, setSelectedStatus] = useState('');
     const [selectedLevel, setSelectedLevel] = useState('');
+    const [selectedSortBy, setSelectedSortBy] = useState('');
+    const [selectedSortOrder, setSelectedSortOrder] = useState('');
     const [refresh, setRefresh] = useState(0);
     const [changeStatusLoading, setChangeStatusLoading] = useState(-1);
     const [loading, setLoading] = useState(true);
@@ -19,8 +24,8 @@ const KycManagement = () => {
         const token = localStorage.getItem('token') || '';
         const fetchDataAPI = async () => {
             try {
-                console.log(`/kyc-profiles${getQueryString({ page: page, limit: 10, status: selectedStatus, level: selectedLevel })}`);
-                const PageKycsResponse = await fetchData(`/kyc-profiles${getQueryString({ page: page, limit: 10, status: selectedStatus, level: selectedLevel })}`, token);
+                console.log(`/kyc-profiles${getQueryString({ page: page, limit: 10, status: selectedStatus, level: selectedLevel, sortBy: selectedSortBy, sortOrder: selectedSortOrder })}`);
+                const PageKycsResponse = await fetchData(`/kyc-profiles${getQueryString({ page: page, limit: 10, status: selectedStatus, level: selectedLevel, sortBy: selectedSortBy, sortOrder: selectedSortOrder })}`, token);
                 console.log('PageKycsResponse', PageKycsResponse);
                 setKYCs(PageKycsResponse.data);
             } catch (error) {
@@ -32,16 +37,27 @@ const KycManagement = () => {
         };
 
         fetchDataAPI();
-    }, [refresh, page, selectedStatus, selectedLevel]);
+    }, [refresh, page, selectedStatus, selectedLevel, selectedSortBy, selectedSortOrder]);
 
-    const changeStatus = (index: any, value: any) => {// Fix===
+    const changeStatus = async ({ index, id, value }: any) => {
         console.log('=F= changeStatus');
-        console.log('index', index);
-        setChangeStatusLoading(index);
-        console.log('value', value);
 
-        // setChangeStatusLoading(-1);
-        // setRefresh(p => p + 1);
+        setChangeStatusLoading(index);
+        const token = localStorage.getItem('token') || '';
+        const KycData = {
+            status: value,
+            note: 'You are ' + value
+        }
+        try {
+            const PatchKycResponse = await patchData(`/kyc-profiles/${id}/status`, KycData, token);
+            console.log('PatchKycResponse', PatchKycResponse);
+        } catch (error) {
+            console.error(error);
+            setError('Error');
+        } finally {
+            setChangeStatusLoading(-1);
+            setRefresh(p => p + 1);
+        }
         return;
     }
 
@@ -52,10 +68,12 @@ const KycManagement = () => {
             <div className='inner-container management-container kyc-management-container'>
 
                 <header className='main-header'>
-                    <h1>Kyc Management</h1>
+                    {/* FIX==popup */}
+                    <h1>Kyc Management {selectedKyc?.user?.email || 'null'}</h1>
                 </header>
 
                 <div className='controls'>
+                    {/* FIX==search input */}
                     <div className='search-bar'>
                         <i className='fa-solid fa-magnifying-glass' />
                         <input type='text' placeholder='Find by name or email...' />
@@ -72,12 +90,19 @@ const KycManagement = () => {
                             <option value='basic'>Basic</option>
                             <option value='advanced'>Advanced</option>
                         </select>
+                        <select id='formsetSelectedSortBy' value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value)}>
+                            <option value=''>-- Sort --</option>
+                            <option value='createdAt'>Created</option>
+                            <option value='updatedAt'>Updated</option>
+                        </select>
+                        <select id='formSelectedSortOrder' value={selectedSortOrder} onChange={(e) => setSelectedSortOrder(e.target.value)}>
+                            <option value=''>-- Sort Order --</option>
+                            <option value='ASC'>ASC</option>
+                            <option value='DESC'>DESC</option>
+                        </select>
                     </form>
                     <button className='btn btn-secondary' onClick={() => setRefresh(p => p + 1)}>
                         Refresh
-                    </button>
-                    <button className='btn btn-secondary'>
-                        Sort
                     </button>
                 </div>
 
@@ -101,7 +126,7 @@ const KycManagement = () => {
                                     <td>
                                         <div className='customer-name-cell'>
                                             <div className='avatar'>
-                                                <img src={`${kyc.user?.avatar || 'https://www.svgrepo.com/show/200115/lightning-thunder.svg'}`} alt='avatar' />
+                                                <img src={`${kyc.user?.avatar || DefaultAvatar}`} alt='avatar' />
                                             </div>
                                             <div className='customer-info'>
                                                 <span className='name'>{kyc.user?.fullName}</span>
@@ -118,19 +143,23 @@ const KycManagement = () => {
                                     <td>{new Date(kyc.createdAt).toLocaleDateString()}</td>
                                     <td>
                                         <div className='kyc-img'>
-                                            <img src={`${kyc.user?.img || 'https://www.svgrepo.com/show/200115/lightning-thunder.svg'}`} alt='avatar' />
+                                            <img src={`${kyc.user?.img || DefaultAvatar}`} alt='avatar' />
                                         </div>
                                     </td>
                                     <td>
-                                        {changeStatusLoading == index ? <i className='fa-solid fa-spinner' />
+                                        {changeStatusLoading == index ? <SmallSpinner />
                                             :
-                                            <form>
-                                                <select id='formIsActive' value={kyc.status} onChange={(e) => changeStatus(index, e.target.value)}>
-                                                    <option value={'pending'}>Pending</option>
-                                                    <option value={'approved'}>Approved</option>
-                                                    <option value={'rejected'}>Rejected</option>
-                                                </select>
-                                            </form>
+                                            (kyc.status == 'pending' ?
+                                                <form>
+                                                    <select id='formIsActive' value={kyc.status} onChange={(e) => changeStatus({ index: index, id: kyc.kycProfileId, value: e.target.value })}>
+                                                        <option value={'pending'}>Pending</option>
+                                                        <option value={'approved'}>Approved</option>
+                                                        <option value={'rejected'}>Rejected</option>
+                                                    </select>
+                                                </form>
+                                                :
+                                                <div className={`kyc-status ${kyc.status}`}>{kyc.status}</div>
+                                            )
                                         }
                                     </td>
                                     <td>

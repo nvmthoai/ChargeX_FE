@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import { fetchData, getQueryString } from '../../../../mocks/CallingAPI';
+import { fetchData, getQueryString, patchData } from '../../../../mocks/CallingAPI';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Pagination from '../../../components/Pagination/Pagination';
+import SmallSpinner from '../../../components/SmallSpinner/SmallSpinner';
 import './UserManagement.css';
+
+const DefaultAvatar = '../../../../../public/lightning_thunder.png';
 
 // const ICONS = {
 //     add: <svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M8 3.33331V12.6666' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round' /><path d='M3.33331 8H12.6666' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round' /></svg>,
@@ -66,29 +69,49 @@ const UserManagement = () => {
         setter(value);
     };
 
-    const changeEmailVerified = (index: any, value: any) => {// Fix===
+    const changeEmailVerified = async ({ index, id, value }: any) => {
         console.log('=F= changeEmailVerified');
-        console.log('index', index);
+
         setChangeEmailVerifiedLoading(index);
-        console.log('value', value);
-
-        // setChangeEmailVerifiedLoading(-1);
-        // setRefresh(p => p + 1);
+        const token = localStorage.getItem('token') || '';
+        const EmailVerifieData = {
+            emailVerified: value == 'true' ? true : false
+        }
+        try {
+            const PatchUserResponse = await patchData(`/users/${id}`, EmailVerifieData, token);
+            console.log('PatchUserResponse', PatchUserResponse);
+        } catch (error) {
+            console.error(error);
+            setError('Error');
+        } finally {
+            setChangeEmailVerifiedLoading(-1);
+            setRefresh(p => p + 1);
+        }
         return;
     }
 
-    const changeIsActive = (index: any, value: any) => {// Fix===
+    const changeIsActive = async ({ index, id, value }: any) => {
         console.log('=F= changeStatus');
-        console.log('index', index);
-        setChangeIsActiveLoading(index);
-        console.log('value', value);
 
-        // setChangeIsActiveLoading(-1);
-        // setRefresh(p => p + 1);
+        setChangeIsActiveLoading(index);
+        const token = localStorage.getItem('token') || '';
+        const IsActiveData = {
+            isActive: value == 'true' ? true : false
+        }
+        try {
+            const PatchUserResponse = await patchData(`/users/${id}`, IsActiveData, token);
+            console.log('PatchUserResponse', PatchUserResponse);
+        } catch (error) {
+            console.error(error);
+            setError('Error');
+        } finally {
+            setChangeIsActiveLoading(-1);
+            setRefresh(p => p + 1);
+        }
         return;
     }
 
-    const changeIsDelete = ({ index, id, value }: any) => {// Fix===
+    const changeIsDelete = ({ index, id, value }: any) => {// Fix===api isDelete
         console.log('=F= changeStatus');
         console.log('index', index);
         setChangeIsDeleteLoading(index);
@@ -115,22 +138,26 @@ const UserManagement = () => {
                 </header>
 
                 <div className='controls'>
+                    {/* FIX==search input */}
                     <div className='search-bar'>
                         <i className='fa-solid fa-magnifying-glass' />
                         <input type='text' placeholder='Find by name or email...' />
                     </div>
                     <form>
-                        <label className='checkbox-item'>
+                        <label className={`checkbox-item ${selectedEmailVerified ? '' : 'disabled'}`}>
                             <input type='checkbox' checked={selectedEmailVerified === 'true'} onChange={(e) => handleCheckboxChange(e, setSelectedEmailVerified)} />
                             Email Verified
+                            <button type='button' onClick={() => setSelectedEmailVerified('')}><i className='fa-solid fa-xmark' /></button>
                         </label>
-                        <label className='checkbox-item'>
+                        <label className={`checkbox-item ${selectedIsActive ? '' : 'disabled'}`}>
                             <input type='checkbox' checked={selectedIsActive === 'true'} onChange={(e) => handleCheckboxChange(e, setSelectedIsActive)} />
                             Active
+                            <button type='button' onClick={() => setSelectedIsActive('')}><i className='fa-solid fa-xmark' /></button>
                         </label>
-                        <label className='checkbox-item'>
+                        <label className={`checkbox-item ${selectedIsDelete ? '' : 'disabled'}`}>
                             <input type='checkbox' checked={selectedIsDelete === 'true'} onChange={(e) => handleCheckboxChange(e, setSelectedIsDelete)} />
                             Deleted
+                            <button type='button' onClick={() => setSelectedIsDelete('')}><i className='fa-solid fa-xmark' /></button>
                         </label>
                         <select id='formsetSelectedSortBy' value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value)}>
                             <option value=''>-- Sort --</option>
@@ -192,7 +219,7 @@ const UserManagement = () => {
                                     <td>
                                         <div className='customer-name-cell'>
                                             <div className='avatar'>
-                                                <img src={`${customer.avatar || 'https://www.svgrepo.com/show/200115/lightning-thunder.svg'}`} alt='avatar' />
+                                                <img src={`${customer.avatar || DefaultAvatar}`} alt='avatar' />
                                             </div>
                                             <div className='customer-info'>
                                                 <span className='name'>{customer.fullName}</span>
@@ -205,12 +232,12 @@ const UserManagement = () => {
                                             <span>{customer.email}</span>
                                             {customer.emailVerified && <i className='fa-solid fa-circle-check' title='Verified' />}
                                             <span>
-                                                {changeEmailVerifiedLoading == index ? <i className='fa-solid fa-spinner' />
+                                                {changeEmailVerifiedLoading == index ? <SmallSpinner />
                                                     :
                                                     <form>
-                                                        <select id='formEmailVerified' value={customer.emailVerified ? 'Verified' : 'Unverified'} onChange={(e) => changeEmailVerified(index, e.target.value)}>
-                                                            <option value={'Verified'}>Verified</option>
-                                                            <option value={'Unverified'}>Unverified</option>
+                                                        <select id='formEmailVerified' value={customer.emailVerified ? 'true' : 'false'} onChange={(e) => changeEmailVerified({ index: index, id: customer.userId, value: e.target.value })}>
+                                                            <option value={'true'}>Verified</option>
+                                                            <option value={'false'}>Unverified</option>
                                                         </select>
                                                     </form>
                                                 }
@@ -227,16 +254,16 @@ const UserManagement = () => {
                                             {customer.isActive ? 'Active' : (customer.isDelete ? 'Deleted' : 'Inactive')}
                                             {customer.isDelete && <i className='fa-solid fa-user-slash' title='Deleted' />}
                                         </span> */}
-                                        {changeIsActiveLoading == index ? <i className='fa-solid fa-spinner' />
+                                        {changeIsActiveLoading == index ? <SmallSpinner />
                                             :
                                             <form>
-                                                <select id='formIsActive' value={customer.isActive ? 'true' : 'false'} onChange={(e) => changeIsActive(index, e.target.value)}>
+                                                <select id='formIsActive' value={customer.isActive ? 'true' : 'false'} onChange={(e) => changeIsActive({ index: index, id: customer.userId, value: e.target.value })}>
                                                     <option value={'true'}>Active</option>
                                                     <option value={'false'}>Inactive</option>
                                                 </select>
                                             </form>
                                         }
-                                        {/* {changeIsDeleteLoading == index ? <i className='fa-solid fa-spinner' />
+                                        {/* {changeIsDeleteLoading == index ? <SmallSpinner />
                                             :
                                             <form>
                                                 <select id='formIsDelete' value={customer.isDelete ? 'true' : 'false'} onChange={(e) => changeIsDelete(index, e.target.value, true)}>
@@ -252,7 +279,7 @@ const UserManagement = () => {
                                                 <span>Detail</span>
                                                 <i className='fa-solid fa-pencil' />
                                             </button> */}
-                                            {changeIsDeleteLoading == index ? <i className='fa-solid fa-spinner' />
+                                            {changeIsDeleteLoading == index ? <SmallSpinner />
                                                 : (customer.isDelete ?
                                                     <button onClick={() => setPopupProps({ index: index, id: customer.id, value: false })}>
                                                         <span>Restore</span>
