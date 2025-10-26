@@ -13,24 +13,9 @@ const ICONS = {
 
 const UserManagement = () => {
 
-    const [USERs, setUSERs] = useState([{
-        userId: '',
-        fullName: '',
-        email: '',
-        emailVerified: false,
-        phone: '',
-        role: '',
-        isActive: false,
-        isDelete: false,
-        updatedAt: '',
-        createdAt: '',
-    }]);
-    const [detailNumber, setDetailNumber] = useState({
-        totalMember: 0,
-        newMember: 0,
-        postPerMember: 0,
-        incomePerPost: 0,
-    });
+    const [USERs, setUSERs] = useState<any[]>([]);
+    const [detailNumber, setDetailNumber] = useState<Record<string, any>>({});
+    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -40,7 +25,7 @@ const UserManagement = () => {
             try {
                 setLoading(true);
 
-                const AllUsersResponse = await fetchData(`/users?page=1&limit=10000`, token);
+                const AllUsersResponse = await fetchData(`/users${getQueryString({ page: 1, limit: 1000, })}`, token);
                 console.log('AllUsersResponse', AllUsersResponse);
                 setDetailNumber({
                     totalMember: AllUsersResponse.data.total,
@@ -49,7 +34,7 @@ const UserManagement = () => {
                     incomePerPost: 0,
                 });
 
-                const PageUsersResponse = await fetchData(`/users?page=1&limit=10`, token);
+                const PageUsersResponse = await fetchData(`/users${getQueryString({ page: page, limit: 10, })}`, token);
                 console.log('PageUsersResponse', PageUsersResponse);
                 setUSERs(PageUsersResponse.data.data);
             } catch (error) {
@@ -60,7 +45,16 @@ const UserManagement = () => {
         };
 
         fetchDataAPI();
-    }, []);
+    }, [page]);
+
+    const getQueryString = (params: Record<string, string | number | undefined>) => {
+        return params
+            ? '?' + Object.entries(params)
+                .filter(([_, value]) => value !== undefined && value !== '')
+                .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
+                .join('&')
+            : '';
+    };
 
     if (loading) return <div className='admin-container'>Loading</div>
     if (error) return <div className='admin-container'>Error</div>
@@ -71,14 +65,14 @@ const UserManagement = () => {
                 <header className='main-header'>
                     <h1>User Management</h1>
                     <button className='btn btn-primary'>
-                        {ICONS.add}
+                        <i className='fa-solid fa-plus' />
                         Add more account
                     </button>
                 </header>
 
                 <div className='controls'>
                     <div className='search-bar'>
-                        <span className='icon'>{ICONS.search}</span>
+                        <i className='fa-solid fa-magnifying-glass' />
                         <input type='text' placeholder='Find by name or email...' />
                     </div>
                     <button className='btn btn-secondary'>
@@ -87,6 +81,9 @@ const UserManagement = () => {
                     <button className='btn btn-secondary btn-export'>
                         Export list
                         <span className='icon'>{ICONS.chevronDown}</span>
+                    </button>
+                    <button className='btn btn-secondary'>
+                        Filter
                     </button>
                 </div>
 
@@ -113,6 +110,7 @@ const UserManagement = () => {
                     <table className='customer-table'>
                         <thead>
                             <tr>
+                                <th>AVATAR</th>
                                 <th>NAME</th>
                                 <th>EMAIL</th>
                                 <th>PHONE NUMBER</th>
@@ -126,10 +124,12 @@ const UserManagement = () => {
                             {USERs?.map(customer => (
                                 <tr key={customer.userId}>
                                     <td>
+                                        <div className='avatar'>
+                                            {/* <img src={`${customer.image}`} alt='Customer avatar'/> */}
+                                        </div>
+                                    </td>
+                                    <td>
                                         <div className='customer-name-cell'>
-                                            {/* <div className={`avatar ${customer.avatarClass}`}>
-                                                {customer.initial}
-                                            </div> */}
                                             <div className='customer-info'>
                                                 <span className='name'>{customer.fullName}</span>
                                                 <span className='role'>{customer.role}</span>
@@ -140,7 +140,7 @@ const UserManagement = () => {
                                     <td>{customer.phone}</td>
                                     <td>{customer.createdAt}</td>
                                     {/* <td>
-                                        <span className='badge'>{customer.bookings} posts</span>
+                                        <span className='badge'>{customer.posts} posts</span>
                                     </td> */}
                                     <td>
                                         <span className={`status ${customer.isActive}`}>
@@ -164,6 +164,11 @@ const UserManagement = () => {
                             ))}
                         </tbody>
                     </table>
+                    <div>
+                        <button onClick={() => { if (page > 1) { setPage(p => p - 1) } }}>Previous</button>
+                        <span>{page}</span>
+                        <button onClick={() => setPage(p => p + 1)}>Next</button>
+                    </div>
                 </section>
             </div>
         </div>

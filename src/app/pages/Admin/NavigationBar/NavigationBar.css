@@ -36,7 +36,7 @@
 
         .item {
             border: 2px solid transparent;
-            border-radius: 12px;
+            border-radius: 8px;
             box-sizing: border-box;
 
             a {
@@ -93,11 +93,12 @@
         }
 
         input {
+            padding: 8px 0;
+            flex: 1;
             background-color: transparent;
             border: none;
             outline: none;
             font-size: 14px;
-            padding: 8px;
 
             &::placeholder {
                 color: var(--text-secondary);
