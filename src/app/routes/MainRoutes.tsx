@@ -23,6 +23,7 @@ import AddressManagement from "../pages/Manage-Address";
 
 import NavigationBar from "../pages/Admin/NavigationBar/NavigationBar";
 import UserManagement from "../pages/Admin/UserManagement/UserManagement";
+import KycManagement from "../pages/Admin/KycManagement/KycManagement";
 import TransactionManagement from "../pages/Admin/TransactionManagement/TransactionManagement";
 import Checkout from "../pages/Checkout/Checkout";
 import Header from "../layouts/Header/Header";
@@ -64,6 +65,7 @@ export default function MainRoutes() {
         <Route path="/admin" element={<Navigate to="/admin/user-management" replace />} />
         <Route path="/admin" element={<NavigationBar />} >
           <Route path="user-management" element={<UserManagement />} />
+          <Route path="kyc-management" element={<KycManagement />} />
           <Route path="transaction-management" element={<TransactionManagement />} />
         </Route>
         <Route path="/cart" element={<Cart />} />
