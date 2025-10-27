@@ -6,41 +6,61 @@ export enum OrderStatus {
   CANCELLED = "cancelled",
 }
 
-export interface Order {
-  order_id: string;
-  buyer_id: string;
-  seller_id: string;
-  product_id: string;
-  price: number;
-  shipping_fees: number;
-  shipping_provider?: string;
-  shipping_code?: string;
-  contract_pdf?: string;
-  pickup_address_id?: string | null;
-  delivery_address_id?: string;
-  status: OrderStatus;
-  created_at?: string;
-  updated_at?: string;
+export interface AddressRef {
+  addressId: string;
+  label: string;
+  fullName: string;
+  phone: string;
+  line1: string;
 }
 
+export interface UserRef {
+  userId: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface ProductRef {
+  id: string;
+  title: string;
+  description?: string;
+}
+
+export interface Order {
+  orderId: string;
+  buyer: UserRef;                     // 🟩 object
+  seller: UserRef;                    // 🟩 object
+  product: ProductRef;                // 🟩 object
+  price: number;
+  shipping_fee: number;               // 🟩 đúng với backend
+  shipping_provider?: string;
+  shipping_code?: string;
+  contract_url?: string;              // 🟩 sửa đúng
+  pickupAddress?: AddressRef;         // 🟩 object
+  deliveryAddress?: AddressRef;       // 🟩 object
+  status: OrderStatus;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export interface CreateOrderRequest {
   buyer_id: string;
   seller_id: string;
-  price: number;
-  shipping_fee: number;
   productId: string;
+  price: number;
+  shipping_fee: number;               // 🟩 rename lại cho đúng API
   shipping_provider?: string;
   shipping_code?: string;
   contract_url?: string;
   pickup_address_id: string;
   delivery_address_id: string;
-  status?: OrderStatus; // default: pending
+  status?: OrderStatus;               // default: pending
 }
 
 export interface UpdateOrderRequest {
   status?: OrderStatus;
   shipping_code?: string;
   shipping_provider?: string;
-  contract_pdf?: string;
+  contract_url?: string;              // 🟩 đồng bộ tên
 }

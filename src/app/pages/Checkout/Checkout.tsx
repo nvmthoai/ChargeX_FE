@@ -71,7 +71,7 @@ export default function Checkout() {
         shipping_code: "AUTO-" + Date.now(),
         status: OrderStatus.PENDING,
         contract_url: "https://example.com/contracts/sample.pdf",
-        pickup_address_id:product.seller.addressId,
+        pickup_address_id:product.seller.defaultAddress.addressId,
         delivery_address_id: selectedAddressId,
       };
 
@@ -79,7 +79,7 @@ export default function Checkout() {
       const order = await createOrder(payload);
 
       message.success("✅ Đơn hàng đã được tạo thành công!");
-      navigate(`/payment?orderId=${order.order_id}`);
+      navigate(`/payment?orderId=${order.orderId}`);
     } catch (err) {
       console.error("❌ Error creating order:", err);
       message.error("Không thể tạo đơn hàng, vui lòng thử lại!");
