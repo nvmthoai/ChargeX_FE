@@ -1,133 +1,132 @@
-// import { useEffect, useState } from "react";
-// import { useSearchParams, useNavigate } from "react-router-dom";
-// import { message, Radio, Modal } from "antd";
-// import { getOrderById } from "../../../api/order/api";
-// import { createPaymentForOrder } from "../../../api/payment/api";
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Spin, message, Radio, Button, Card } from "antd";
+import { createPaymentForOrder } from "../../../api/payment/api";
+import { PaymentProvider } from "../../../api/payment/type";
+import type { Payment } from "../../../api/payment/type";
+import { getOrderById } from "../../../api/order/api";
+import type { Order } from "../../../api/order/type";
 
-// export default function Payment() {
-//   const [params] = useSearchParams();
-//   const orderId = params.get("orderId");
-//   const navigate = useNavigate();
+export default function PaymentPage() {
+  const [params] = useSearchParams();
+  const orderId = params.get("orderId");
+  const navigate = useNavigate();
 
-//   const [order, setOrder] = useState<any>(null);
-//   const [method, setMethod] = useState("bank");
-//   const [provider, setProvider] = useState("payos");
-//   const [loading, setLoading] = useState(false);
-//   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [method, setMethod] = useState<PaymentProvider>(PaymentProvider.PAYOS);
+  const [processing, setProcessing] = useState(false);
 
-//   // 🟦 Load order info
-//   useEffect(() => {
-//     const fetchOrder = async () => {
-//       try {
-//         if (!orderId) return;
-//         const data = await getOrderById(orderId);
-//         setOrder(data);
-//       } catch (error) {
-//         console.error("❌ Error fetching order:", error);
-//         message.error("Không thể tải thông tin đơn hàng!");
-//       }
-//     };
-//     fetchOrder();
-//   }, [orderId]);
+  useEffect(() => {
+    if (!orderId) {
+      message.error("Thiếu mã đơn hàng!");
+      navigate("/shop");
+      return;
+    }
 
-//   // 🟢 Xử lý thanh toán
-//   const handlePay = async () => {
-//     if (!order) return;
-//     setLoading(true);
-//     try {
-//       const payload = {
-//         type: "pay_order",
-//         amount: Number(order.price) + Number(order.shipping_fee || 0),
-//         description: `Payment for order #${order.id}`,
-//         related_order_id: order.id,
-//         provider: provider,
-//         method: method,
-//         returnUrl: `${window.location.origin}/payment-success`,
-//         cancelUrl: `${window.location.origin}/payment-error`,
-//         webhookUrl: "https://yourdomain.com/webhook/payos",
-//       };
+    (async () => {
+      try {
+        const data = await getOrderById(orderId);
+        console.log("✅ Order detail:", data);
+        setOrder(data);
+      } catch (err) {
+        console.error("❌ Error fetching order:", err);
+        message.error("Không thể tải thông tin đơn hàng!");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [orderId, navigate]);
 
-//       console.log("📤 Creating payment:", payload);
-//       const payment = await createPaymentForOrder(payload);
+  const handlePayment = async () => {
+    if (!order) return message.warning("Không tìm thấy đơn hàng!");
+    setProcessing(true);
 
-//       // Nếu là PayOS hoặc bank → redirect sang link cổng thanh toán
-//       if (payment?.paymentUrl) {
-//         window.location.href = payment.paymentUrl;
-//       } else {
-//         message.success("✅ Thanh toán thành công!");
-//         navigate(`/payment-success?orderId=${order.id}`);
-//       }
-//     } catch (error) {
-//       console.error("❌ Error creating payment:", error);
-//       message.error("Không thể tạo thanh toán!");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+    try {
+      const payload = {
+        type: "pay_order" as const,
+        amount: order.price || 0,
+        description: `Thanh toán đơn hàng #${order.orderId}`,
+        related_order_id: order.orderId,
+        provider: method,
+        method: "bank",
+        returnUrl: `${window.location.origin}/payment-success?orderId=${order.orderId}`,
+        cancelUrl: `${window.location.origin}/payment-cancel?orderId=${order.orderId}`,
+        webhookUrl: "https://yoursite.com/webhook/payos",
+      };
 
-//   return (
-//     <div className="min-h-screen bg-gray-50 py-10">
-//       <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-8 space-y-6">
-//         <h1 className="text-3xl font-bold text-gray-900">Payment</h1>
+      console.log("📦 Creating payment with payload:", payload);
+      const payment: Payment = await createPaymentForOrder(payload);
 
-//         {order ? (
-//           <div className="space-y-4">
-//             <div className="border rounded-lg p-5 bg-gray-50">
-//               <h2 className="text-xl font-semibold mb-2">Order Summary</h2>
-//               <p><b>Order ID:</b> {order.id}</p>
-//               <p><b>Product:</b> {order.product?.title ?? "—"}</p>
-//               <p><b>Amount:</b> ${(order.price).toLocaleString()}</p>
-//               <p><b>Shipping Fee:</b> ${(order.shipping_fee).toLocaleString()}</p>
-//               <p>
-//                 <b>Total:</b>{" "}
-//                 <span className="text-[#0F74C7] font-bold">
-//                   ${(Number(order.price) + Number(order.shipping_fee)).toLocaleString()}
-//                 </span>
-//               </p>
-//             </div>
+      if (payment?.checkoutUrl) {
+        message.success("Đang chuyển đến cổng thanh toán...");
+        window.location.href = payment.checkoutUrl;
+        console.log("➡ Redirecting to payment URL:", payment.checkoutUrl);
+      } else {
+        message.error("Không nhận được đường dẫn thanh toán!");
+      }
+    } catch (err) {
+      console.error("❌ Error creating payment:", err);
+      message.error("Không thể tạo thanh toán!");
+    } finally {
+      setProcessing(false);
+    }
+  };
 
-//             <div className="border rounded-lg p-5 bg-gray-50">
-//               <h2 className="text-xl font-semibold mb-2">Select Payment Method</h2>
-//               <Radio.Group
-//                 onChange={(e) => setMethod(e.target.value)}
-//                 value={method}
-//                 className="flex flex-col gap-3 mt-4"
-//               >
-//                 <Radio value="bank">Ngân hàng (PayOS)</Radio>
-//                 <Radio value="wallet">Ví nội bộ</Radio>
-//                 <Radio value="cod">Thanh toán khi nhận hàng (COD)</Radio>
-//               </Radio.Group>
-//             </div>
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spin size="large" />
+      </div>
+    );
 
-//             <button
-//               onClick={() => setShowConfirm(true)}
-//               disabled={loading}
-//               className={`w-full py-3 rounded font-semibold text-white ${
-//                 loading
-//                   ? "bg-gray-400 cursor-not-allowed"
-//                   : "bg-[#0F74C7] hover:bg-[#3888ca]"
-//               }`}
-//             >
-//               {loading ? "Đang xử lý..." : "Tiếp tục thanh toán"}
-//             </button>
-//           </div>
-//         ) : (
-//           <div className="text-gray-500 italic">Đang tải đơn hàng...</div>
-//         )}
+  if (!order)
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-gray-600">
+        <p>Không tìm thấy đơn hàng.</p>
+      </div>
+    );
 
-//         {/* Modal xác nhận thanh toán */}
-//         <Modal
-//           title="Xác nhận thanh toán"
-//           open={showConfirm}
-//           onCancel={() => setShowConfirm(false)}
-//           onOk={handlePay}
-//           okText="Thanh toán"
-//           confirmLoading={loading}
-//           centered
-//         >
-//           <p>Bạn có chắc chắn muốn thanh toán đơn hàng này?</p>
-//         </Modal>
-//       </div>
-//     </div>
-//   );
-// }
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 flex justify-center">
+      <Card
+        title={<span className="text-[#0F74C7] text-2xl font-semibold">Thanh toán đơn hàng</span>}
+        className="max-w-lg w-full shadow-lg rounded-xl"
+      >
+        <div className="space-y-4 text-gray-800">
+          <p><span className="font-semibold">Mã đơn hàng:</span> {order.orderId}</p>
+          <p><span className="font-semibold">Người mua:</span> {order.buyer?.fullName}</p>
+          <p><span className="font-semibold">Tổng tiền:</span> {Number(order.price).toLocaleString()} ₫</p>
+
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-2">Chọn hình thức thanh toán</h3>
+            <Radio.Group
+              onChange={(e) => setMethod(e.target.value)}
+              value={method}
+              className="space-y-2 flex flex-col"
+            >
+              <Radio value={PaymentProvider.PAYOS}>Thanh toán qua PayOS</Radio>
+              <Radio value={PaymentProvider.WALLET}>Thanh toán bằng ví nội bộ</Radio>
+              <Radio value={"cod"} disabled>Thanh toán khi nhận hàng (COD)</Radio>
+            </Radio.Group>
+          </div>
+
+          <Button
+            type="primary"
+            size="large"
+            block
+            onClick={handlePayment}
+            disabled={processing}
+            className="bg-[#0F74C7] hover:bg-[#3888ca] mt-4"
+          >
+            {processing ? "Đang xử lý..." : "Tiến hành thanh toán"}
+          </Button>
+
+          <Button block size="large" onClick={() => navigate(-1)} className="mt-2">
+            Quay lại
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
