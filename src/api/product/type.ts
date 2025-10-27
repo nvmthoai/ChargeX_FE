@@ -1,9 +1,26 @@
+export interface Address {
+  addressId: string;
+  fullName: string;
+  phone: string;
+  line1: string;
+  districtId: number;
+  provinceId: number;
+  wardCode: string;
+  label: string;
+  isDefault: boolean;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface Seller {
+  userId: string;
+  fullName: string;
+  defaultAddress: Address;
+}
+
 export interface Product {
   id: string;
-  seller: {
-    userId: string;
-    fullName: string;
-  };
+  seller: Seller;
   title: string;
   description: string;
   price_start: string;
@@ -23,7 +40,8 @@ export interface Product {
 }
 
 export interface ProductListResponse {
-  products: Product[];
+  data: Product[];
   total: number;
-  data:  any;
+  page: number;
+  limit: number;
 }

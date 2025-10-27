@@ -3,7 +3,6 @@ import type {
   Payment,
   CreatePaymentRequest,
   UpdatePaymentRequest,
-  PayosWebhookPayload,
 } from "./type";
 
 
@@ -11,9 +10,10 @@ export const createPaymentForOrder = async (
   payload: CreatePaymentRequest
 ): Promise<Payment> => {
   try {
-    const res = await axiosInstance.post("/v1/payment/order", payload);
+    const res = await axiosInstance.post("/payment/order", payload);
     console.log("✅ Payment created:", res.data);
-    return res.data;
+    // 🟦 Backend thường bọc data trong { success, data, ... }
+    return res.data.data || res.data;
   } catch (err) {
     console.error("❌ Error creating payment:", err);
     throw err;
@@ -70,16 +70,3 @@ export const deletePayment = async (id: string): Promise<void> => {
   }
 };
 
-
-export const handlePayosWebhook = async (
-  payload: PayosWebhookPayload
-): Promise<any> => {
-  try {
-    const res = await axiosInstance.post("/v1/payment/webhook/payos", payload);
-    console.log("📩 Webhook processed:", res.data);
-    return res.data;
-  } catch (err) {
-    console.error("❌ Error handling PayOS webhook:", err);
-    throw err;
-  }
-};
