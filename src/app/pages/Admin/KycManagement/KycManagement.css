@@ -1,0 +1,31 @@
+.kyc-management-container {
+
+    .kyc-status {
+        padding: 4px 12px;
+        width: fit-content;
+        color: var(--text-primary);
+        border: 2px solid var(--gray-3);
+        border-radius: 4px;
+        text-transform: uppercase;
+
+        &.approved {
+            background: #28a74560;
+        }
+
+        &.rejected {
+            background: #dc354560;
+        }
+    }
+
+    .kyc-img {
+        img {
+            width: 120px;
+            height: 80px;
+            object-fit: contain;
+            object-position: center;
+            box-sizing: border-box;
+            border: 2px solid var(--gray-3);
+            border-radius: 12px;
+        }
+    }
+}

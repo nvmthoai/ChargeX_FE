@@ -9,6 +9,7 @@ export default function NavigationBar() {
 
     const menuItems = [
         { name: 'MEMBER', icon: 'user', path: '/admin/user-management' },
+        { name: 'KYC', icon: 'id-card', path: '/admin/kyc-management' },
         { name: 'TRANSACTION', icon: 'dollar', path: '/admin/transaction-management' },
         { name: 'POST', icon: 'clipboard', path: '/post-management' },
         { name: 'REPORT', icon: 'circle-exclamation', path: '/report-management' },
