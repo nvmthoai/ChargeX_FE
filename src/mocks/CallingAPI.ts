@@ -14,6 +14,15 @@ export interface ApiResponse<T = any> {
     [key: string]: any;
 }
 
+export const getQueryString = (params: Record<string, string | number | undefined>) => {
+    return params
+        ? '?' + Object.entries(params)
+            .filter(([_, value]) => value !== undefined && value !== '')
+            .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
+            .join('&')
+        : '';
+};
+
 // Hàm gọi API GET
 export const fetchData = async <T = any>(
     endpoint: Endpoint,
