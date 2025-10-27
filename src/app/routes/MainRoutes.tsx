@@ -26,7 +26,7 @@ import UserManagement from "../pages/Admin/UserManagement/UserManagement";
 import TransactionManagement from "../pages/Admin/TransactionManagement/TransactionManagement";
 import Checkout from "../pages/Checkout/Checkout";
 import Header from "../layouts/Header/Header";
-// import Payment from "../pages/Payment/Payment";
+import Payment from "../pages/Payment/Payment";
 
 export default function MainRoutes() {
   return (
@@ -39,7 +39,7 @@ export default function MainRoutes() {
         <Route path="/payment-error" element={<PaymentError />} />
         <Route path="/verify-otp" element={<VerifyOTPPage />} />
         <Route path="/checkout" element={<Checkout />} />
-        {/* <Route path="/payment" element={<Payment />} /> */}
+        <Route path="/payment" element={<Payment />} />
 
 
         <Route element={<AuthRoute />}>
