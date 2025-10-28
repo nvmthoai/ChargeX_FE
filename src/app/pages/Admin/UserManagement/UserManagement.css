@@ -126,14 +126,14 @@
         }
     }
 
-    .customer-table-container {
+    .admin-table-container {
         color: var(--text-1);
         background-color: var(--gray-2);
         border: 2px solid var(--gray-3);
         border-radius: 8px;
         overflow: hidden;
 
-        .customer-table {
+        .admin-table {
             width: 100%;
             border-collapse: collapse;
 
@@ -168,6 +168,18 @@
                     }
                 }
 
+                .no-user {
+                    height: 43px;
+                }
+
+                .no-kyc {
+                    height: 80px;
+                }
+
+                .no-payment {
+                    height: 40px;
+                }
+
                 .customer-name-cell {
                     display: flex;
                     align-items: center;
@@ -200,6 +212,7 @@
                         }
 
                         .role {
+                            height: 21px;
                             font-size: 13px;
                             color: var(--text-secondary);
                         }
