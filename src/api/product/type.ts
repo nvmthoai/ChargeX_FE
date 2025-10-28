@@ -27,7 +27,7 @@ export interface Product {
   price_buy_now: string;
   price_now: string | null;
   status: string;
-  imgUrl: string;
+
   imageUrls: string[];
   soh_percent: number | null;
   cycle_count: number | null;
