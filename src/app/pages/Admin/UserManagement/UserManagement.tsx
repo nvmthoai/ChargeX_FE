@@ -21,9 +21,9 @@ const UserManagement = () => {
     const [USERs, setUSERs] = useState<Record<string, any>>({});
     const [detailNumber, setDetailNumber] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
-    const [selectedEmailVerified, setSelectedEmailVerified] = useState('true');
-    const [selectedIsActive, setSelectedIsActive] = useState('true');
-    const [selectedIsDelete, setSelectedIsDelete] = useState('false');
+    const [selectedEmailVerified, setSelectedEmailVerified] = useState('');
+    const [selectedIsActive, setSelectedIsActive] = useState('');
+    const [selectedIsDelete, setSelectedIsDelete] = useState('');
     const [selectedSortBy, setSelectedSortBy] = useState('');
     const [selectedOrder, setSelectedOrder] = useState('');
     const [refresh, setRefresh] = useState(0);
@@ -198,8 +198,8 @@ const UserManagement = () => {
                     </div>
                 </section>
 
-                <section className='customer-table-container'>
-                    <table className='customer-table'>
+                <section className='admin-table-container'>
+                    <table className='admin-table'>
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -296,6 +296,19 @@ const UserManagement = () => {
                                     </td>
                                 </tr>
                             ))}
+                            {page == 2 &&
+                                [...Array(10 - USERs?.data?.length)]?.map((_, i) => (
+                                    <tr key={i}>
+                                        <td><div className='no-user'></div></td>
+                                        <td><div className='no-user'></div></td>
+                                        <td><div className='no-user'></div></td>
+                                        <td><div className='no-user'></div></td>
+                                        <td><div className='no-user'></div></td>
+                                        <td><div className='no-user'></div></td>
+                                        <td><div className='no-user'></div></td>
+                                    </tr>
+                                ))
+                            }
                         </tbody>
                     </table>
                 </section>
@@ -310,7 +323,8 @@ const UserManagement = () => {
                     <ConfirmDialog
                         title={'DELETE CONFIRMATION'}
                         message={'Are you sure you want to delete this customer?'}
-                        button={'DELETE'}
+                        confirm={'DELETE'}
+                        cancel={'CANCEL'}
                         color={'#dc354580'}
                         onConfirm={() => { changeIsDelete(popupProps), setPopupProps({}) }}
                         onCancel={() => setPopupProps({})}

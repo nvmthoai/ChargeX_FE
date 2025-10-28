@@ -106,8 +106,8 @@ const KycManagement = () => {
                     </button>
                 </div>
 
-                <section className='customer-table-container'>
-                    <table className='customer-table'>
+                <section className='admin-table-container'>
+                    <table className='admin-table'>
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -172,6 +172,19 @@ const KycManagement = () => {
                                     </td>
                                 </tr>
                             ))}
+                            {page == 2 &&
+                                [...Array(10 - KYCs?.data?.length)]?.map((_, i) => (
+                                    <tr key={i}>
+                                        <td><div className='no-kyc'></div></td>
+                                        <td><div className='no-kyc'></div></td>
+                                        <td><div className='no-kyc'></div></td>
+                                        <td><div className='no-kyc'></div></td>
+                                        <td><div className='no-kyc'></div></td>
+                                        <td><div className='no-kyc'></div></td>
+                                        <td><div className='no-kyc'></div></td>
+                                    </tr>
+                                ))
+                            }
                         </tbody>
                     </table>
                 </section>
