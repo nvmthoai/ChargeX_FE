@@ -28,6 +28,8 @@ import TransactionManagement from "../pages/Admin/TransactionManagement/Transact
 import Checkout from "../pages/Checkout/Checkout";
 import Header from "../layouts/Header/Header";
 import Payment from "../pages/Payment/Payment";
+import AuctionRequestManagement from "../pages/Admin/AuctionRequestManagement";
+import AuctionLiveManagement from "../pages/Admin/AuctionLiveManagement";
 
 export default function MainRoutes() {
   return (
@@ -46,6 +48,7 @@ export default function MainRoutes() {
         <Route element={<AuthRoute />}>
           <Route path="/auth" element={<AuthPage />} />
         </Route>
+        
         <Route path="/profile" element={<Profile />}>
           <Route index element={<Navigate to="detail" replace />} />
           <Route path="detail" element={<ProfileDetail />} />
@@ -65,6 +68,8 @@ export default function MainRoutes() {
         <Route path="/admin" element={<Navigate to="/admin/user-management" replace />} />
         <Route path="/admin" element={<NavigationBar />} >
           <Route path="user-management" element={<UserManagement />} />
+          <Route path="auction-management" element={<AuctionRequestManagement />} />
+          <Route path="auction-live-management" element={<AuctionLiveManagement />} />
           <Route path="kyc-management" element={<KycManagement />} />
           <Route path="transaction-management" element={<TransactionManagement />} />
         </Route>
