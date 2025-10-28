@@ -164,6 +164,8 @@ export default function PaymentPage() {
 
   const total = Number(order.price || 0) + Number(order.shipping_fee || 0);
   const product = order.product;
+  const isWalletInsufficient =
+    method === PaymentProvider.WALLET && (wallet?.available ?? 0) < total;
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
@@ -354,14 +356,10 @@ export default function PaymentPage() {
           <div className="pt-8 space-y-3">
             <button
               onClick={handlePayment}
-              disabled={
-                processing ||
-                (method === PaymentProvider.WALLET && wallet && wallet.available < total)
-              }
-              className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${processing ||
-                (method === PaymentProvider.WALLET && wallet && wallet.available < total)
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-[#0F74C7] hover:bg-[#3888ca]"
+              disabled={processing || isWalletInsufficient}
+              className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${processing || isWalletInsufficient
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#0F74C7] hover:bg-[#3888ca]"
                 }`}
             >
               {processing ? "Đang xử lý..." : "Thanh toán ngay"}
