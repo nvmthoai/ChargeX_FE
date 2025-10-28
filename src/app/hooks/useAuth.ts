@@ -55,15 +55,18 @@ const UserAuth = () => {
     if (response) {
       const token = response.data.accessToken;
       const decoded = jwtDecode<User>(token); // ✅ ép kiểu User
-
-      console.log("decoded:", decoded);
-
       // ✅ cập nhật context để Header tự re-render
       setAuthUser(decoded, token);
 
       message.success("Login successfully!");
-      if (decoded?.role == 'admin') navigate("/admin");
-      else navigate("/");
+      switch (decoded.role) {
+        case 'admin':
+          return navigate('/admin')
+        case 'member':
+          return navigate('/')
+        default:
+          return navigate('/')
+      }
     }
 
     return null;
