@@ -86,21 +86,21 @@ export default function ProductForm({
   }, [initialData]);
 
   // 🖼️ Upload file
-const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const fileList = e.target.files;
-  if (!fileList || fileList.length === 0) return; // 👈 Không làm gì nếu người dùng cancel
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return; // 👈 Không làm gì nếu người dùng cancel
 
-  const selectedFiles = Array.from(fileList);
-  // ✅ Gộp thêm ảnh mới, không ghi đè
-  setFiles((prev) => [...prev, ...selectedFiles]);
-  setFilePreviews((prev) => [
-    ...prev,
-    ...selectedFiles.map((file) => URL.createObjectURL(file)),
-  ]);
+    const selectedFiles = Array.from(fileList);
+    // ✅ Gộp thêm ảnh mới, không ghi đè
+    setFiles((prev) => [...prev, ...selectedFiles]);
+    setFilePreviews((prev) => [
+      ...prev,
+      ...selectedFiles.map((file) => URL.createObjectURL(file)),
+    ]);
 
-  // Reset input để có thể chọn lại cùng file lần sau
-  e.target.value = "";
-};
+    // Reset input để có thể chọn lại cùng file lần sau
+    e.target.value = "";
+  };
 
   // 🧩 Handle input change (có backup đấu giá)
   const handleChange = (
@@ -160,19 +160,32 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   // 🚀 Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!form.title || !form.description) {
       alert("Vui lòng nhập đầy đủ thông tin bắt buộc!");
       return;
     }
 
     const formData = new FormData();
+
     Object.entries(form).forEach(([key, value]) => {
       if (key === "imageUrls" || key === "imgUrl") return;
+
+      if (
+        mode === "create" &&
+        !form.is_auction &&
+        ["price_now", "end_time", "is_auction"].includes(key) //không đấu giá nên bỏ qua
+      ) {
+        return;
+      }
+
+      // 🟢 Bình thường: thêm field nếu có giá trị
       if (value !== "" && value !== null && value !== undefined) {
         formData.append(key, value.toString());
       }
     });
 
+    // 🟩 Xử lý ảnh (link hoặc upload)
     if (activeTab === "link" && form.imageUrls.trim()) {
       const arr = form.imageUrls
         .split(/[\n,]/)
@@ -187,6 +200,7 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
     await onSubmit(formData);
   };
+
 
   return (
     <div className="min-h-[85vh] rounded-3xl shadow-lg p-10 border border-blue-100 bg-white transition-all duration-300">
@@ -245,9 +259,8 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                     return (
                       <div
                         key={opt.value}
-                        className={`flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 cursor-pointer ${
-                          form.status === opt.value ? "bg-blue-100" : ""
-                        }`}
+                        className={`flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 cursor-pointer ${form.status === opt.value ? "bg-blue-100" : ""
+                          }`}
                         onClick={() => {
                           setForm((p) => ({ ...p, status: opt.value }));
                           setOpenStatus(false);
@@ -284,6 +297,14 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               name="price_buy_now"
               placeholder="Giá mua ngay (VNĐ)"
               value={form.price_buy_now}
+              onChange={handleChange}
+              className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
+            />
+            <input
+              type="number"
+              name="price_start"
+              placeholder="Giá mua ngay (VNĐ)"
+              value={form.price_start}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
             />
@@ -346,7 +367,7 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         </section>
 
         {/* 🟨 PHẦN 2: ĐẤU GIÁ */}
-        <section className="space-y-4">
+        {/* <section className="space-y-4">
           <h2 className="text-xl font-semibold text-blue-600 border-b-2 border-blue-200 pb-2 flex items-center gap-2">
             <PauseCircle className="text-blue-500" size={20} /> Thông tin đấu giá
           </h2>
@@ -389,7 +410,7 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               />
             </div>
           )}
-        </section>
+        </section> */}
 
         {/* 🟩 HÌNH ẢNH */}
         <section className="space-y-4">
@@ -408,11 +429,10 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 <button
                   key={tab.key}
                   type="button"
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
-                    activeTab === tab.key
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${activeTab === tab.key
                       ? "bg-blue-100 border-blue-400 text-blue-600"
                       : "bg-white border-gray-300 hover:border-blue-300"
-                  }`}
+                    }`}
                   onClick={() => setActiveTab(tab.key as "link" | "upload")}
                 >
                   <Icon size={18} /> {tab.label}
@@ -524,8 +544,8 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               ? "Đang cập nhật..."
               : "Đang thêm..."
             : mode === "edit"
-            ? "Lưu thay đổi"
-            : "Thêm sản phẩm"}
+              ? "Lưu thay đổi"
+              : "Thêm sản phẩm"}
         </button>
       </form>
     </div>
