@@ -90,7 +90,7 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Cột trái: Thông tin giao hàng */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-8 space-y-6">
           <div className="flex justify-between items-center">
@@ -130,7 +130,7 @@ export default function Checkout() {
         </div>
 
         {/* Cột phải: Thông tin đơn hàng */}
-        <div className="bg-white rounded-xl shadow-md p-8 space-y-6">
+        <div className="bg-white rounded-xl shadow-md p-8 space-y-6 sticky top-6 self-start">
           <h2 className="text-2xl font-semibold text-gray-900">
             <span className="text-[#0F74C7]">2.</span> Order Summary
           </h2>
