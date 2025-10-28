@@ -27,6 +27,7 @@ import NavigationBar from "../pages/Admin/NavigationBar/NavigationBar";
 import UserManagement from "../pages/Admin/UserManagement/UserManagement";
 import KycManagement from "../pages/Admin/KycManagement/KycManagement";
 import TransactionManagement from "../pages/Admin/TransactionManagement/TransactionManagement";
+import RevenueManagement from "../pages/Admin/RevenueManagement/RevenueManagement";
 import Checkout from "../pages/Checkout/Checkout";
 import Header from "../layouts/Header/Header";
 import Payment from "../pages/Payment/Payment";
@@ -78,6 +79,7 @@ export default function MainRoutes() {
           <Route path="auction-live-management" element={<AuctionLiveManagement />} />
           <Route path="kyc-management" element={<KycManagement />} />
           <Route path="transaction-management" element={<TransactionManagement />} />
+          <Route path="revenue-management" element={<RevenueManagement />} />
         </Route>
         <Route path="/cart" element={<Cart />} />
       </Routes>
