@@ -303,7 +303,7 @@ export default function ProductForm({
             <input
               type="number"
               name="price_start"
-              placeholder="Giá mua ngay (VNĐ)"
+              placeholder="Giá khởi điểm (VNĐ)"
               value={form.price_start}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
