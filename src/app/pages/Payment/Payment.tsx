@@ -1,11 +1,23 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Spin, message, Radio, Button, Card } from "antd";
+import { Spin, message, Radio } from "antd";
 import { createPaymentForOrder } from "../../../api/payment/api";
-import { PaymentProvider } from "../../../api/payment/type";
-import type { Payment } from "../../../api/payment/type";
+import {
+  PaymentProvider,
+  type Payment,
+} from "../../../api/payment/type";
 import { getOrderById } from "../../../api/order/api";
 import type { Order } from "../../../api/order/type";
+import {
+  CreditCardOutlined,
+  WalletOutlined,
+  ShopOutlined,
+  UserOutlined,
+  CarOutlined,
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
+import { MapPin } from "lucide-react";
+import useProvinces from "../../hooks/useProvinces";
 
 export default function PaymentPage() {
   const [params] = useSearchParams();
@@ -17,6 +29,11 @@ export default function PaymentPage() {
   const [method, setMethod] = useState<PaymentProvider>(PaymentProvider.PAYOS);
   const [processing, setProcessing] = useState(false);
 
+  const { provinces, fetchDistricts, fetchWards } = useProvinces();
+  const [deliveryLocation, setDeliveryLocation] = useState("Đang tải...");
+  const [pickupLocation, setPickupLocation] = useState("Đang tải...");
+
+  // 🧾 Lấy chi tiết đơn hàng
   useEffect(() => {
     if (!orderId) {
       message.error("Thiếu mã đơn hàng!");
@@ -27,7 +44,6 @@ export default function PaymentPage() {
     (async () => {
       try {
         const data = await getOrderById(orderId);
-        console.log("✅ Order detail:", data);
         setOrder(data);
       } catch (err) {
         console.error("❌ Error fetching order:", err);
@@ -38,6 +54,41 @@ export default function PaymentPage() {
     })();
   }, [orderId, navigate]);
 
+  // 🗺️ Map địa chỉ
+  useEffect(() => {
+    const loadAddressNames = async () => {
+      if (!order) return;
+      const convertAddress = async (addr: any) => {
+        if (!addr) return "Không có địa chỉ";
+        try {
+          const province = provinces.find((p) => p.code === addr.provinceId);
+          const districtList = await fetchDistricts(addr.provinceId);
+          const district = districtList.find((d) => d.code === addr.districtId);
+          const wardList = await fetchWards(addr.districtId);
+          const ward = wardList.find(
+            (w) => w.code.toString() === addr.wardCode
+          );
+          return `${addr.line1}, ${ward?.name || ""}, ${district?.name || ""}, ${
+            province?.name || ""
+          }`;
+        } catch {
+          return addr.line1;
+        }
+      };
+
+      if (order.deliveryAddress) {
+        const text = await convertAddress(order.deliveryAddress);
+        setDeliveryLocation(text);
+      }
+      if (order.pickupAddress) {
+        const text = await convertAddress(order.pickupAddress);
+        setPickupLocation(text);
+      }
+    };
+    loadAddressNames();
+  }, [order, provinces]);
+
+  // 💳 Xử lý thanh toán
   const handlePayment = async () => {
     if (!order) return message.warning("Không tìm thấy đơn hàng!");
     setProcessing(true);
@@ -55,13 +106,10 @@ export default function PaymentPage() {
         webhookUrl: "https://yoursite.com/webhook/payos",
       };
 
-      console.log("📦 Creating payment with payload:", payload);
       const payment: Payment = await createPaymentForOrder(payload);
-
       if (payment?.checkoutUrl) {
         message.success("Đang chuyển đến cổng thanh toán...");
         window.location.href = payment.checkoutUrl;
-        console.log("➡ Redirecting to payment URL:", payment.checkoutUrl);
       } else {
         message.error("Không nhận được đường dẫn thanh toán!");
       }
@@ -75,7 +123,7 @@ export default function PaymentPage() {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
         <Spin size="large" />
       </div>
     );
@@ -87,46 +135,204 @@ export default function PaymentPage() {
       </div>
     );
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-12 flex justify-center">
-      <Card
-        title={<span className="text-[#0F74C7] text-2xl font-semibold">Thanh toán đơn hàng</span>}
-        className="max-w-lg w-full shadow-lg rounded-xl"
-      >
-        <div className="space-y-4 text-gray-800">
-          <p><span className="font-semibold">Mã đơn hàng:</span> {order.orderId}</p>
-          <p><span className="font-semibold">Người mua:</span> {order.buyer?.fullName}</p>
-          <p><span className="font-semibold">Tổng tiền:</span> {Number(order.price).toLocaleString()} ₫</p>
+  const total = Number(order.price || 0) + Number(order.shipping_fee || 0);
+  const product = order.product;
 
-          <div className="border-t pt-4">
-            <h3 className="font-semibold mb-2">Chọn hình thức thanh toán</h3>
-            <Radio.Group
-              onChange={(e) => setMethod(e.target.value)}
-              value={method}
-              className="space-y-2 flex flex-col"
-            >
-              <Radio value={PaymentProvider.PAYOS}>Thanh toán qua PayOS</Radio>
-              <Radio value={PaymentProvider.WALLET}>Thanh toán bằng ví nội bộ</Radio>
-              <Radio value={"cod"} disabled>Thanh toán khi nhận hàng (COD)</Radio>
-            </Radio.Group>
+  return (
+    <div className="min-h-screen bg-gray-50 py-10">
+             {/* 🧾 Tiêu đề */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-[#0F74C7] mb-1">
+            Thanh toán đơn hàng
+          </h1>
+          <p className="text-gray-500">
+            Vui lòng kiểm tra thông tin trước khi thanh toán
+          </p>
+        </div>
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10 items-start">
+        {/* 🧺 Thông tin đơn hàng */}
+        <div className="bg-white rounded-xl shadow-md p-8 space-y-6 lg:col-span-2">
+          <h2 className="text-2xl font-semibold text-gray-900">
+            <span className="text-[#0F74C7]">1.</span> Order Summary
+          </h2>
+
+          {/* 🛍️ Sản phẩm */}
+          {product && (
+            <div className="flex items-center gap-4 bg-[#f7faff] rounded-2xl p-4 border border-[#dce9ff]">
+              <img
+                src={product.imageUrls?.[0] || "/no-image.png"}
+                alt={product.title}
+                className="w-20 h-20 rounded-xl object-cover border"
+              />
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900 text-lg">
+                  {product.title}
+                </p>
+                <p className="text-sm text-gray-500 line-clamp-2">
+                  {product.description || "Không có mô tả"}
+                </p>
+                <p className="font-semibold text-[#0F74C7] mt-1">
+                  {Number(order.price).toLocaleString()} ₫
+                </p>
+              </div>
+            </div>
+          )}
+
+
+          {/* 👩‍💼 Người bán */}
+          <div className="bg-[#fff9f9] border border-red-100 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <ShopOutlined className="text-red-500 text-lg" />
+              <h3 className="font-semibold text-gray-800">Người bán</h3>
+            </div>
+            <p className="text-gray-700">
+              <span className="font-medium">Tên:</span> {order.seller?.fullName}
+            </p>
+            {order.pickupAddress && (
+              <p className="flex items-start gap-1 text-gray-700 mt-1">
+                <MapPin size={16} className="text-red-500 mt-1" />
+                <span>{pickupLocation}</span>
+              </p>
+            )}
           </div>
 
-          <Button
-            type="primary"
-            size="large"
-            block
-            onClick={handlePayment}
-            disabled={processing}
-            className="bg-[#0F74C7] hover:bg-[#3888ca] mt-4"
-          >
-            {processing ? "Đang xử lý..." : "Tiến hành thanh toán"}
-          </Button>
+          {/* 👤 Người mua */}
+          <div className="bg-[#f7fbff] border border-blue-100 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <UserOutlined className="text-blue-500 text-lg" />
+              <h3 className="font-semibold text-gray-800">Người mua</h3>
+            </div>
+            <p className="text-gray-700">
+              <span className="font-medium">Tên:</span> {order.buyer?.fullName}
+            </p>
+            {order.deliveryAddress && (
+              <p className="flex items-start gap-1 text-gray-700 mt-1">
+                <MapPin size={16} className="text-blue-500 mt-1" />
+                <span>{deliveryLocation}</span>
+              </p>
+            )}
+          </div>
 
-          <Button block size="large" onClick={() => navigate(-1)} className="mt-2">
-            Quay lại
-          </Button>
+          {/* 🚚 Vận chuyển */}
+          <div className="bg-[#f9fff9] border border-green-100 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CarOutlined className="text-green-500 text-lg" />
+              <h3 className="font-semibold text-gray-800">Vận chuyển</h3>
+            </div>
+            {order.shipping_provider ? (
+              <p className="text-gray-700">
+                <span className="font-medium">Đơn vị:</span>{" "}
+                {order.shipping_provider}
+              </p>
+            ) : (
+              <p className="text-gray-500">
+                Chưa có thông tin đơn vị vận chuyển
+              </p>
+            )}
+            <p className="text-gray-700 mt-1">
+              <span className="font-medium">Phí vận chuyển:</span>{" "}
+              {order.shipping_fee
+                ? `${Number(order.shipping_fee).toLocaleString()} ₫`
+                : "0 ₫"}
+            </p>
+          </div>
+
+          {/* 💰 Tổng tiền */}
+          <div className="pt-4 border-t border-gray-200 text-right">
+            <p className="font-semibold text-gray-800 text-lg">
+              Tổng thanh toán:
+            </p>
+            <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">
+              {total.toLocaleString()} ₫
+            </p>
+          </div>
         </div>
-      </Card>
+
+        {/* 💳 Hình thức thanh toán */}
+        <div className="bg-white rounded-xl shadow-md p-8 space-y-6 sticky top-6 self-start">
+          <h2 className="text-2xl font-semibold text-gray-900">
+            <span className="text-[#0F74C7]">2.</span> Payment Method
+          </h2>
+
+          <Radio.Group
+            onChange={(e) => setMethod(e.target.value)}
+            value={method}
+            className="space-y-4 mt-6 w-full"
+          >
+            {/* PAYOS */}
+            <div
+              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${
+                method === PaymentProvider.PAYOS
+                  ? "border-2 border-[#0F74C7] bg-[#f0f7ff]"
+                  : "border border-gray-200 bg-white"
+              }`}
+              onClick={() => setMethod(PaymentProvider.PAYOS)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-[#0F74C7]/10">
+                  <CreditCardOutlined className="text-[#0F74C7] text-xl" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    Thanh toán qua PayOS
+                  </p>
+                  <p className="text-gray-500 text-sm">
+                    Nhanh chóng và an toàn qua ngân hàng liên kết.
+                  </p>
+                </div>
+              </div>
+              <Radio value={PaymentProvider.PAYOS} />
+            </div>
+
+            {/* WALLET */}
+            <div
+              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${
+                method === PaymentProvider.WALLET
+                  ? "border-2 border-[#0F74C7] bg-[#f6fbff]"
+                  : "border border-gray-200 bg-white"
+              }`}
+              onClick={() => setMethod(PaymentProvider.WALLET)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-[#0F74C7]/10">
+                  <WalletOutlined className="text-[#0F74C7] text-xl" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    Ví nội bộ ReEV
+                  </p>
+                  <p className="text-gray-500 text-sm">
+                    Thanh toán trực tiếp từ số dư tài khoản của bạn.
+                  </p>
+                </div>
+              </div>
+              <Radio value={PaymentProvider.WALLET} />
+            </div>
+          </Radio.Group>
+
+          {/* ACTION */}
+          <div className="pt-8 space-y-3">
+            <button
+              onClick={handlePayment}
+              disabled={processing}
+              className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${
+                processing
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#0F74C7] hover:bg-[#3888ca]"
+              }`}
+            >
+              {processing ? "Đang xử lý..." : "Thanh toán ngay"}
+            </button>
+
+            <button
+              onClick={() => navigate(-1)}
+              className="w-full py-3 rounded-lg border text-gray-700 hover:border-[#0F74C7] transition flex items-center justify-center gap-2"
+            >
+              <ArrowLeftOutlined /> Quay lại
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

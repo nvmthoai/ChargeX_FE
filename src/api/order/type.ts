@@ -25,6 +25,7 @@ export interface ProductRef {
   id: string;
   title: string;
   description?: string;
+  imageUrls: string[];
 }
 
 export interface Order {
