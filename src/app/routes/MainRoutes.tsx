@@ -9,6 +9,7 @@ import ProductDetailShop from "../pages/Shop/product/ProductDetailShop";
 import Profile from "../pages/Profile/Profile";
 import ProfileDetail from "../pages/Profile/ProfileDetail/ProfileDetail";
 import ProfileSecurity from "../pages/Profile/ProfileSecurity/ProfileSecurity";
+import ProfileWallet from "../pages/Profile/ProfileWallet/ProfileWallet";
 import AuthRoute from "./AuthRoute";
 import KnowYourCus from "../pages/KYC/KnowYourCus";
 import Shop from "../pages/Shop/Shop";
@@ -56,6 +57,7 @@ export default function MainRoutes() {
           <Route path="security" element={<ProfileSecurity />} />
           <Route path='kyc' element={<KnowYourCus />} />
           <Route path="address" element={<AddressManagement />} />
+          <Route path="wallet" element={<ProfileWallet />} />
         </Route>
         <Route path="/shop" element={<Shop />}>
           <Route index element={<Navigate to="products" />} />
