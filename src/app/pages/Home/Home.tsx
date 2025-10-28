@@ -1,9 +1,11 @@
 
 import { useState } from "react";
 import useProduct from "../../hooks/useProduct";
+import { useNavigate } from "react-router-dom";
 
 
 export default function EVMarketplace() {
+  const navigate = useNavigate();
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [batteryCapacity, setBatteryCapacity] = useState([0, 100]);
   const [yearRange, setYearRange] = useState([2010, 2024]);
@@ -350,7 +352,9 @@ export default function EVMarketplace() {
                       </div>
                     </div>
 
-                    <button className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+                    <button 
+                    onClick={() => navigate(`/productdetail/${product.id}`)}
+                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
                       View Details
                     </button>
                   </div>

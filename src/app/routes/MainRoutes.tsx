@@ -5,6 +5,7 @@ import AuthPage from "../pages/Auth/auth";
 import Cart from "../pages/Cart/Cart";
 import Home from "../pages/Home/Home";
 import ProductDetail from "../pages/Product/ProductDetail";
+import ProductDetailShop from "../pages/Shop/product/ProductDetailShop";
 import Profile from "../pages/Profile/Profile";
 import ProfileDetail from "../pages/Profile/ProfileDetail/ProfileDetail";
 import ProfileSecurity from "../pages/Profile/ProfileSecurity/ProfileSecurity";
@@ -58,6 +59,7 @@ export default function MainRoutes() {
           <Route path="products" element={<ProductManager />} />
           <Route path="history" element={<TransactionHistory />} />
           <Route path="auction" element={<AuctionManager />} />
+          <Route path="productdetail/:id" element={<ProductDetailShop />} />
         </Route>
         <Route path="/productdetail/:id" element={<ProductDetail />} />
         <Route path="/auction/:id" element={<Auction />} />

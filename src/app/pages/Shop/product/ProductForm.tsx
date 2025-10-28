@@ -103,38 +103,40 @@ export default function ProductForm({
         setLinkPreviews(urls);
     }, [form.imageUrls]);
 
-    // 🚀 Submit
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+// 🚀 Submit
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-        if (!form.title || !form.description) {
-            alert("Vui lòng nhập đầy đủ thông tin bắt buộc!");
-            return;
-        }
+  if (!form.title || !form.description) {
+    alert("Vui lòng nhập đầy đủ thông tin bắt buộc!");
+    return;
+  }
 
-        const formData = new FormData();
+  const formData = new FormData();
 
-        Object.entries(form).forEach(([key, value]) => {
-            if (key === "imageUrls" || key === "imgUrl") return;
-            if (value !== "" && value !== null && value !== undefined) {
-                formData.append(key, value.toString());
-            }
-        });
+  Object.entries(form).forEach(([key, value]) => {
+    if (key === "imageUrls" || key === "imgUrl") return;
+    if (value !== "" && value !== null && value !== undefined) {
+      formData.append(key, value.toString());
+    }
+  });
 
-        if (form.imgUrl.trim()) formData.append("imgUrl", form.imgUrl.trim());
+  if (form.imgUrl.trim()) formData.append("imgUrl", form.imgUrl.trim());
 
-        if (form.imageUrls.trim()) {
-            const arr = form.imageUrls
-                .split(/[\n,]/)
-                .map((url) => url.trim())
-                .filter(Boolean);
-            formData.append("imageUrls", JSON.stringify(arr));
-        }
+  // ✅ Sửa ở đây
+  if (form.imageUrls.trim()) {
+    const arr = form.imageUrls
+      .split(/[\n,]/)
+      .map((url) => url.trim())
+      .filter(Boolean);
+    arr.forEach((url) => formData.append("imageUrls", url));
+  }
 
-        files.forEach((f) => formData.append("files", f));
+  files.forEach((f) => formData.append("files", f));
 
-        await onSubmit(formData);
-    };
+  await onSubmit(formData);
+};
+
 
     return (
         <div className="min-h-[80vh] bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-sm p-8">

@@ -3,6 +3,7 @@ import { getMyProducts, getProductById, updateProduct } from "../../../../api/pr
 import type { Product } from "../../../../api/product/type";
 import { Pencil,ChevronDown, Check, X } from "lucide-react";
 import ProductForm from "./ProductForm";
+import { useNavigate } from "react-router-dom";
 
 export default function ProductManagerTable() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -13,6 +14,7 @@ export default function ProductManagerTable() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null); // 🟢 dữ liệu sản phẩm đang edit
   const [showModal, setShowModal] = useState(false); // 🟢 mở modal edit
+  const navigate = useNavigate();
 
   // 🟩 Fetch danh sách
   const fetchProducts = async () => {
@@ -103,7 +105,7 @@ export default function ProductManagerTable() {
           </div>
         ) : (
           <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-600 font-semibold text-[14px] border-b">
+            <thead className="bg-gray-50 text-gray-600 text-center font-semibold text-[14px] border-b border-gray-400">
               <tr>
                 <th className="px-5 py-3 w-20">Ảnh</th>
                 <th className="px-5 py-3">Tên sản phẩm</th>
@@ -115,9 +117,13 @@ export default function ProductManagerTable() {
               </tr>
             </thead>
             <tbody>
+
               {products.map((p) => (
-                <tr key={p.id} className="border-b last:border-none hover:bg-gray-50 transition">
-                  <td className="px-5 py-3">
+                
+                <tr key={p.id}
+                onClick={() => navigate(`/shop/productdetail/${p.id}`)}
+                 className="border-b border-gray-200 last:border-none hover:bg-blue-100 transition cursor-pointer text-center">
+                  <td className="px-5 py-3 text-center">
                     <img
                       src={p.imageUrls?.[0] || "/placeholder.png"}
                       alt={p.title}
@@ -165,7 +171,7 @@ export default function ProductManagerTable() {
                   <td className="px-5 py-3">
                     <div className="flex justify-center gap-2">
                       <button
-                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-indigo-700 hover:bg-indigo-100"
+                        className="inline-flex items-center cursor-pointer gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-indigo-700 hover:bg-indigo-100"
                         onClick={() => handleOpenEdit(p.id)}
                       >
                         <Pencil className="h-4 w-4" />
@@ -187,7 +193,7 @@ export default function ProductManagerTable() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-2 border rounded-md text-sm hover:bg-gray-50 disabled:opacity-40"
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 disabled:opacity-40"
           >
             ← Trước
           </button>
@@ -196,7 +202,7 @@ export default function ProductManagerTable() {
               <button
                 key={i}
                 onClick={() => setPage(p)}
-                className={`px-3 py-2 border rounded-md text-sm ${page === p
+                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${page === p
                   ? "bg-blue-600 text-white border-blue-600"
                   : "hover:bg-gray-50"
                   }`}
@@ -210,7 +216,7 @@ export default function ProductManagerTable() {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-2 border rounded-md text-sm hover:bg-gray-50 disabled:opacity-40"
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 disabled:opacity-40"
           >
             Sau →
           </button>
