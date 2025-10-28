@@ -36,7 +36,9 @@ import AuctionLiveManagement from "../pages/Admin/AuctionLiveManagement";
 export default function MainRoutes() {
   return (
     <BrowserRouter>
-      <Header />
+      <div className="sticky top-0 left-0 z-20">
+        <Header />
+      </div>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -50,7 +52,7 @@ export default function MainRoutes() {
         <Route element={<AuthRoute />}>
           <Route path="/auth" element={<AuthPage />} />
         </Route>
-        
+
         <Route path="/profile" element={<Profile />}>
           <Route index element={<Navigate to="detail" replace />} />
           <Route path="detail" element={<ProfileDetail />} />
