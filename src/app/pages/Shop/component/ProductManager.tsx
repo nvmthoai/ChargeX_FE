@@ -5,7 +5,7 @@ import type { Product } from "../../../../api/product/type";
 import { Pencil, Trash2, Gavel } from "lucide-react";
 import AuctionRequestModal from "./AuctionRequestModal";
 import useAuction from "../../../hooks/useAuction";
-
+//
 export default function ProductManagerTable() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
