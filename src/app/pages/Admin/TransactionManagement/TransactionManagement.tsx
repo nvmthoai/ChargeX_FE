@@ -3,7 +3,7 @@ import { fetchData, getQueryString } from '../../../../mocks/CallingAPI';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Pagination from '../../../components/Pagination/Pagination';
 // import SmallSpinner from '../../../components/SmallSpinner/SmallSpinner';
-import './TransactionManagement';
+import './TransactionManagement.css';
 
 export default function TransactionManagement() {
 
@@ -26,8 +26,9 @@ export default function TransactionManagement() {
         const token = localStorage.getItem('token') || '';
         const fetchDataAPI = async () => {
             try {
-                console.log(`/payments${getQueryString({ page: page, limit: 10 })}`);
-                const PagePaymentsResponse = await fetchData(`/payments${getQueryString({ page: page, limit: 10 })}`, token);
+                // console.log(`/payment${getQueryString({ page: page, limit: 10 })}`);
+                // const PagePaymentsResponse = await fetchData(`/payment${getQueryString({ page: page, limit: 10 })}`, token);
+                const PagePaymentsResponse = await fetchData(`/payment`, token);
                 console.log('PagePaymentsResponse', PagePaymentsResponse);
                 setPAYMENTs(PagePaymentsResponse.data);
             } catch (error) {
