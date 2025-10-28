@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchData, getQueryString } from '../../../../mocks/CallingAPI';
+import { fetchData } from '../../../../mocks/CallingAPI';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Pagination from '../../../components/Pagination/Pagination';
 // import SmallSpinner from '../../../components/SmallSpinner/SmallSpinner';
