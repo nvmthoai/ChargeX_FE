@@ -301,11 +301,13 @@ export default function EVMarketplace() {
                   key={product.id}
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <img
-                    src={product.imageUrls[0] || "/placeholder.svg"}
-                    alt={product.title}
+                 {
+                  product.imageUrls &&  <img
+                    src={product?.imageUrls[0] || ""}
+                    alt={product?.title}
                     className="h-48 w-full object-cover"
                   />
+                 }
                   <div className="p-4 space-y-3">
                     <div className="flex justify-between items-start gap-2">
                       <h3 className="font-semibold text-lg line-clamp-2 flex-1">
