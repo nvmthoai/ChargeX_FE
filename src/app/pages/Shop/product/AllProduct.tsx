@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getMyProducts, getProductById, updateProduct } from "../../../../api/product/api";
 import type { Product } from "../../../../api/product/type";
-import { Pencil, Trash2, ChevronDown, Check, X } from "lucide-react";
+import { Pencil,ChevronDown, Check, X } from "lucide-react";
 import ProductForm from "./ProductForm";
 
 export default function ProductManagerTable() {
