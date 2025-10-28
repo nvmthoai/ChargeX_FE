@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import useProduct from "../../hooks/useProduct";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 
 export default function EVMarketplace() {
@@ -96,42 +96,46 @@ export default function EVMarketplace() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <button className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-900">
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-5 5-5-5h5v-12h0z"
-                />
-              </svg>
-              <span className="hidden md:inline">Notifications</span>
-            </button>
-            <button className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-900">
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                />
-              </svg>
-              <span className="hidden md:inline">Wallet</span>
-            </button>
+            <Link to="/">
+              <button className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-900 cursor-pointer">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-5 5-5-5h5v-12h0z"
+                  />
+                </svg>
+                <span className="hidden md:inline">Notifications</span>
+              </button>
+            </Link>
+            <Link to="/profile/wallet">
+              <button className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-900 cursor-pointer">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                  />
+                </svg>
+                <span className="hidden md:inline">Wallet</span>
+              </button>
+            </Link>
             <img
               src="/diverse-user-avatars.png"
               alt="User"
-              className="h-8 w-8 rounded-full"
+              className="h-8 w-8 rounded-full cursor-pointer"
             />
           </div>
         </div>

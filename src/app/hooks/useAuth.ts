@@ -62,7 +62,8 @@ const UserAuth = () => {
       setAuthUser(decoded, token);
 
       message.success("Login successfully!");
-      navigate("/");
+      if (decoded?.role == 'admin') navigate("/admin");
+      else navigate("/");
     }
 
     return null;
