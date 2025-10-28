@@ -118,7 +118,59 @@ export default function ProductInfo({ product }: { product: Product }) {
           Add to Watchlist
         </button>
       </div>
+ {/* Specifications */}
+      <div className="pt-6">
+        <h3 className="text-2xl font-semibold mb-4 text-gray-900">Specifications</h3>
 
+        <div className="overflow-hidden rounded-lg border border-gray-200">
+          <table className="w-full border-collapse">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left text-sm font-medium text-gray-500 px-4 py-3 w-1/2">
+                  Attribute
+                </th>
+                <th className="text-left text-sm font-medium text-gray-500 px-4 py-3 w-1/2">
+                  Value
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-gray-700 text-sm">
+              <tr>
+                <td className="px-4 py-2 font-medium">Battery Capacity</td>
+                <td className="px-4 py-2">{product.nominal_voltage_v ?? "52"} V</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-medium">SOH (State of Health)</td>
+                <td className="px-4 py-2">{product.soh_percent ?? "95"}%</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-medium">Cycle Count</td>
+                <td className="px-4 py-2">{product.cycle_count ?? "320"} cycles</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-medium">Weight</td>
+                <td className="px-4 py-2">{product.weight_kg ?? "2"} kg</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-medium">Condition</td>
+                <td className="px-4 py-2">{product.condition_grade ?? "Excellent"}</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-medium">Dimension</td>
+                <td className="px-4 py-2">{product.dimension ?? "32 × 15 × 10 cm"}</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-medium">Estimated Range</td>
+                <td className="px-4 py-2">≈ 60 km per charge</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-medium">Location</td>
+                <td className="px-4 py-2">Ho Chi Minh City, Vietnam</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       {/* Reviews */}
       <div className="bg-white p-6 space-y-6">
         <h2 className="text-2xl font-semibold text-gray-900">User Reviews</h2>
