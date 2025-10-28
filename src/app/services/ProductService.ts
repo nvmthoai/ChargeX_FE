@@ -17,10 +17,24 @@ const productService = () => {
     [callApi]
   );
 
+
+  const sendRequestCreateAuction = useCallback(
+    async () => {
+      try {
+        const response = await callApi(HTTP_METHOD.POST, `//all`);
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
+
   return {
-    getAllProduct,
     loading,
+    getAllProduct,
     setIsLoading,
+    sendRequestCreateAuction
   };
 };
 
