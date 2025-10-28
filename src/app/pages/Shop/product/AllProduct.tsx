@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { getMyProducts, getProductById, updateProduct } from "../../../../api/product/api";
 import type { Product } from "../../../../api/product/type";
-import { Pencil, Eye, ChevronDown, Check, X } from "lucide-react";
+import { Pencil, Eye, ChevronDown, Check, X, Gavel } from "lucide-react";
 import ProductForm from "./ProductForm";
 import { useNavigate } from "react-router-dom";
+import AuctionRequestModal from "../component/AuctionRequestModal";
+import useAuction from "../../../hooks/useAuction";
+
 
 export default function ProductManagerTable() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -15,6 +18,14 @@ export default function ProductManagerTable() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+  const [auctionModalOpen, setAuctionModalOpen] = useState(false);
+  const { handleSendRequest } = useAuction();
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const openAuctionModal = (product: Product) => {
+    setSelectedProduct(product);
+    setAuctionModalOpen(true);
+  };
 
   // 🟩 Fetch danh sách
   const fetchProducts = async () => {
@@ -180,6 +191,16 @@ export default function ProductManagerTable() {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex justify-center gap-2">
+                      {!p.is_auction && (
+                        <button
+                          onClick={() => openAuctionModal(p)}
+                          className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-800 mx-1"
+                          title="Request Auction"
+                        >
+                          <Gavel size={16} />
+                          Auction
+                        </button>
+                      )}
                       <button
                         onClick={() => navigate(`/shop/productdetail/${p.id}`)}
                         className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-gray-700 hover:bg-gray-100"
@@ -222,11 +243,10 @@ export default function ProductManagerTable() {
               <button
                 key={i}
                 onClick={() => setPage(p)}
-                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${
-                  page === p
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "hover:bg-gray-50"
-                }`}
+                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${page === p
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "hover:bg-gray-50"
+                  }`}
               >
                 {p}
               </button>
@@ -271,6 +291,19 @@ export default function ProductManagerTable() {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedProduct && (
+        <AuctionRequestModal
+          open={auctionModalOpen}
+          productId={selectedProduct.id}
+          productTitle={selectedProduct.title}
+          onClose={() => {
+            setAuctionModalOpen(false);
+            setSelectedProduct(null);
+          }}
+          onSubmit={handleSendRequest}
+        />
       )}
     </div>
   );
@@ -346,9 +379,8 @@ function StatusBadge({
                 e.stopPropagation();
                 onSelect?.(st);
               }}
-              className={`flex w-full  cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 ${
-                st === value ? "text-blue-600 font-medium" : "text-gray-700"
-              }`}
+              className={`flex w-full  cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 ${st === value ? "text-blue-600 font-medium" : "text-gray-700"
+                }`}
             >
               {st === value && <Check className="h-4 w-4" />}
               <span>{statusStyle[st].text}</span>
