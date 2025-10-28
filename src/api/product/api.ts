@@ -50,3 +50,25 @@ export const getMyProducts = async (
   }
 };
 
+// 🟨 Cập nhật sản phẩm (owner only)
+export const updateProduct = async (
+  id: string,
+  formData: FormData
+): Promise<any> => {
+  try {
+    const response = await axiosInstance.patch(
+      `/product-listing/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    console.log("✅ Product updated:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error updating product:", error);
+    throw error;
+  }
+};
