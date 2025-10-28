@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
-import AddProduct from "./AddProduct";
-import AllProduct from "./AllProduct";
+import AddProduct from "../product/AddProduct";
+import AllProduct from "../product/AllProduct";
 
 export default function ProductManager() {
   const [showAddModal, setShowAddModal] = useState(false);
