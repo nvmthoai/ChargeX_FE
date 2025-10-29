@@ -12,7 +12,7 @@ const Pagination: React.FC<PaginationProps> = ({
     totalPages,
     onPageChange,
 }) => {
-    if (totalPages <= 1) return null;
+    if (!totalPages || totalPages < 1) return null;
 
     const goToFirst = () => onPageChange(1);
     const goToLast = () => onPageChange(totalPages);
