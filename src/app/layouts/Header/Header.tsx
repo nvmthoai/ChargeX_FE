@@ -9,7 +9,7 @@ import DepositModal from "./DepositModal";
 import useWallet from "../../hooks/useWallet";
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth(); // ✅ Đảm bảo useAuth trả về token
   const navigate = useNavigate();
   const location = useLocation();
   const [depositModalOpen, setDepositModalOpen] = useState(false);
@@ -41,6 +41,33 @@ export default function Header() {
     },
   ];
 
+  // ✅ Nếu chưa đăng nhập => chỉ hiển thị nút Login
+  if (!token || !user) {
+    return (
+      <header className="mx-auto bg-[#e8f0f5] px-8 py-3 shadow-sm flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/">
+          <div className="flex items-center">
+            <img
+              src="/chargeX_Logo.png"
+              alt="Logo"
+              className="w-12 h-12 object-contain"
+            />
+          </div>
+        </Link>
+
+        {/* Nút Login */}
+        <button
+          onClick={() => navigate("/auth")}
+          className="px-4 py-2 bg-white rounded-full shadow text-sm font-medium text-gray-700 hover:text-gray-900 transition"
+        >
+          Login
+        </button>
+      </header>
+    );
+  }
+
+  // ✅ Nếu đã đăng nhập => hiển thị đầy đủ
   return (
     <header className="mx-auto bg-[#e8f0f5] px-8 py-3 shadow-sm flex items-center justify-between">
       {/* Logo */}
@@ -79,65 +106,54 @@ export default function Header() {
 
       {/* User Section */}
       <div className="flex items-center gap-4">
-        {user ? (
-          <>
-            <div className="flex items-center gap-3">
-              <Dropdown
-                menu={{ items: [] }}
-                trigger={["click"]}
-                dropdownRender={() => (
-                  <div className="bg-white rounded-lg shadow-lg p-4 w-80">
-                    {myWallet && <WalletDisplay wallet={myWallet} />}
-                  </div>
-                )}
-              >
-                <Button
-                  type="text"
-                  icon={<WalletOutlined className="text-blue-500" />}
-                  className="text-sm font-semibold text-gray-700 hover:bg-white/60"
-                >
-                  {myWallet && myWallet.available}
-                </Button>
-              </Dropdown>
-
-              <Button
-                type="primary"
-                size="small"
-                onClick={() => setDepositModalOpen(true)}
-                className="bg-green-500 hover:bg-green-600"
-              >
-                Deposit
-              </Button>
-            </div>
-
-            <Link
-              to="/profile"
-              className="flex items-center gap-3 bg-white rounded-full px-3 py-1.5 shadow-sm hover:bg-gray-50 transition-all"
-            >
-              <span className="text-sm font-semibold text-gray-700">
-                Hello, {user.fullname || "User"} 👋
-              </span>
-              <img
-                src={"https://i.pravatar.cc/40"}
-                alt="avatar"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            </Link>
-
-            <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
-              <Button type="text" className="text-sm text-gray-500">
-                ⋮
-              </Button>
-            </Dropdown>
-          </>
-        ) : (
-          <button
-            onClick={() => navigate("/auth")}
-            className="px-4 py-1.5 bg-white rounded-full shadow text-sm font-medium text-gray-700 hover:text-gray-900 transition"
+        <div className="flex items-center gap-3">
+          <Dropdown
+            menu={{ items: [] }}
+            trigger={["click"]}
+            dropdownRender={() => (
+              <div className="bg-white rounded-lg shadow-lg p-4 w-80">
+                {myWallet && <WalletDisplay wallet={myWallet} />}
+              </div>
+            )}
           >
-            Login
-          </button>
-        )}
+            <Button
+              type="text"
+              icon={<WalletOutlined className="text-blue-500" />}
+              className="text-sm font-semibold text-gray-700 hover:bg-white/60"
+            >
+              {myWallet ? `$${myWallet.available}` : "Wallet"}
+            </Button>
+          </Dropdown>
+
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => setDepositModalOpen(true)}
+            className="bg-green-500 hover:bg-green-600"
+          >
+            Deposit
+          </Button>
+        </div>
+
+        <Link
+          to="/profile"
+          className="flex items-center gap-3 bg-white rounded-full px-3 py-1.5 shadow-sm hover:bg-gray-50 transition-all"
+        >
+          <span className="text-sm font-semibold text-gray-700">
+            Hello, {user.fullname || "User"} 👋
+          </span>
+          <img
+            src={"https://i.pravatar.cc/40"}
+            alt="avatar"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        </Link>
+
+        <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
+          <Button type="text" className="text-sm text-gray-500">
+            ⋮
+          </Button>
+        </Dropdown>
       </div>
 
       <DepositModal
