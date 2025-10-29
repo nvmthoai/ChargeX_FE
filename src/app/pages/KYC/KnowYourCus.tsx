@@ -44,21 +44,11 @@ export default function KnowYourCus() {
   if (loading) {
     return <p className="p-6 text-gray-500">Loading KYC status...</p>;
   }
-
-  /* ==============================
-      ✅ GIAO DIỆN CHÍNH
-  ============================== */
-
   return (
     <div className="p-6 w-full max-w-3xl mx-auto">
       {!kyc ? (
         // 🟡 Khi chưa có hồ sơ → giữ nguyên phần giao diện cũ
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold mb-2">No KYC Profile Found</h2>
-          <p className="text-gray-600 mb-4">
-            You haven’t verified your identity yet. Please choose a verification
-            method to continue.
-          </p>
           <VerifyOptions/>
 
         </div>
