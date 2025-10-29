@@ -79,8 +79,41 @@ export default function KycProfileView({ kyc }: { kyc: KycProfile }) {
                 key={doc.kycDocumentId}
                 className="flex justify-between items-center bg-slate-50 hover:bg-indigo-50 px-3 py-2 rounded-md transition"
               >
-                <span className="capitalize text-slate-700">{doc.type}</span>
-                <span
+                <span className="capitalize text-slate-700">{doc.type} </span>
+                {doc.fileUrl ? (
+                  /\.(jpe?g|png|gif|webp|avif|svg|bmp)(\?.*)?$/i.test(doc.fileUrl) ? (
+                    <a
+                      href={doc.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 ml-3"
+                    >
+                      <img
+                        src={doc.fileUrl}
+                        alt={`${doc.type} preview`}
+                        className="w-16 h-10 object-cover rounded-md border"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                     
+                    </a>
+                  ) : (
+                    <a
+                      href={doc.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 ml-3 text-indigo-600 hover:underline"
+                    >
+                      <FileText size={16} />
+                      <span className="truncate text-sm">{doc.type || doc.fileUrl}</span>
+                    </a>
+                  )
+                ) : (
+                  <span className="ml-3 text-sm text-gray-400">No file</span>
+                )}
+
+                {/* <span
                   className={`text-xs font-semibold px-2 py-1 rounded-md ${
                     doc.status === "approved"
                       ? "bg-green-100 text-green-700"
@@ -90,7 +123,7 @@ export default function KycProfileView({ kyc }: { kyc: KycProfile }) {
                   }`}
                 >
                   {doc.status}
-                </span>
+                </span> */}
               </li>
             ))}
           </ul>
@@ -102,7 +135,7 @@ export default function KycProfileView({ kyc }: { kyc: KycProfile }) {
       )}
 
       {/* Actions */}
-      <div className="pt-2 border-t border-slate-200">
+      <div className="pt-2">
         <KycActionButton kyc={kyc} />
       </div>
     </div>
