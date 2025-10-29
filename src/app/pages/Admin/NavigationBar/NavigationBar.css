@@ -48,6 +48,12 @@
                 align-items: center;
                 gap: 16px;
                 font-weight: bold;
+
+                i {
+                    width: 16px;
+                    display: flex;
+                    justify-content: center;
+                }
             }
 
             &:hover {
@@ -97,36 +103,22 @@
         form {
             gap: 16px;
             display: flex;
+        }
 
-            .checkbox-item {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 0 8px;
-                color: var(--text-primary);
-                background-color: var(--button-secondary-bg);
-                border: 2px solid var(--gray-3);
-                border-radius: 100px;
-                cursor: pointer;
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 8px;
+            color: var(--text-primary);
+            background-color: var(--button-secondary-bg);
+            border: 2px solid var(--gray-3);
+            border-radius: 100px;
+            cursor: pointer;
 
-                input[type='checkbox'] {
-                    width: 18px;
-                    height: 18px;
-                }
-            }
-
-            select {
-                outline: none;
-                padding: 4px 12px;
-                color: var(--text-primary);
-                background-color: var(--button-secondary-bg);
-                border: 2px solid var(--gray-3);
-                border-radius: 4px;
-                cursor: pointer;
-
-                &:hover {
-                    background-color: #30363D;
-                }
+            input[type='checkbox'] {
+                width: 18px;
+                height: 18px;
             }
         }
 
@@ -140,6 +132,21 @@
 
             &::placeholder {
                 color: var(--text-2);
+            }
+        }
+
+        select {
+            outline: none;
+            height: 100%;
+            padding: 4px 12px;
+            color: var(--text-primary);
+            background-color: var(--button-secondary-bg);
+            border: 2px solid var(--gray-3);
+            border-radius: 4px;
+            cursor: pointer;
+
+            &:hover {
+                background-color: #30363D;
             }
         }
     }

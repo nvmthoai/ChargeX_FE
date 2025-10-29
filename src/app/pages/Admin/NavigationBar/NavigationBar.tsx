@@ -1,9 +1,7 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-// import { useAuth } from '../../hooks/AuthContext/AuthContext.jsx';
 import "./NavigationBar.css";
 
 export default function NavigationBar() {
-  // const { user } = useAuth();
   const location = useLocation();
   console.log("NavigationBar", location.pathname);
 
@@ -12,8 +10,13 @@ export default function NavigationBar() {
     { name: "KYC", icon: "id-card", path: "/admin/kyc-management" },
     {
       name: "TRANSACTION",
-      icon: "dollar",
+      icon: "money-check-dollar",
       path: "/admin/transaction-management",
+    },
+    {
+      name: "REVENUE",
+      icon: "dollar",
+      path: "/admin/revenue-management",
     },
     { name: "POST", icon: "clipboard", path: "/admin/post-management" },
     {
@@ -36,9 +39,8 @@ export default function NavigationBar() {
           {menuItems.map((item, index) => (
             <div
               key={index}
-              className={`item ${
-                location.pathname.includes(item.path) ? "located" : ""
-              }`}
+              className={`item ${location.pathname.includes(item.path) ? "located" : ""
+                }`}
             >
               <Link to={`${item.path}`}>
                 <i className={`fa-solid fa-${item.icon}`}></i>
