@@ -46,10 +46,10 @@ export default function EVMarketplace() {
 
   const getDisplayPrice = (product: (typeof products)[0]) => {
     if (product.price_now)
-      return `$${Number(product.price_now).toLocaleString()}`;
+      return `$${(product.price_now).toLocaleString()}`;
     if (product.price_buy_now)
-      return `$${Number(product.price_buy_now).toLocaleString()}`;
-    return `$${Number(product.price_start).toLocaleString()}`;
+      return `$${(product.price_buy_now).toLocaleString()}`;
+    return `$${(product.price_start).toLocaleString()}`;
   };
 
   const getCondition = (product: (typeof products)[0]) => {
