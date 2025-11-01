@@ -111,7 +111,7 @@ export default function PaymentPage() {
         // 💳 Thanh toán qua PayOS
         const payload = {
           type: "pay_order" as const,
-          amount: total,
+          amount: Number(total),
           description: `Thanh toán đơn hàng #${order.orderId}`,
           related_order_id: order.orderId,
           provider: method,
@@ -162,7 +162,7 @@ export default function PaymentPage() {
       </div>
     );
 
-  const total = Number(order.price || 0) + Number(order.shipping_fee || 0);
+  const total = (Number(order.price) || 0) + (Number(order.shipping_fee) || 0);
   const product = order.product;
   const isWalletInsufficient =
     method === PaymentProvider.WALLET && (wallet?.available ?? 0) < total;

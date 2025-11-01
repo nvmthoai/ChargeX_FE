@@ -20,6 +20,8 @@ export default function ProfileSideBar() {
         { name: "Linked Accounts", link: "linked-account" },
         { name: "Know your customer", link: "kyc" },
         { name: "Wallet", link: "wallet" },
+        { name: "Lịch sử mua hàng", link: "orderhistory" },
+
 
     ];
 

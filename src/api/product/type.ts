@@ -23,9 +23,9 @@ export interface Product {
   seller: Seller;
   title: string;
   description: string;
-  price_start: string;
-  price_buy_now: string;
-  price_now: string | null;
+  price_start: number;
+  price_buy_now: number;
+  price_now: number | null;
   status: string;
 
   imageUrls: string[];
