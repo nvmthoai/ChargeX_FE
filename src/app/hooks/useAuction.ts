@@ -80,7 +80,10 @@ const useAuction = () => {
         }
         return null
       } catch (error) {
-        message.error("Failed to create live auction")
+        // Try to surface server error message if available (403/401 reasons)
+        const err: any = error
+        const serverMsg = err?.response?.data?.message || err?.message || "Failed to create live auction"
+        message.error(serverMsg)
         return null
       } finally {
         setLoading(false)
