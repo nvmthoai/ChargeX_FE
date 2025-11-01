@@ -61,6 +61,8 @@ const auctionService = () => {
                 return response;
             } catch (e: any) {
                 console.log(e?.response?.data);
+                // Rethrow so callers can access the error details and show useful messages
+                throw e;
             }
         },
         [callApi]
