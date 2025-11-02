@@ -25,13 +25,16 @@ type UseAuctionLiveOptions = {
  * - Fetches auction snapshot via GET
  * - Connects a WebSocket and listens for auction:state, auction:bid, auction:ended, heartbeat
  * - Keeps serverTime offset and provides countdown derived from server time
- * 
+ *
  * NOTE: This hook assumes a JSON-over-WebSocket protocol with messages shaped like:
  * { event: 'auction:state' | 'auction:bid' | 'auction:ended' | 'heartbeat', data: {...} }
  * and a WS URL derived from ENV.BASE_URL by replacing http(s) -> ws(s) and appending `/ws/auctions/${id}`.
  * Adjust the URL and message parsing to match your backend (socket.io would require `socket.io-client`).
  */
-export default function useAuctionLive(auctionId: string | null, options?: UseAuctionLiveOptions) {
+export default function useAuctionLive(
+  auctionId: string | null,
+  options?: UseAuctionLiveOptions
+) {
   const { callApi } = useApiService();
   const { user } = useAuth();
   const resyncIntervalSeconds = options?.resyncIntervalSeconds ?? 10;
@@ -58,7 +61,9 @@ export default function useAuctionLive(auctionId: string | null, options?: UseAu
       return u.origin;
     } catch (e) {
       // fallback: strip common api prefixes
-      return baseUrl.replace(/\/(?:api|api\/v\d+)(?:\/.*)?$/i, "").replace(/\/$/, "");
+      return baseUrl
+        .replace(/\/(?:api|api\/v\d+)(?:\/.*)?$/i, "")
+        .replace(/\/$/, "");
     }
   }, [baseUrl]);
 
@@ -66,39 +71,46 @@ export default function useAuctionLive(auctionId: string | null, options?: UseAu
     if (!auctionId) return;
     try {
       setLoading(true);
-      // Try both common endpoints — backend might use /auction/:id or /auctions/:id
-      let data: any = null;
-      try {
-        data = await callApi("get", `/auction/${auctionId}`);
-      } catch (_) {
-        data = await callApi("get", `/auctions/${auctionId}`);
+      // Backend endpoint: GET /auction/:id
+      const data = await callApi("get", `/auction/${auctionId}`);
+
+      if (!data) {
+        console.warn("resyncFromServer: no data returned");
+        toast.error(`Auction ${auctionId} not found`);
+        setLive(false);
+        return;
       }
 
-      if (!data) return;
+      // Backend returns: { auctionId, status, currentPrice, startTime, endTime, product, ... }
+      const serverTime = Date.now(); // or extract from response if backend provides it
+      const snapshot = data;
 
-      // Expect data to include serverTime and auction snapshot
-      const serverTime = data.serverTime ?? data.server_time ?? Date.now();
-      const snapshot = data.auction ?? data;
+      setServerTimeOffset(0); // adjust if backend provides serverTime
 
-      setServerTimeOffset(Date.now() - serverTime);
-
+      // Map backend fields to FE AuctionState
       const next: AuctionState = {
-        id: String(snapshot.id ?? auctionId),
-        currentPrice: snapshot.currentPrice ?? snapshot.current_price ?? snapshot.currentBid ?? 0,
-        minIncrement: snapshot.minIncrement ?? snapshot.min_increment ?? snapshot.minBidIncrement ?? 0,
-        endAt: snapshot.endAt ?? snapshot.end_at ?? snapshot.endsAt ?? Date.now(),
+        id: String(snapshot.auctionId ?? auctionId),
+        currentPrice: snapshot.currentPrice ?? 0,
+        minIncrement: snapshot.minIncrement ?? snapshot.minBidIncrement ?? 1000,
+        endAt: snapshot.endTime
+          ? new Date(snapshot.endTime).getTime()
+          : Date.now() + 3600000,
         participants: snapshot.participants ?? [],
-        status: snapshot.status ?? snapshot.state ?? "live",
-        winnerId: snapshot.winnerId ?? snapshot.winner_id ?? null,
-        finalPrice: snapshot.finalPrice ?? snapshot.final_price ?? null,
+        status: snapshot.status ?? "live",
+        winnerId: snapshot.winnerId ?? null,
+        finalPrice: snapshot.finalPrice ?? null,
       };
 
       setAuction(next);
-      setLive(true);
+      setLive(snapshot.status === "live" || snapshot.status === "scheduled");
       // compute countdown
       setCountdown(Math.max(0, next.endAt - serverTime));
-    } catch (e) {
+    } catch (e: any) {
       console.error("resyncFromServer error", e);
+      const msg =
+        e?.response?.data?.message || e?.message || "Failed to load auction";
+      toast.error(msg);
+      setLive(false);
     } finally {
       setLoading(false);
     }
@@ -106,17 +118,24 @@ export default function useAuctionLive(auctionId: string | null, options?: UseAu
 
   const connectSocket = useCallback(() => {
     const url = buildSocketUrl();
-    if (!url || !auctionId) return;
+    if (!url || !auctionId) {
+      console.warn("connectSocket: no url or auctionId", { url, auctionId });
+      return;
+    }
 
     try {
       setReconnecting(false);
       // read token if available for auth handshake
       const token = localStorage.getItem("token");
+      console.info("Connecting socket.io to:", url, "for auction:", auctionId);
       const socket = io(url, {
         path: "/socket.io",
         transports: ["websocket"],
         auth: token ? { token } : undefined,
         autoConnect: true,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
       });
       socketRef.current = socket;
 
@@ -134,8 +153,9 @@ export default function useAuctionLive(auctionId: string | null, options?: UseAu
       });
 
       socket.on("connect_error", (err: any) => {
-        console.warn("socket connect_error", err);
+        console.error("socket connect_error:", err.message || err);
         setReconnecting(true);
+        toast.error("Cannot connect to live auction server");
       });
 
       socket.on("disconnect", (reason: any) => {
@@ -143,63 +163,84 @@ export default function useAuctionLive(auctionId: string | null, options?: UseAu
         setReconnecting(true);
       });
 
-      socket.on("heartbeat", (d: any) => {
-        const serverTime = d.serverTime ?? d.server_time ?? Date.now();
-        setServerTimeOffset(Date.now() - serverTime);
-      });
+      // Backend events: auction:state, auction:price_update, auction:extended, auction:error
 
       socket.on("auction:state", (d: any) => {
-        const serverTime = d.serverTime ?? d.server_time ?? Date.now();
-        setServerTimeOffset(Date.now() - serverTime);
-        const snapshot = d.auction ?? d;
+        console.log("Received auction:state", d);
+        const snapshot = d;
         const next: AuctionState = {
-          id: String(snapshot.id ?? auctionId),
-          currentPrice: snapshot.currentPrice ?? snapshot.current_price ?? snapshot.currentBid ?? 0,
-          minIncrement: snapshot.minIncrement ?? snapshot.min_increment ?? snapshot.minBidIncrement ?? 0,
-          endAt: snapshot.endAt ?? snapshot.end_at ?? snapshot.endsAt ?? Date.now(),
+          id: String(snapshot.auctionId ?? auctionId),
+          currentPrice: snapshot.currentPrice ?? 0,
+          minIncrement: snapshot.minIncrement ?? 1000,
+          endAt: snapshot.endTime
+            ? new Date(snapshot.endTime).getTime()
+            : Date.now() + 3600000,
           participants: snapshot.participants ?? [],
-          status: snapshot.status ?? snapshot.state ?? "live",
-          winnerId: snapshot.winnerId ?? snapshot.winner_id ?? null,
-          finalPrice: snapshot.finalPrice ?? snapshot.final_price ?? null,
+          status: snapshot.status ?? "live",
+          winnerId: snapshot.winnerId ?? null,
+          finalPrice: snapshot.finalPrice ?? null,
         };
         setAuction(next);
-        setCountdown(Math.max(0, next.endAt - serverTime));
+        setLive(snapshot.status === "live");
+        setCountdown(Math.max(0, next.endAt - Date.now()));
       });
 
-      socket.on("auction:bid", (d: any) => {
-        const serverTime = d.serverTime ?? d.server_time ?? Date.now();
-        setServerTimeOffset(Date.now() - serverTime);
-        const bid = d.bid ?? d;
+      socket.on("auction:price_update", (d: any) => {
+        console.log("Received auction:price_update", d);
         setAuction((prev) => {
           if (!prev) return prev;
-          return { ...prev, currentPrice: bid.amount ?? bid.price ?? prev.currentPrice };
+          const newPrice = d.currentPrice ?? d.amount ?? prev.currentPrice;
+          return { ...prev, currentPrice: newPrice };
         });
 
         if (pendingBidRef.current) {
           const pendingAmount = pendingBidRef.current.amount;
-          if (bid.amount === pendingAmount && bid.bidderId === user?.sub) {
+          if (d.currentPrice === pendingAmount && d.bidderId === user?.sub) {
             pendingBidRef.current = null;
             toast.success("Your bid was accepted");
-          } else if (bid.amount > pendingAmount && bid.bidderId !== user?.sub) {
+          } else if (d.currentPrice > pendingAmount) {
             pendingBidRef.current = null;
             toast.error("You have been outbid");
           }
         }
       });
 
-      socket.on("auction:bidRejected", (d: any) => {
-        const reason = d.reason ?? d.message ?? "Bid rejected";
-        pendingBidRef.current = null;
+      socket.on("auction:extended", (d: any) => {
+        console.log("Received auction:extended", d);
+        const newEndTime = d.endTime
+          ? new Date(d.endTime).getTime()
+          : Date.now() + 60000;
+        setAuction((prev) => (prev ? { ...prev, endAt: newEndTime } : prev));
+        setCountdown(Math.max(0, newEndTime - Date.now()));
+        toast(
+          `Auction extended to ${new Date(newEndTime).toLocaleTimeString()}`,
+          { icon: "ℹ️" }
+        );
+      });
+
+      socket.on("auction:error", (d: any) => {
+        console.error("Received auction:error", d);
+        const reason = d.message ?? "Auction error";
         toast.error(reason);
+        if (pendingBidRef.current) {
+          pendingBidRef.current = null;
+        }
       });
 
       socket.on("auction:ended", (d: any) => {
-        const serverTime = d.serverTime ?? d.server_time ?? Date.now();
-        setServerTimeOffset(Date.now() - serverTime);
-        const ended = d;
-        setAuction((prev) => (prev ? { ...prev, status: "ended", winnerId: ended.winnerId ?? ended.winner_id ?? null, finalPrice: ended.finalPrice ?? ended.final_price ?? null } : prev));
+        console.log("Received auction:ended", d);
+        setAuction((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: "ended",
+                winnerId: d.winnerId ?? null,
+                finalPrice: d.finalPrice ?? null,
+              }
+            : prev
+        );
         setLive(false);
-        if (ended.winnerId && user?.sub && ended.winnerId === user.sub) {
+        if (d.winnerId && user?.sub && d.winnerId === user.sub) {
           toast.success("You won the auction!");
         }
       });
@@ -215,7 +256,10 @@ export default function useAuctionLive(auctionId: string | null, options?: UseAu
     resyncFromServer();
     // set resync interval
     if (resyncTimerRef.current) window.clearInterval(resyncTimerRef.current);
-    resyncTimerRef.current = window.setInterval(() => resyncFromServer(), resyncIntervalSeconds * 1000);
+    resyncTimerRef.current = window.setInterval(
+      () => resyncFromServer(),
+      resyncIntervalSeconds * 1000
+    );
 
     return () => {
       if (resyncTimerRef.current) window.clearInterval(resyncTimerRef.current);
@@ -262,64 +306,56 @@ export default function useAuctionLive(auctionId: string | null, options?: UseAu
           const ackResp: any = await new Promise((resolve, reject) => {
             // 5s timeout for ack
             try {
-              socket.timeout(5000).emit("auction:placeBid", { auctionId, amount, userId: user?.sub ?? null }, (err: any, resp: any) => {
-                if (err) return reject(err);
-                return resolve(resp);
-              });
+              // Backend event: auction:place_bid
+              socket
+                .timeout(5000)
+                .emit(
+                  "auction:place_bid",
+                  { auctionId, amount, clientBidId: `bid-${Date.now()}` },
+                  (err: any, resp: any) => {
+                    if (err) return reject(err);
+                    return resolve(resp);
+                  }
+                );
             } catch (e) {
               return reject(e);
             }
           });
 
-          // ackResp may include { accepted, auction, serverTime }
+          // Backend may return success/error in ackResp or via auction:error event
           if (ackResp) {
-            if (ackResp.accepted === false) {
+            if (ackResp.success === false || ackResp.error) {
               pendingBidRef.current = null;
-              const reason = ackResp.error ?? ackResp.reason ?? "Bid rejected";
+              const reason = ackResp.message ?? ackResp.error ?? "Bid rejected";
               throw new Error(reason);
             }
-            if (ackResp.serverTime) setServerTimeOffset(Date.now() - ackResp.serverTime);
-            const snapshot = ackResp.auction ?? ackResp;
-            if (snapshot) {
-              setAuction((prev) => ({
-                id: String(snapshot.id ?? auctionId),
-                currentPrice: snapshot.currentPrice ?? snapshot.current_price ?? snapshot.currentBid ?? prev?.currentPrice ?? 0,
-                minIncrement: snapshot.minIncrement ?? snapshot.min_increment ?? snapshot.minBidIncrement ?? prev?.minIncrement ?? 0,
-                endAt: snapshot.endAt ?? snapshot.end_at ?? snapshot.endsAt ?? prev?.endAt ?? Date.now(),
-                participants: snapshot.participants ?? prev?.participants ?? [],
-                status: snapshot.status ?? prev?.status ?? "live",
-                winnerId: snapshot.winnerId ?? snapshot.winner_id ?? prev?.winnerId ?? null,
-                finalPrice: snapshot.finalPrice ?? snapshot.final_price ?? prev?.finalPrice ?? null,
-              }));
-            }
+            // Successful bid — state update will come via auction:price_update event
             return ackResp;
           }
           // If no ackResp, resolution will come through socket events
           return { via: "socket" };
         } catch (err) {
-          console.warn("socket placeBid failed/timeout, falling back to REST", err);
+          console.warn(
+            "socket placeBid failed/timeout, falling back to REST",
+            err
+          );
           // continue to REST fallback
         }
       }
 
       try {
-        // REST fallback: use /auctions/:id/bid per contract
-        const resp = await callApi("post", `/auctions/${auctionId}/bid`, { amount });
-        // If response contains canonical state, update
+        // REST fallback: POST /auction/:id/bid (if backend supports REST bid endpoint)
+        // Note: backend may only support WebSocket bids — adjust if needed
+        const resp = await callApi("post", `/auction/${auctionId}/bid`, {
+          amount,
+        });
+        // If response contains new state, update
         if (resp) {
-          if (resp.serverTime) setServerTimeOffset(Date.now() - resp.serverTime);
-          const snapshot = resp.auction ?? resp;
-          if (snapshot) {
-            setAuction((prev) => ({
-              id: String(snapshot.id ?? auctionId),
-              currentPrice: snapshot.currentPrice ?? snapshot.current_price ?? snapshot.currentBid ?? prev?.currentPrice ?? 0,
-              minIncrement: snapshot.minIncrement ?? snapshot.min_increment ?? snapshot.minBidIncrement ?? prev?.minIncrement ?? 0,
-              endAt: snapshot.endAt ?? snapshot.end_at ?? snapshot.endsAt ?? prev?.endAt ?? Date.now(),
-              participants: snapshot.participants ?? prev?.participants ?? [],
-              status: snapshot.status ?? prev?.status ?? "live",
-              winnerId: snapshot.winnerId ?? snapshot.winner_id ?? prev?.winnerId ?? null,
-              finalPrice: snapshot.finalPrice ?? snapshot.final_price ?? prev?.finalPrice ?? null,
-            }));
+          const snapshot = resp;
+          if (snapshot.currentPrice !== undefined) {
+            setAuction((prev) =>
+              prev ? { ...prev, currentPrice: snapshot.currentPrice } : prev
+            );
           }
         }
         return resp;
@@ -329,7 +365,7 @@ export default function useAuctionLive(auctionId: string | null, options?: UseAu
         throw e;
       }
     },
-    [auctionId, callApi, user],
+    [auctionId, callApi, user]
   );
 
   return {
