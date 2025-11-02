@@ -17,34 +17,39 @@ interface ProductFormProps {
   onSubmit: (formData: FormData) => Promise<void>;
 }
 
+// 🧩 Form state chuẩn với Product type
+type FormState = Omit<Product, "id" | "seller" | "createdAt" | "imageUrls"> & {
+  imageUrls: string; // textarea nhập link ảnh
+};
+
 export default function ProductForm({
   mode,
   initialData,
   loading = false,
   onSubmit,
 }: ProductFormProps) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     title: "",
     description: "",
-    price_start: "",
-    price_buy_now: "",
-    price_now: "",
+    price_start: 0,
+    price_buy_now: 0,
+    price_now: null,
     status: "active",
-    soh_percent: "",
-    cycle_count: "",
-    nominal_voltage_v: "",
-    weight_kg: "",
+    soh_percent: null,
+    cycle_count: null,
+    nominal_voltage_v: null,
+    weight_kg: null,
     condition_grade: "",
     dimension: "",
-    end_time: "",
     is_auction: false,
+    end_time: null,
     imageUrls: "",
   });
 
   const [auctionBackup, setAuctionBackup] = useState({
-    price_start: "",
-    price_now: "",
-    end_time: "",
+    price_start: 0,
+    price_now: null as number | null,
+    end_time: null as string | null,
   });
 
   const [files, setFiles] = useState<File[]>([]);
@@ -67,17 +72,17 @@ export default function ProductForm({
         ...prev,
         title: initialData.title ?? "",
         description: initialData.description ?? "",
-        price_start: initialData.price_start ?? "",
-        price_buy_now: initialData.price_buy_now ?? "",
-        price_now: initialData.price_now ?? "",
+        price_start: initialData.price_start ?? 0,
+        price_buy_now: initialData.price_buy_now ?? 0,
+        price_now: initialData.price_now ?? null,
         status: initialData.status ?? "active",
-        soh_percent: initialData.soh_percent?.toString() ?? "",
-        cycle_count: initialData.cycle_count?.toString() ?? "",
-        nominal_voltage_v: initialData.nominal_voltage_v?.toString() ?? "",
-        weight_kg: initialData.weight_kg?.toString() ?? "",
+        soh_percent: initialData.soh_percent ?? null,
+        cycle_count: initialData.cycle_count ?? null,
+        nominal_voltage_v: initialData.nominal_voltage_v ?? null,
+        weight_kg: initialData.weight_kg ?? null,
         condition_grade: initialData.condition_grade ?? "",
         dimension: initialData.dimension ?? "",
-        end_time: initialData.end_time ?? "",
+        end_time: initialData.end_time ?? null,
         is_auction: initialData.is_auction ?? false,
         imageUrls: (initialData.imageUrls || []).join("\n"),
       }));
@@ -88,23 +93,23 @@ export default function ProductForm({
   // 🖼️ Upload file
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
-    if (!fileList || fileList.length === 0) return; // 👈 Không làm gì nếu người dùng cancel
+    if (!fileList?.length) return;
 
     const selectedFiles = Array.from(fileList);
-    // ✅ Gộp thêm ảnh mới, không ghi đè
     setFiles((prev) => [...prev, ...selectedFiles]);
     setFilePreviews((prev) => [
       ...prev,
       ...selectedFiles.map((file) => URL.createObjectURL(file)),
     ]);
 
-    // Reset input để có thể chọn lại cùng file lần sau
     e.target.value = "";
   };
 
-  // 🧩 Handle input change (có backup đấu giá)
+  // 🧩 Handle input change
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value, type } = e.target;
     const checked = type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
@@ -112,7 +117,6 @@ export default function ProductForm({
     setForm((prev) => {
       if (name === "is_auction") {
         const newValue = checked ?? false;
-
         if (!newValue) {
           setAuctionBackup({
             price_start: prev.price_start,
@@ -122,9 +126,9 @@ export default function ProductForm({
           return {
             ...prev,
             is_auction: false,
-            price_start: "",
-            price_now: "",
-            end_time: "",
+            price_start: 0,
+            price_now: null,
+            end_time: null,
           };
         } else {
           return {
@@ -137,10 +141,15 @@ export default function ProductForm({
         }
       }
 
-      return {
-        ...prev,
-        [name]: type === "checkbox" ? checked ?? false : value,
-      };
+      if (type === "checkbox") {
+        return { ...prev, [name]: checked ?? false };
+      }
+
+      if (type === "number") {
+        return { ...prev, [name]: value === "" ? null : parseFloat(value) };
+      }
+
+      return { ...prev, [name]: value };
     });
   };
 
@@ -169,19 +178,18 @@ export default function ProductForm({
     const formData = new FormData();
 
     Object.entries(form).forEach(([key, value]) => {
-      if (key === "imageUrls" || key === "imgUrl") return;
+      if (key === "imageUrls") return;
 
       if (
         mode === "create" &&
         !form.is_auction &&
-        ["price_now", "end_time", "is_auction"].includes(key) //không đấu giá nên bỏ qua
+        ["price_now", "end_time", "is_auction"].includes(key)
       ) {
         return;
       }
 
-      // 🟢 Bình thường: thêm field nếu có giá trị
       if (value !== "" && value !== null && value !== undefined) {
-        formData.append(key, value.toString());
+        formData.append(key, String(value));
       }
     });
 
@@ -201,6 +209,12 @@ export default function ProductForm({
     await onSubmit(formData);
   };
 
+  // 🧹 Cleanup preview
+  useEffect(() => {
+    return () => {
+      filePreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [filePreviews]);
 
   return (
     <div className="min-h-[85vh] rounded-3xl shadow-lg p-10 border border-blue-100 bg-white transition-all duration-300">
@@ -259,8 +273,9 @@ export default function ProductForm({
                     return (
                       <div
                         key={opt.value}
-                        className={`flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 cursor-pointer ${form.status === opt.value ? "bg-blue-100" : ""
-                          }`}
+                        className={`flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 cursor-pointer ${
+                          form.status === opt.value ? "bg-blue-100" : ""
+                        }`}
                         onClick={() => {
                           setForm((p) => ({ ...p, status: opt.value }));
                           setOpenStatus(false);
@@ -296,7 +311,7 @@ export default function ProductForm({
               type="number"
               name="price_buy_now"
               placeholder="Giá mua ngay (VNĐ)"
-              value={form.price_buy_now}
+              value={form.price_buy_now ?? ""}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
             />
@@ -304,7 +319,7 @@ export default function ProductForm({
               type="number"
               name="price_start"
               placeholder="Giá khởi điểm (VNĐ)"
-              value={form.price_start}
+              value={form.price_start ?? ""}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
             />
@@ -312,15 +327,15 @@ export default function ProductForm({
               type="text"
               name="dimension"
               placeholder="Kích thước (VD: 30x20x10cm)"
-              value={form.dimension}
+              value={form.dimension ?? ""}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
             />
             <input
-              type="text"
+              type="number"
               name="weight_kg"
               placeholder="Trọng lượng (kg)"
-              value={form.weight_kg}
+              value={form.weight_kg ?? ""}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
             />
@@ -332,7 +347,7 @@ export default function ProductForm({
               type="number"
               name="soh_percent"
               placeholder="SOH (%)"
-              value={form.soh_percent}
+              value={form.soh_percent ?? ""}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
             />
@@ -340,7 +355,7 @@ export default function ProductForm({
               type="number"
               name="cycle_count"
               placeholder="Số chu kỳ sạc"
-              value={form.cycle_count}
+              value={form.cycle_count ?? ""}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
             />
@@ -348,7 +363,7 @@ export default function ProductForm({
               type="number"
               name="nominal_voltage_v"
               placeholder="Điện áp danh định (V)"
-              value={form.nominal_voltage_v}
+              value={form.nominal_voltage_v ?? ""}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
             />
@@ -359,58 +374,12 @@ export default function ProductForm({
               type="text"
               name="condition_grade"
               placeholder="Tình trạng (VD: A+, B...)"
-              value={form.condition_grade}
+              value={form.condition_grade ?? ""}
               onChange={handleChange}
               className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
             />
           </div>
         </section>
-
-        {/* 🟨 PHẦN 2: ĐẤU GIÁ */}
-        {/* <section className="space-y-4">
-          <h2 className="text-xl font-semibold text-blue-600 border-b-2 border-blue-200 pb-2 flex items-center gap-2">
-            <PauseCircle className="text-blue-500" size={20} /> Thông tin đấu giá
-          </h2>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              name="is_auction"
-              checked={form.is_auction}
-              onChange={handleChange}
-              className="w-5 h-5 accent-blue-500"
-            />
-            <label className="font-medium text-gray-700">Đây là sản phẩm đấu giá</label>
-          </div>
-
-          {form.is_auction && (
-            <div className="grid grid-cols-3 gap-4">
-              <input
-                type="number"
-                name="price_start"
-                placeholder="Giá khởi điểm (VNĐ)"
-                value={form.price_start}
-                onChange={handleChange}
-                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-              />
-              <input
-                type="number"
-                name="price_now"
-                placeholder="Giá hiện tại (VNĐ)"
-                value={form.price_now}
-                onChange={handleChange}
-                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-              />
-              <input
-                type="datetime-local"
-                name="end_time"
-                value={form.end_time}
-                onChange={handleChange}
-                className="border rounded-xl px-4 py-2.5 col-span-3 focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-          )}
-        </section> */}
 
         {/* 🟩 HÌNH ẢNH */}
         <section className="space-y-4">
@@ -429,10 +398,11 @@ export default function ProductForm({
                 <button
                   key={tab.key}
                   type="button"
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${activeTab === tab.key
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
+                    activeTab === tab.key
                       ? "bg-blue-100 border-blue-400 text-blue-600"
                       : "bg-white border-gray-300 hover:border-blue-300"
-                    }`}
+                  }`}
                   onClick={() => setActiveTab(tab.key as "link" | "upload")}
                 >
                   <Icon size={18} /> {tab.label}
@@ -551,4 +521,3 @@ export default function ProductForm({
     </div>
   );
 }
-
