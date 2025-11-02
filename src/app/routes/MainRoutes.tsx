@@ -18,7 +18,6 @@ import ProductManager from "../pages/Shop/component/ProductManager";
 import TransactionHistory from "../pages/Shop/component/TransactionHistory";
 import AuctionManager from "../pages/Shop/component/AuctionManager";
 
-
 import VerifyOTPPage from "../pages/Verify-Otp";
 import PaymentSuccess from "../pages/Payment/success";
 import PaymentError from "../pages/Payment/error";
@@ -51,7 +50,6 @@ export default function MainRoutes() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment" element={<Payment />} />
 
-
         <Route element={<AuthRoute />}>
           <Route path="/auth" element={<AuthPage />} />
         </Route>
@@ -60,7 +58,7 @@ export default function MainRoutes() {
           <Route index element={<Navigate to="detail" replace />} />
           <Route path="detail" element={<ProfileDetail />} />
           <Route path="security" element={<ProfileSecurity />} />
-          <Route path='kyc' element={<KnowYourCus />} />
+          <Route path="kyc" element={<KnowYourCus />} />
           <Route path="address" element={<AddressManagement />} />
           <Route path="wallet" element={<ProfileWallet />} />
         </Route>
@@ -74,16 +72,27 @@ export default function MainRoutes() {
         <Route path="/productdetail/:id" element={<ProductDetail />} />
         <Route path="/auction" element={<AuctionList />} />
         <Route path="/auction/:id" element={<Auction />} />
-        <Route path='/orders/:id' element={<OrderDetail/>} />
+        <Route path="/orders/:id" element={<OrderDetail />} />
 
-
-        <Route path="/admin" element={<Navigate to="/admin/user-management" replace />} />
-        <Route path="/admin" element={<NavigationBar />} >
+        <Route
+          path="/admin"
+          element={<Navigate to="/admin/user-management" replace />}
+        />
+        <Route path="/admin" element={<NavigationBar />}>
           <Route path="user-management" element={<UserManagement />} />
-          <Route path="auction-management" element={<AuctionRequestManagement />} />
-          <Route path="auction-live-management" element={<AuctionLiveManagement />} />
+          <Route
+            path="auction-management"
+            element={<AuctionRequestManagement />}
+          />
+          <Route
+            path="auction-live-management"
+            element={<AuctionLiveManagement />}
+          />
           <Route path="kyc-management" element={<KycManagement />} />
-          <Route path="transaction-management" element={<TransactionManagement />} />
+          <Route
+            path="transaction-management"
+            element={<TransactionManagement />}
+          />
           <Route path="revenue-management" element={<RevenueManagement />} />
         </Route>
         <Route path="/cart" element={<Cart />} />

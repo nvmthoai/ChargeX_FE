@@ -1,6 +1,6 @@
-import { io, Socket } from 'socket.io-client';
+import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:3001";
 
 export interface AuctionState {
   auctionId: string;
@@ -40,8 +40,8 @@ export class AuctionSocketService {
     this.userId = userId || null;
 
     this.socket = io(SOCKET_URL, {
-      path: '/socket.io/',
-      transports: ['websocket', 'polling'],
+      path: "/socket.io/",
+      transports: ["websocket", "polling"],
       auth: {
         userId: this.userId,
       },
@@ -50,16 +50,16 @@ export class AuctionSocketService {
       },
     });
 
-    this.socket.on('connect', () => {
-      console.log('[Socket] Connected:', this.socket?.id);
+    this.socket.on("connect", () => {
+      console.log("[Socket] Connected:", this.socket?.id);
     });
 
-    this.socket.on('disconnect', () => {
-      console.log('[Socket] Disconnected');
+    this.socket.on("disconnect", () => {
+      console.log("[Socket] Disconnected");
     });
 
-    this.socket.on('connect_error', (error: Error) => {
-      console.error('[Socket] Connection error:', error);
+    this.socket.on("connect_error", (error: Error) => {
+      console.error("[Socket] Connection error:", error);
     });
 
     return this.socket;
@@ -79,49 +79,49 @@ export class AuctionSocketService {
   // Join auction room
   joinAuction(auctionId: string) {
     if (!this.socket?.connected) {
-      throw new Error('Socket not connected');
+      throw new Error("Socket not connected");
     }
-    this.socket.emit('auction:join', { auctionId });
+    this.socket.emit("auction:join", { auctionId });
   }
 
   // Leave auction room
   leaveAuction(auctionId: string) {
     if (!this.socket?.connected) {
-      throw new Error('Socket not connected');
+      throw new Error("Socket not connected");
     }
-    this.socket.emit('auction:leave', { auctionId });
+    this.socket.emit("auction:leave", { auctionId });
   }
 
   // Place a bid
   placeBid(payload: PlaceBidPayload) {
     if (!this.socket?.connected) {
-      throw new Error('Socket not connected');
+      throw new Error("Socket not connected");
     }
-    this.socket.emit('auction:place_bid', payload);
+    this.socket.emit("auction:place_bid", payload);
   }
 
   // Listen for auction state
   onAuctionState(callback: (state: AuctionState) => void) {
     if (!this.socket) return;
-    this.socket.on('auction:state', callback);
+    this.socket.on("auction:state", callback);
   }
 
   // Listen for price updates
   onPriceUpdate(callback: (update: PriceUpdate) => void) {
     if (!this.socket) return;
-    this.socket.on('auction:price_update', callback);
+    this.socket.on("auction:price_update", callback);
   }
 
   // Listen for auction extended
   onAuctionExtended(callback: (data: { endTime: string }) => void) {
     if (!this.socket) return;
-    this.socket.on('auction:extended', callback);
+    this.socket.on("auction:extended", callback);
   }
 
   // Listen for errors
   onError(callback: (error: AuctionError) => void) {
     if (!this.socket) return;
-    this.socket.on('auction:error', callback);
+    this.socket.on("auction:error", callback);
   }
 
   // Remove listeners

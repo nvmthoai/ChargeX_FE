@@ -1,6 +1,10 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { auctionSocket, type AuctionState, type PriceUpdate } from '../api/auction/socket';
-import { auctionApi, type AuctionDetail } from '../api/auction';
+import { useEffect, useState, useCallback, useRef } from "react";
+import {
+  auctionSocket,
+  type AuctionState,
+  type PriceUpdate,
+} from "../api/auction/socket";
+import { auctionApi, type AuctionDetail } from "../api/auction";
 
 export interface UseAuctionOptions {
   auctionId: string;
@@ -15,35 +19,37 @@ export interface UseAuctionReturn {
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   placeBid: (amount: number) => void;
   buyNow: () => Promise<void>;
   refresh: () => Promise<void>;
-  
+
   // Connection
   connect: () => void;
   disconnect: () => void;
 }
 
-export function useAuction({ 
-  auctionId, 
+export function useAuction({
+  auctionId,
   userId,
-  autoConnect = true 
+  autoConnect = true,
 }: UseAuctionOptions): UseAuctionReturn {
   const [auctionState, setAuctionState] = useState<AuctionState | null>(null);
-  const [auctionDetail, setAuctionDetail] = useState<AuctionDetail | null>(null);
+  const [auctionDetail, setAuctionDetail] = useState<AuctionDetail | null>(
+    null
+  );
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const mountedRef = useRef(true);
   const hasJoinedRef = useRef(false);
 
   // Fetch auction details
   const fetchAuctionDetail = useCallback(async () => {
     if (!auctionId) return;
-    
+
     try {
       setIsLoading(true);
       const detail = await auctionApi.getAuctionById(auctionId);
@@ -53,7 +59,7 @@ export function useAuction({
       }
     } catch (err: any) {
       if (mountedRef.current) {
-        setError(err.message || 'Failed to fetch auction');
+        setError(err.message || "Failed to fetch auction");
       }
     } finally {
       if (mountedRef.current) {
@@ -69,7 +75,7 @@ export function useAuction({
       setIsConnected(true);
       setError(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to connect');
+      setError(err.message || "Failed to connect");
       setIsConnected(false);
     }
   }, [userId]);
@@ -85,28 +91,33 @@ export function useAuction({
   }, [auctionId]);
 
   // Place bid
-  const placeBid = useCallback((amount: number) => {
-    if (!auctionId) {
-      setError('No auction ID provided');
-      return;
-    }
+  const placeBid = useCallback(
+    (amount: number) => {
+      if (!auctionId) {
+        setError("No auction ID provided");
+        return;
+      }
 
-    try {
-      const clientBidId = `bid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      auctionSocket.placeBid({
-        auctionId,
-        amount,
-        clientBidId,
-      });
-    } catch (err: any) {
-      setError(err.message || 'Failed to place bid');
-    }
-  }, [auctionId]);
+      try {
+        const clientBidId = `bid-${Date.now()}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
+        auctionSocket.placeBid({
+          auctionId,
+          amount,
+          clientBidId,
+        });
+      } catch (err: any) {
+        setError(err.message || "Failed to place bid");
+      }
+    },
+    [auctionId]
+  );
 
   // Buy now
   const buyNow = useCallback(async () => {
     if (!auctionId) {
-      setError('No auction ID provided');
+      setError("No auction ID provided");
       return;
     }
 
@@ -114,7 +125,7 @@ export function useAuction({
       await auctionApi.buyNow(auctionId, userId);
       await fetchAuctionDetail();
     } catch (err: any) {
-      setError(err.message || 'Failed to buy now');
+      setError(err.message || "Failed to buy now");
     }
   }, [auctionId, userId, fetchAuctionDetail]);
 
@@ -143,35 +154,51 @@ export function useAuction({
     // Listen for price updates
     const handlePriceUpdate = (update: PriceUpdate) => {
       if (mountedRef.current) {
-        setAuctionState((prev) => prev ? {
-          ...prev,
-          currentPrice: update.currentPrice,
-          endTime: update.endTime,
-          winnerId: update.winnerId,
-        } : null);
-        
+        setAuctionState((prev) =>
+          prev
+            ? {
+                ...prev,
+                currentPrice: update.currentPrice,
+                endTime: update.endTime,
+                winnerId: update.winnerId,
+              }
+            : null
+        );
+
         // Also update detail
-        setAuctionDetail((prev) => prev ? {
-          ...prev,
-          currentPrice: update.currentPrice,
-          endTime: update.endTime,
-          winnerId: update.winnerId,
-        } : null);
+        setAuctionDetail((prev) =>
+          prev
+            ? {
+                ...prev,
+                currentPrice: update.currentPrice,
+                endTime: update.endTime,
+                winnerId: update.winnerId,
+              }
+            : null
+        );
       }
     };
 
     // Listen for auction extended
     const handleAuctionExtended = (data: { endTime: string }) => {
       if (mountedRef.current) {
-        setAuctionState((prev) => prev ? {
-          ...prev,
-          endTime: data.endTime,
-        } : null);
-        
-        setAuctionDetail((prev) => prev ? {
-          ...prev,
-          endTime: data.endTime,
-        } : null);
+        setAuctionState((prev) =>
+          prev
+            ? {
+                ...prev,
+                endTime: data.endTime,
+              }
+            : null
+        );
+
+        setAuctionDetail((prev) =>
+          prev
+            ? {
+                ...prev,
+                endTime: data.endTime,
+              }
+            : null
+        );
       }
     };
 
@@ -188,10 +215,10 @@ export function useAuction({
     auctionSocket.onError(handleError);
 
     return () => {
-      auctionSocket.off('auction:state', handleAuctionState);
-      auctionSocket.off('auction:price_update', handlePriceUpdate);
-      auctionSocket.off('auction:extended', handleAuctionExtended);
-      auctionSocket.off('auction:error', handleError);
+      auctionSocket.off("auction:state", handleAuctionState);
+      auctionSocket.off("auction:price_update", handlePriceUpdate);
+      auctionSocket.off("auction:extended", handleAuctionExtended);
+      auctionSocket.off("auction:error", handleError);
     };
   }, [isConnected, auctionId]);
 

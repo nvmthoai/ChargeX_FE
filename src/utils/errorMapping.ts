@@ -7,4 +7,4 @@ export {
   formatErrorForDisplay,
   requiresUserAction,
   type ApiError,
-} from '../app/utils/errorMapping';
+} from "../app/utils/errorMapping";

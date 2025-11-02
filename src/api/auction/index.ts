@@ -1,12 +1,12 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export interface AuctionSummary {
   auctionId: string;
   productId: string;
   title: string;
-  status: 'scheduled' | 'live' | 'ended' | 'cancelled';
+  status: "scheduled" | "live" | "ended" | "cancelled";
   startTime: string;
   endTime: string;
   currentPrice: number;
@@ -54,13 +54,19 @@ export interface PaginatedAuctions {
 export const auctionApi = {
   // Seller requests auction
   requestAuction: async (sellerId: string, data: RequestAuctionDto) => {
-    const response = await axios.post(`${API_URL}/auction/request/${sellerId}`, data);
+    const response = await axios.post(
+      `${API_URL}/auction/request/${sellerId}`,
+      data
+    );
     return response.data;
   },
 
   // Admin approves auction
   approveAuction: async (adminId: string, data: ApproveAuctionDto) => {
-    const response = await axios.post(`${API_URL}/auction/approve/${adminId}`, data);
+    const response = await axios.post(
+      `${API_URL}/auction/approve/${adminId}`,
+      data
+    );
     return response.data;
   },
 
@@ -81,9 +87,12 @@ export const auctionApi = {
 
   // Buy now
   buyNow: async (auctionId: string, buyerId?: string) => {
-    const response = await axios.post(`${API_URL}/auction/${auctionId}/buy-now`, {
-      buyerId,
-    });
+    const response = await axios.post(
+      `${API_URL}/auction/${auctionId}/buy-now`,
+      {
+        buyerId,
+      }
+    );
     return response.data;
   },
 
@@ -112,11 +121,13 @@ export const auctionApi = {
     pageSize: number = 50
   ): Promise<PaginatedAuctions> => {
     const params = new URLSearchParams();
-    if (status) params.append('status', status);
-    params.append('page', page.toString());
-    params.append('pageSize', pageSize.toString());
+    if (status) params.append("status", status);
+    params.append("page", page.toString());
+    params.append("pageSize", pageSize.toString());
 
-    const response = await axios.get(`${API_URL}/auction/joinable?${params.toString()}`);
+    const response = await axios.get(
+      `${API_URL}/auction/joinable?${params.toString()}`
+    );
     return response.data;
   },
 

@@ -1,8 +1,12 @@
-import { useEffect, useState, useCallback } from 'react';
-import { auctionApi, type AuctionSummary, type PaginatedAuctions } from '../api/auction';
+import { useEffect, useState, useCallback } from "react";
+import {
+  auctionApi,
+  type AuctionSummary,
+  type PaginatedAuctions,
+} from "../api/auction";
 
 export interface UseAuctionListOptions {
-  status?: 'scheduled' | 'live' | 'ended' | 'cancelled';
+  status?: "scheduled" | "live" | "ended" | "cancelled";
   pageSize?: number;
   autoFetch?: boolean;
 }
@@ -15,13 +19,13 @@ export interface UseAuctionListReturn {
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
-  
+
   // Actions
   fetchAuctions: (page?: number) => Promise<void>;
   nextPage: () => Promise<void>;
   prevPage: () => Promise<void>;
   refresh: () => Promise<void>;
-  setStatus: (status?: 'scheduled' | 'live' | 'ended' | 'cancelled') => void;
+  setStatus: (status?: "scheduled" | "live" | "ended" | "cancelled") => void;
 }
 
 export function useAuctionList({
@@ -36,29 +40,32 @@ export function useAuctionList({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAuctions = useCallback(async (targetPage?: number) => {
-    const pageToFetch = targetPage ?? page;
-    
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const data: PaginatedAuctions = await auctionApi.getJoinableAuctions(
-        currentStatus,
-        pageToFetch,
-        pageSize
-      );
-      
-      setAuctions(data.items);
-      setTotal(data.meta.total);
-      setPage(data.meta.page);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch auctions');
-      setAuctions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, currentStatus, pageSize]);
+  const fetchAuctions = useCallback(
+    async (targetPage?: number) => {
+      const pageToFetch = targetPage ?? page;
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const data: PaginatedAuctions = await auctionApi.getJoinableAuctions(
+          currentStatus,
+          pageToFetch,
+          pageSize
+        );
+
+        setAuctions(data.items);
+        setTotal(data.meta.total);
+        setPage(data.meta.page);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch auctions");
+        setAuctions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [page, currentStatus, pageSize]
+  );
 
   const nextPage = useCallback(async () => {
     const totalPages = Math.ceil(total / pageSize);
@@ -81,10 +88,13 @@ export function useAuctionList({
     await fetchAuctions(1);
   }, [fetchAuctions]);
 
-  const setStatus = useCallback((newStatus?: 'scheduled' | 'live' | 'ended' | 'cancelled') => {
-    setCurrentStatus(newStatus);
-    setPage(1);
-  }, []);
+  const setStatus = useCallback(
+    (newStatus?: "scheduled" | "live" | "ended" | "cancelled") => {
+      setCurrentStatus(newStatus);
+      setPage(1);
+    },
+    []
+  );
 
   useEffect(() => {
     if (autoFetch) {

@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useAuction } from '../hooks/useAuction';
+import React, { useState, useEffect } from "react";
+import { useAuction } from "../hooks/useAuction";
 
 interface AuctionRoomProps {
   auctionId: string;
   userId?: string;
 }
 
-export const AuctionRoom: React.FC<AuctionRoomProps> = ({ auctionId, userId }) => {
+export const AuctionRoom: React.FC<AuctionRoomProps> = ({
+  auctionId,
+  userId,
+}) => {
   const {
     auctionState,
     auctionDetail,
@@ -22,8 +25,8 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({ auctionId, userId }) =
     autoConnect: true,
   });
 
-  const [bidAmount, setBidAmount] = useState<string>('');
-  const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [bidAmount, setBidAmount] = useState<string>("");
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
 
   // Calculate time remaining
   useEffect(() => {
@@ -35,7 +38,7 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({ auctionId, userId }) =
       const distance = end - now;
 
       if (distance < 0) {
-        setTimeRemaining('Đã kết thúc');
+        setTimeRemaining("Đã kết thúc");
         clearInterval(interval);
         return;
       }
@@ -44,7 +47,11 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({ auctionId, userId }) =
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-      setTimeRemaining(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      setTimeRemaining(
+        `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+          .toString()
+          .padStart(2, "0")}`
+      );
     }, 1000);
 
     return () => clearInterval(interval);
@@ -53,34 +60,41 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({ auctionId, userId }) =
   const handlePlaceBid = () => {
     const amount = parseFloat(bidAmount);
     if (isNaN(amount) || amount <= 0) {
-      alert('Vui lòng nhập số tiền hợp lệ');
+      alert("Vui lòng nhập số tiền hợp lệ");
       return;
     }
 
-    if (auctionDetail && amount < auctionDetail.currentPrice + auctionDetail.minBidIncrement) {
-      alert(`Giá đặt phải lớn hơn hoặc bằng ${formatPrice(auctionDetail.currentPrice + auctionDetail.minBidIncrement)}`);
+    if (
+      auctionDetail &&
+      amount < auctionDetail.currentPrice + auctionDetail.minBidIncrement
+    ) {
+      alert(
+        `Giá đặt phải lớn hơn hoặc bằng ${formatPrice(
+          auctionDetail.currentPrice + auctionDetail.minBidIncrement
+        )}`
+      );
       return;
     }
 
     placeBid(amount);
-    setBidAmount('');
+    setBidAmount("");
   };
 
   const handleBuyNow = async () => {
-    if (window.confirm('Bạn có chắc muốn mua ngay sản phẩm này?')) {
+    if (window.confirm("Bạn có chắc muốn mua ngay sản phẩm này?")) {
       await buyNow();
     }
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('vi-VN');
+    return new Date(date).toLocaleString("vi-VN");
   };
 
   if (isLoading) {
@@ -102,14 +116,18 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({ auctionId, userId }) =
   }
 
   const currentPrice = auctionState?.currentPrice ?? auctionDetail.currentPrice;
-  const isLive = auctionDetail.status === 'live';
-  const hasEnded = auctionDetail.status === 'ended';
+  const isLive = auctionDetail.status === "live";
+  const hasEnded = auctionDetail.status === "ended";
 
   return (
     <div className="auction-room-container">
       {/* Connection Status */}
-      <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
-        {isConnected ? '🟢 Đã kết nối' : '🔴 Mất kết nối'}
+      <div
+        className={`connection-status ${
+          isConnected ? "connected" : "disconnected"
+        }`}
+      >
+        {isConnected ? "🟢 Đã kết nối" : "🔴 Mất kết nối"}
       </div>
 
       {/* Product Info */}
@@ -127,10 +145,10 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({ auctionId, userId }) =
       <div className="auction-status-panel">
         <div className="status-badge">
           <span className={`badge ${auctionDetail.status}`}>
-            {auctionDetail.status === 'live' && '🔴 Đang diễn ra'}
-            {auctionDetail.status === 'scheduled' && '⏰ Sắp diễn ra'}
-            {auctionDetail.status === 'ended' && '✅ Đã kết thúc'}
-            {auctionDetail.status === 'cancelled' && '❌ Đã hủy'}
+            {auctionDetail.status === "live" && "🔴 Đang diễn ra"}
+            {auctionDetail.status === "scheduled" && "⏰ Sắp diễn ra"}
+            {auctionDetail.status === "ended" && "✅ Đã kết thúc"}
+            {auctionDetail.status === "cancelled" && "❌ Đã hủy"}
           </span>
         </div>
 
@@ -185,7 +203,9 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({ auctionId, userId }) =
               type="number"
               value={bidAmount}
               onChange={(e) => setBidAmount(e.target.value)}
-              placeholder={`Tối thiểu: ${formatPrice(currentPrice + auctionDetail.minBidIncrement)}`}
+              placeholder={`Tối thiểu: ${formatPrice(
+                currentPrice + auctionDetail.minBidIncrement
+              )}`}
               min={currentPrice + auctionDetail.minBidIncrement}
               step={auctionDetail.minBidIncrement}
             />
@@ -196,17 +216,29 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({ auctionId, userId }) =
 
           <div className="quick-bid-buttons">
             <button
-              onClick={() => setBidAmount((currentPrice + auctionDetail.minBidIncrement).toString())}
+              onClick={() =>
+                setBidAmount(
+                  (currentPrice + auctionDetail.minBidIncrement).toString()
+                )
+              }
             >
               +{formatPrice(auctionDetail.minBidIncrement)}
             </button>
             <button
-              onClick={() => setBidAmount((currentPrice + auctionDetail.minBidIncrement * 2).toString())}
+              onClick={() =>
+                setBidAmount(
+                  (currentPrice + auctionDetail.minBidIncrement * 2).toString()
+                )
+              }
             >
               +{formatPrice(auctionDetail.minBidIncrement * 2)}
             </button>
             <button
-              onClick={() => setBidAmount((currentPrice + auctionDetail.minBidIncrement * 5).toString())}
+              onClick={() =>
+                setBidAmount(
+                  (currentPrice + auctionDetail.minBidIncrement * 5).toString()
+                )
+              }
             >
               +{formatPrice(auctionDetail.minBidIncrement * 5)}
             </button>
