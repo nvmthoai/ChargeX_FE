@@ -1,5 +1,3 @@
-
-
 export enum PaymentStatus {
   PENDING = "pending",
   COMPLETED = "completed",
@@ -13,25 +11,27 @@ export enum PaymentProvider {
 }
 
 export interface Payment {
-  paymentId: string;
-  method: string; // e.g., "wallet|payos"
+  paymentId: string;           // 🟩 UUID
+  orderId?: string;            // 🆕 nếu backend có liên kết tới order
+  provider: PaymentProvider;
+  method: string;              // e.g., "bank" | "wallet"
   status: PaymentStatus;
-  checkoutUrl?: string;
-  transactionId?: string;
-  amount?: number;
+  amount: number;
   description?: string;
+  checkoutUrl?: string;        // URL từ PayOS để redirect
+  transactionId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
-
 export interface CreatePaymentRequest {
-  type: string; // "pay_order"
+  type: "pay_order";           // ✔ theo Swagger
   amount: number;
   description?: string;
-  related_order_id: number;
-  related_bid_id?: number;
-  provider: PaymentProvider; // "payos" | "wallet"
+  related_order_id: string;    // ⚠️ Sửa từ number → string (backend dùng UUID!)
+  related_bid_id?: string;
+  provider: PaymentProvider;   // "payos" | "wallet"
+  method?: string;             // "bank" | "wallet"
   returnUrl: string;
   cancelUrl: string;
   webhookUrl?: string;

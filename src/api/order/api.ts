@@ -13,8 +13,8 @@ export const createOrder = async (
 ): Promise<Order> => {
   try {
     const res = await axiosInstance.post("/orders", payload);
-    console.log("✅ Order created:", res.data);
-    return res.data;
+    console.log("✅ Order created:", res.data.data);
+    return res.data.data;
   } catch (err) {
     console.error("❌ Error creating order:", err);
     throw err;
@@ -37,13 +37,14 @@ export const getAllOrders = async (): Promise<Order[]> => {
 export const getOrderById = async (id: string): Promise<Order> => {
   try {
     const res = await axiosInstance.get(`/orders/${id}`);
-    console.log(`✅ Order ${id}:`, res.data);
-    return res.data;
+    console.log(`✅ Order ${id}:`, res.data?.data);
+    return res.data?.data; // ✅ chỉ lấy phần data
   } catch (err) {
     console.error(`❌ Error fetching order ${id}:`, err);
     throw err;
   }
 };
+
 
 
 export const updateOrder = async (

@@ -1,0 +1,260 @@
+:root {
+    --bg-main: #0F131A;
+    --text-primary: #E6EDF3;
+    --text-secondary: #7D8590;
+    --button-primary-bg: #F0F6FC;
+    --button-primary-text: #161B22;
+    --button-secondary-bg: #21262D;
+    --badge-bg: #1F2E4A;
+    --badge-text: #58A6FF;
+}
+
+.management-container {
+    background-color: var(--gray-1);
+
+    .main-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0 0 24px;
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border-color: var(--button-primary-bg);
+
+            &:hover {
+                background-color: #E6EDF3;
+            }
+
+            svg {
+                color: var(--button-primary-text);
+            }
+        }
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin: 0 0 24px;
+
+        .search-bar {
+            display: flex;
+            flex: 1 1 200px;
+            align-items: center;
+            background-color: var(--gray-2);
+            border: 2px solid var(--gray-3);
+            border-radius: 6px;
+            padding: 0 12px;
+
+            i {
+                color: var(--text-secondary);
+                margin: 0 12px 0 0;
+                display: flex;
+                align-items: center;
+            }
+
+            input {
+                color: var(--text-primary);
+            }
+        }
+
+        form {
+            display: flex;
+
+            .disabled {
+                opacity: 0.5;
+            }
+
+            button {
+                padding: 0 4px;
+                border: none;
+            }
+        }
+
+        .btn-secondary {
+            background-color: var(--button-secondary-bg);
+            color: var(--text-primary);
+
+            &:hover {
+                background-color: #30363D;
+            }
+
+            i {
+                color: var(--text-secondary);
+            }
+        }
+
+        .btn-export {
+            margin-left: auto;
+        }
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin: 0 0 24px;
+
+        .stat-card {
+            background-color: var(--gray-2);
+            border: 2px solid var(--gray-3);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+
+            .stat-title {
+                font-size: 14px;
+                color: var(--text-secondary);
+                margin: 0 0 8px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+        }
+    }
+
+    .customer-table-container {
+        color: var(--text-1);
+        background-color: var(--gray-2);
+        border: 2px solid var(--gray-3);
+        border-radius: 8px;
+        overflow: hidden;
+
+        .customer-table {
+            width: 100%;
+            border-collapse: collapse;
+
+            i {
+                margin: 0 0 0 8px;
+            }
+
+            th,
+            td {
+                padding: 16px 20px;
+                text-align: left;
+                vertical-align: middle;
+                border-bottom: 2px solid var(--gray-3);
+            }
+
+            th {
+                font-size: 12px;
+                font-weight: 500;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            th:nth-child(1) {
+                width: 0px;
+            }
+
+            tbody {
+                tr:last-child {
+                    td {
+                        border-bottom: none;
+                    }
+                }
+
+                .customer-name-cell {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+
+                    .avatar {
+                        width: 40px;
+                        min-width: 40px;
+
+                        img {
+                            display: block;
+                            width: 40px;
+                            height: 40px;
+                            object-fit: cover;
+                            object-position: center;
+                            box-sizing: border-box;
+                            border: 2px solid var(--gray-3);
+                            border-radius: 50%;
+                            overflow: hidden;
+                        }
+                    }
+
+                    .customer-info {
+                        display: flex;
+                        flex-direction: column;
+
+                        .name {
+                            font-weight: 500;
+                            color: var(--text-primary);
+                        }
+
+                        .role {
+                            font-size: 13px;
+                            color: var(--text-secondary);
+                        }
+                    }
+                }
+
+                .email {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+
+                    i {
+                        margin: 0;
+                    }
+                }
+
+                .badge {
+                    background-color: var(--badge-bg);
+                    color: var(--badge-text);
+                    padding: 4px 10px;
+                    border-radius: 16px;
+                    font-size: 13px;
+                    font-weight: 500;
+                }
+
+                .status {
+                    display: flex;
+
+                    &.inactive {
+                        color: var(--text-2);
+                    }
+                }
+
+                .action-buttons {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+
+                    button {
+                        padding: 0;
+                        background: none;
+                        border: none;
+                        color: var(--text-secondary);
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0;
+                        cursor: pointer;
+                        font-size: 14px;
+
+                        &:hover {
+                            color: var(--text-primary);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

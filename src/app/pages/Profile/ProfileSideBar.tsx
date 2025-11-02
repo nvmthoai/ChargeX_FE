@@ -19,6 +19,7 @@ export default function ProfileSideBar() {
         { name: "Notification Preferences", link: "notification" },
         { name: "Linked Accounts", link: "linked-account" },
         { name: "Know your customer", link: "kyc" },
+        { name: "Wallet", link: "wallet" },
 
     ];
 

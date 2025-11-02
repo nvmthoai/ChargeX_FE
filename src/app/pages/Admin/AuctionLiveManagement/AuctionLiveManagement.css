@@ -1,0 +1,65 @@
+.auction-live-management {
+  padding: 20px;
+  background-color: #111827;
+  min-height: 100vh;
+  color: #d1d5db;
+}
+
+body{
+   background-color: #111827;
+}
+.section {
+  margin-bottom: 40px;
+  background-color: #1f2937;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #374151;
+}
+
+.section h2 {
+  color: #d1d5db;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.section .ant-table {
+  background-color: #1f2937;
+  color: #d1d5db;
+}
+
+.section .ant-table-thead > tr > th {
+  background-color: #111827;
+  color: #d1d5db;
+  border-color: #374151;
+}
+
+.section .ant-table-tbody > tr > td {
+  border-color: #374151;
+  color: #d1d5db;
+}
+
+.section .ant-table-tbody > tr:hover > td {
+  background-color: #374151;
+}
+
+.section .ant-input,
+.section .ant-select-selector {
+  background-color: #374151 !important;
+  border-color: #374151 !important;
+  color: #d1d5db !important;
+}
+
+.section .ant-input::placeholder {
+  color: #7d8590;
+}
+
+.section .ant-btn-primary {
+  background-color: #fb8b24;
+  border-color: #fb8b24;
+}
+
+.section .ant-btn-primary:hover {
+  background-color: #ff9d3d;
+  border-color: #ff9d3d;
+}
