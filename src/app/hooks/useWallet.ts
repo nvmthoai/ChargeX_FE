@@ -1,10 +1,20 @@
 import { useState, useEffect } from "react";
 import type { MyWallet } from "../models/wallet.model";
 import walletService from "../services/WalletService";
+import { App } from "antd";
+export interface memberWithdrawals {
+  amount: number;
+  accountNumber: string;
+  bankCode: string;
+  note: string;
+}
 
 const useWallet = () => {
   const [myWallet, setMyWallet] = useState<MyWallet | null>(null);
-  const { getMyWallet, deposit } = walletService();
+  const { getMyWallet, deposit, memberWithdrawals } = walletService();
+  const { message } = App.useApp();
+  const [withdrawalModalOpen, setWithdrawalModalOpen] = useState(false);
+
   useEffect(() => {
     fetchMyWallet();
   }, []);
@@ -24,9 +34,23 @@ const useWallet = () => {
     }
   };
 
+  const handleWithdrawls = async (values: memberWithdrawals) => {
+    const response = await memberWithdrawals(values);
+    if (response) {
+      setWithdrawalModalOpen(false)
+      console.log('test')
+      message.success("Please wait admin approve your request!");
+      return response;
+    }
+    return null;
+  };
+
   return {
     myWallet,
     handleDeposit,
+    handleWithdrawls,
+    setWithdrawalModalOpen,
+    withdrawalModalOpen
   };
 };
 
