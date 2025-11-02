@@ -1,15 +1,33 @@
+export interface Address {
+  addressId: string;
+  fullName: string;
+  phone: string;
+  line1: string;
+  districtId: number;
+  provinceId: number;
+  wardCode: string;
+  label: string;
+  isDefault: boolean;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface Seller {
+  userId: string;
+  fullName: string;
+  defaultAddress: Address;
+}
+
 export interface Product {
   id: string;
-  seller: {
-    userId: string;
-    fullName: string;
-  };
+  seller: Seller;
   title: string;
   description: string;
   price_start: string;
   price_buy_now: string;
   price_now: string | null;
   status: string;
+
   imageUrls: string[];
   soh_percent: number | null;
   cycle_count: number | null;
@@ -20,4 +38,11 @@ export interface Product {
   is_auction: boolean;
   createdAt: string;
   end_time: string | null;
+}
+
+export interface ProductListResponse {
+  data: Product[];
+  total: number;
+  page: number;
+  limit: number;
 }

@@ -1,0 +1,177 @@
+.profilewallet-container {
+    display: flex;
+    padding: 0 !important;
+    max-height: 600px;
+    overflow: hidden;
+
+    .wallet-section {
+        width: fit-content;
+        background: #fafafa;
+        border-radius: 12px 0 0 12px;
+        box-sizing: border-box;
+        overflow-y: scroll;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        .title {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 24px 24px 0;
+            background: #fff;
+            background: #fafafa;
+        }
+
+        .space {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 24px;
+            background: linear-gradient(0deg, #fafafa 20%, #ffffff00);
+        }
+
+        .cards {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0 24px;
+
+            .card {
+                min-width: 220px;
+                min-height: 110px;
+                padding: 16px;
+                box-sizing: border-box;
+                background: #fff;
+                border: 2px solid #e1e1e1;
+                border-radius: 8px;
+                cursor: pointer;
+                /* display: flex;
+            flex-direction: column;
+            justify-content: space-between; */
+
+                &.selected {
+                    border-color: #6EBDFA;
+                }
+
+                .card-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+
+                    .logo {
+                        font-weight: bold;
+                        color: #002f87;
+                        font-size: 18px;
+                    }
+
+                    .type {
+                        color: #999;
+                        font-size: 12px;
+                    }
+                }
+
+                p {
+                    font-size: 16px;
+                    margin-top: 20px;
+                    letter-spacing: 1px;
+                }
+            }
+
+            .add-card {
+                border: 2px dashed #ccc;
+                border-radius: 8px;
+                height: 110px;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+
+                span {
+                    font-size: 28px;
+                    color: #888;
+                }
+            }
+
+        }
+    }
+
+    .balance-section {
+        flex: 1;
+        background: #fff;
+        border-radius: 0 12px 12px 0;
+        position: relative;
+        box-sizing: border-box;
+        overflow-y: scroll;
+
+        .balance-header {
+            padding: 24px 24px 0;
+            position: sticky;
+            top: 0;
+            left: 0;
+            background: #fff;
+
+            .balance {
+                color: #2a7de1;
+                font-size: 20px;
+                font-weight: 600;
+            }
+        }
+
+        .sub-title {
+            color: #666;
+            border-bottom: 2px solid #eee;
+        }
+
+        .transactions {
+            padding: 0 24px;
+
+            .item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0;
+                border-bottom: 1px solid #eee;
+
+                .info {
+                    display: flex;
+                    flex-direction: column;
+
+                    .content {
+                        font-weight: 600;
+                    }
+
+                    .date {
+                        font-size: 12px;
+                        color: #999;
+                    }
+                }
+
+                .amount {
+                    font-weight: 600;
+                }
+
+                &.positive .amount {
+                    color: #2ecc71;
+                }
+
+                &.negative .amount {
+                    color: #e74c3c;
+                }
+            }
+        }
+
+        .space {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 24px;
+            background: linear-gradient(0deg, #ffffff 20%, #ffffff00);
+        }
+    }
+}

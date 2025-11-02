@@ -1,14 +1,9 @@
 import { useState } from "react";
 import { Clock3, MapPin, Phone, Star } from "lucide-react";
 import type { Product } from "../../../../api/product/type";
-import { createOrder } from "../../../../api/order/api";
 import { useNavigate } from "react-router-dom";
-import { OrderStatus } from "../../../../api/order/type";
 
 export default function ProductInfo({ product }: { product: Product }) {
-  const [bid, setBid] = useState<number>(
-    Number(product.price_now ?? product.price_start) + 10
-  );
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -21,19 +16,19 @@ export default function ProductInfo({ product }: { product: Product }) {
           <Star
             key={i}
             size={18}
-            className={`${i < rounded ? "text-[#83AD52] fill-[#83AD52]" : "text-gray-300"}`}
+            className={`${
+              i < rounded ? "text-[#83AD52] fill-[#83AD52]" : "text-gray-300"
+            }`}
           />
         ))}
       </div>
     );
   };
 
-  // 🛒 Handle Buy Now
+  // 🛒 Handle Buy Now → chỉ điều hướng sang trang Checkout
   const handleBuyNow = async () => {
     try {
       setLoading(true);
-
-      // ✅ Lấy user từ localStorage
       const userData = localStorage.getItem("user");
       const user = userData ? JSON.parse(userData) : null;
 
@@ -42,33 +37,11 @@ export default function ProductInfo({ product }: { product: Product }) {
         return;
       }
 
-      // ✅ Chuẩn bị payload đúng schema backend
-      const payload = {
-         buyer_id: user?.sub,
-        seller_id: product.seller.userId,
-        productId: product.id,
-        price: Number(product.price_buy_now),
-        shipping_fee: 20000,
-        shipping_provider: "GHTK",
-        shipping_code: "AUTO-" + Date.now(),
-        status: OrderStatus.PENDING,
-        contract_url: "https://example.com/contracts/sample.pdf",
-        pickup_address_id: "a1234-5678-seller",
-        delivery_address_id: "b1234-5678-buyer",
-      };
-
-      console.log("📦 Order payload gửi backend:", payload);
-      console.log("product", product);
-
-      // ✅ Gọi API tạo order
-      const order = await createOrder(payload);
-      console.log("✅ Order created:", order);
-
-      // 🔁 Điều hướng sang Checkout
-      navigate(`/checkout?orderId=${order.order_id}`);
+      // 👉 chỉ navigate, không gọi API
+      navigate(`/checkout?productId=${product.id}`);
     } catch (error) {
       console.error("❌ Buy Now error:", error);
-      alert("Không thể tạo đơn hàng, vui lòng thử lại!");
+      alert("Có lỗi xảy ra, vui lòng thử lại!");
     } finally {
       setLoading(false);
     }
@@ -81,33 +54,17 @@ export default function ProductInfo({ product }: { product: Product }) {
   ];
 
   return (
-    <div className="max-w-2xl space-y-6 p-6 item bg-white rounded-lg">
+    <div className="max-w-2xl space-y-6 p-6 bg-white rounded-lg shadow-md">
       {/* Product Info */}
       <div className="space-y-3 border-b border-gray-100 pb-6">
-        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight leading-snug">
+        <h1 className="text-4xl font-extrabold text-gray-900">
           {product.title}
         </h1>
+        <p className="text-lg text-gray-700">{product.description}</p>
 
-        <p className="text-lg text-gray-700 leading-relaxed max-w-prose">
-          {product.description}
-        </p>
-
-        <div className="flex items-center justify-between text-sm text-gray-500 mt-4">
+        <div className="flex justify-between text-sm text-gray-500 mt-4">
           <span className="flex items-center gap-1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4 text-blue-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <Clock3 className="w-4 h-4 text-blue-500" />
             {product.createdAt
               ? new Date(product.createdAt).toLocaleDateString("vi-VN", {
                   day: "2-digit",
@@ -119,55 +76,19 @@ export default function ProductInfo({ product }: { product: Product }) {
         </div>
       </div>
 
-      {/* Current Bid + Timer */}
-      {product.is_auction && (
-        <div className="p-4 bg-gray-100 rounded-lg space-y-3">
-          <div className="flex justify-between items-center">
-            <span>Current Bid:</span>
-            <span className="text-[#83AD52] font-bold text-4xl">
-              ${Number(product.price_now ?? product.price_start).toLocaleString()}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="flex gap-1">
-              <Clock3 /> Time Remaining:
-            </span>
-            <span className="font-medium text-black">
-              {product.end_time
-                ? new Date(product.end_time).toLocaleString()
-                : "—"}
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Your Bid</label>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={bid}
-                onChange={(e) => setBid(Number(e.target.value))}
-                className="border border-gray-300 rounded px-3 py-2 flex-1"
-              />
-              <button className="bg-[#83AD52] hover:bg-[#93af73] text-white px-4 py-2 rounded">
-                Place Bid
-              </button>
-            </div>
-            <p className="text-sm text-gray-500">
-              Next minimum bid: ${(bid + 10).toLocaleString()}
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Seller Info */}
       <div className="bg-white space-y-4">
-        <h2 className="text-2xl font-semibold text-gray-900">Seller Information</h2>
+        <h2 className="text-2xl font-semibold text-gray-900">
+          Seller Information
+        </h2>
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xl">
             {product.seller.fullName[0].toUpperCase()}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{product.seller.fullName}</h3>
+            <h3 className="font-semibold text-gray-900">
+              {product.seller.fullName}
+            </h3>
             <p className="text-sm text-gray-500 flex items-center gap-1">
               <MapPin size={14} /> TP. Hồ Chí Minh
             </p>
@@ -183,7 +104,11 @@ export default function ProductInfo({ product }: { product: Product }) {
         <button
           onClick={handleBuyNow}
           disabled={loading}
-          className="flex-1 bg-[#0F74C7] hover:bg-[#3888ca] text-white px-4 py-2 rounded font-medium"
+          className={`flex-1 bg-[#0F74C7] text-white px-4 py-2 rounded font-medium ${
+            loading
+              ? "opacity-60 cursor-not-allowed"
+              : "hover:bg-[#3888ca] transition"
+          }`}
         >
           {loading
             ? "Đang xử lý..."
@@ -193,8 +118,7 @@ export default function ProductInfo({ product }: { product: Product }) {
           Add to Watchlist
         </button>
       </div>
-
-      {/* Specifications */}
+ {/* Specifications */}
       <div className="pt-6">
         <h3 className="text-2xl font-semibold mb-4 text-gray-900">Specifications</h3>
 
@@ -247,14 +171,15 @@ export default function ProductInfo({ product }: { product: Product }) {
           </table>
         </div>
       </div>
-
       {/* Reviews */}
       <div className="bg-white p-6 space-y-6">
         <h2 className="text-2xl font-semibold text-gray-900">User Reviews</h2>
         <div className="flex items-end gap-2">
           <span className="text-3xl font-bold text-blue-600">{avgRating}</span>
           {renderStars(avgRating)}
-          <span className="text-gray-600 text-sm">({reviews.length} reviews)</span>
+          <span className="text-gray-600 text-sm">
+            ({reviews.length} reviews)
+          </span>
         </div>
 
         {reviews.map((r) => (

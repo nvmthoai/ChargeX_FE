@@ -19,12 +19,24 @@ interface Address {
 interface AddressListProps {
   addresses: Address[]
   isLoading: boolean
+  mode?: "profile" | "checkout"
+  selectedAddressId?: string | null
+  onSelect?: (id: string) => void
   onEdit: (address: Address) => void
-  onDelete: (addressId: string) => void
-  onSetDefault: (addressId: string) => void
+  onDelete?: (addressId: string) => void
+  onSetDefault?: (addressId: string) => void
 }
 
-const AddressList: React.FC<AddressListProps> = ({ addresses, isLoading, onEdit, onDelete, onSetDefault }) => {
+const AddressList: React.FC<AddressListProps> = ({
+  addresses,
+  isLoading,
+  mode = "profile",
+  selectedAddressId,
+  onSelect,
+  onEdit,
+  onDelete,
+  onSetDefault,
+}) => {
   if (isLoading) {
     return (
       <div className="p-8 text-center">
@@ -40,13 +52,23 @@ const AddressList: React.FC<AddressListProps> = ({ addresses, isLoading, onEdit,
   return (
     <div className="divide-y divide-gray-200">
       {addresses.map((address) => (
-        <AddressCard
+        <div
           key={address.addressId}
-          address={address}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onSetDefault={onSetDefault}
-        />
+          onClick={() => mode === "checkout" && onSelect?.(address.addressId)}
+          className={`transition-all ${mode === "checkout"
+              ? `cursor-pointer hover:bg-blue-50 ${selectedAddressId === address.addressId ? "bg-blue-100 border-l-4 border-blue-600" : ""
+              }`
+              : ""
+            }`}
+        >
+          <AddressCard
+            address={address}
+            mode={mode}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onSetDefault={onSetDefault}
+          />
+        </div>
       ))}
     </div>
   )
