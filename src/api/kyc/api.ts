@@ -42,29 +42,35 @@ export const postKycProfile = async (
 
 export const uploadKycDocument = async (
   profileId: string,
-  data: { type: "front_id" | "back_id" | "selfie" | "passport"; fileUrl: string }
+  data: { type: "front_id" | "back_id" | "selfie" | "passport"; file: File }
 ): Promise<ApiResponse<KycDocument>> => {
   try {
+    const formData = new FormData();
+    formData.append("type", data.type);
+    formData.append("file", data.file);
+
+    console.log("🚀 Uploading FormData to:", `/kyc-profiles/${profileId}/documents`);
+    for (const [key, val] of formData.entries()) console.log("   ", key, "=>", val);
+
     const response = await axiosInstance.post<ApiResponse<KycDocument>>(
       `/kyc-profiles/${profileId}/documents`,
-      data,
-      { headers: { "Content-Type": "application/json" } }
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
     );
 
     console.log("✅ Uploaded KYC document:", response.data);
     return response.data;
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      console.error("❌ Upload failed:", error.response?.data);
-      return (
-        error.response?.data ?? {
-          success: false,
-          statusCode: error.response?.status ?? 500,
-          message: "Axios error: failed to upload KYC document",
-        }
-      ) as ApiResponse<KycDocument>;
-    }
-    throw new Error("Unknown error when uploading KYC document");
+  } catch (error: any) {
+    console.error("❌ Upload failed:", error.response?.data);
+    return (
+      error.response?.data ?? {
+        success: false,
+        statusCode: error.response?.status ?? 500,
+        message: "Axios error: failed to upload KYC document",
+      }
+    ) as ApiResponse<KycDocument>;
   }
 };
 

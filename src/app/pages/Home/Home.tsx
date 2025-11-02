@@ -14,8 +14,8 @@ export default function EVMarketplace() {
   const [selectedVehicleTypes, setSelectedVehicleTypes] = useState<string[]>(
     []
   );
-  const {products} = useProduct();
-  
+  const { products } = useProduct();
+
   const makes = ["Audi", "BMW", "Lucid", "Nissan", "Chevrolet", "Porsche"];
   const conditions = ["New", "Used", "Refurbished"];
   const vehicleTypes = ["EV", "E-bike", "Scooter"];
@@ -292,25 +292,30 @@ export default function EVMarketplace() {
           </div>
 
           {/* Main Content */}
+          {/* Main Content */}
           <div className="flex-1">
             <h1 className="text-2xl font-bold mb-6">Explore EVs & Batteries</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch">
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
                 >
-                 {
-                  product.imageUrls &&  <img
-                    src={product?.imageUrls[0] || ""}
-                    alt={product?.title}
-                    className="h-48 w-full object-cover"
-                  />
-                 }
-                  <div className="p-4 space-y-3">
-                    <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-semibold text-lg line-clamp-2 flex-1">
+                  {/* Ảnh sản phẩm */}
+                  {product.imageUrls && (
+                    <img
+                      src={product?.imageUrls[0] || ""}
+                      alt={product?.title}
+                      className="h-48 w-full object-cover"
+                    />
+                  )}
+
+                  {/* Nội dung */}
+                  <div className="flex flex-col flex-1 p-4">
+                    {/* Tiêu đề & nhãn */}
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <h3 className="font-semibold text-lg line-clamp-2 flex-1 min-h-[48px]">
                         {product.title}
                       </h3>
                       {product.is_auction && (
@@ -320,47 +325,48 @@ export default function EVMarketplace() {
                       )}
                     </div>
 
-                    <div className="text-2xl font-bold text-indigo-600">
+                    {/* Giá */}
+                    <div className="text-2xl font-bold text-indigo-600 mb-2">
                       {getDisplayPrice(product)}
                     </div>
 
-                    <p className="text-gray-600 text-sm line-clamp-3">
-                      {product.description}
+                    {/* Mô tả */}
+                    <p className="text-gray-600 text-sm line-clamp-3 min-h-[60px] mb-3">
+                      {product.description || "No description provided."}
                     </p>
 
+                    {/* Thông tin kỹ thuật */}
                     {product.soh_percent && (
-                      <div className="text-xs text-gray-600 space-y-1">
+                      <div className="text-xs text-gray-600 space-y-1 mb-3 min-h-[60px]">
                         <div>SOH: {product.soh_percent}%</div>
-                        {product.cycle_count && (
-                          <div>Cycles: {product.cycle_count}</div>
-                        )}
+                        {product.cycle_count && <div>Cycles: {product.cycle_count}</div>}
                         {product.nominal_voltage_v && (
                           <div>Voltage: {product.nominal_voltage_v}V</div>
                         )}
-                        {product.weight_kg && (
-                          <div>Weight: {product.weight_kg}kg</div>
-                        )}
+                        {product.weight_kg && <div>Weight: {product.weight_kg}kg</div>}
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between">
+                    {/* Trạng thái + Người bán */}
+                    <div className="flex items-center justify-between mt-auto mb-3">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          getCondition(product) === "Active"
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getCondition(product) === "Active"
                             ? "bg-green-100 text-green-800"
                             : "bg-gray-100 text-gray-800"
-                        }`}
+                          }`}
                       >
                         {getCondition(product)}
                       </span>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 truncate max-w-[120px] text-right">
                         by {product.seller.fullName}
                       </div>
                     </div>
 
-                    <button 
-                    onClick={() => navigate(`/productdetail/${product.id}`)}
-                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+                    {/* Nút */}
+                    <button
+                      onClick={() => navigate(`/productdetail/${product.id}`)}
+                      className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 mt-auto"
+                    >
                       View Details
                     </button>
                   </div>
@@ -368,21 +374,19 @@ export default function EVMarketplace() {
               ))}
             </div>
 
+            {/* Pagination */}
             <div className="flex justify-center space-x-2">
               <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
                 Previous
               </button>
-              <button className="px-3 py-2 bg-indigo-600 text-white rounded">
-                1
-              </button>
-              <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
-                2
-              </button>
+              <button className="px-3 py-2 bg-indigo-600 text-white rounded">1</button>
+              <button className="px-3 py-2 text-gray-500 hover:text-gray-700">2</button>
               <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
                 Next
               </button>
             </div>
           </div>
+
         </div>
       </div>
 

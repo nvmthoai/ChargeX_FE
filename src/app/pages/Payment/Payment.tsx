@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Spin, message, Radio } from "antd";
-import { createPaymentForOrder } from "../../../api/payment/api";
+import { createPaymentForOrder, payOrderWithWallet, getWalletAvailable } from "../../../api/payment/api";
 import {
   PaymentProvider,
   type Payment,
@@ -32,6 +32,9 @@ export default function PaymentPage() {
   const { provinces, fetchDistricts, fetchWards } = useProvinces();
   const [deliveryLocation, setDeliveryLocation] = useState("Đang tải...");
   const [pickupLocation, setPickupLocation] = useState("Đang tải...");
+
+  const [wallet, setWallet] = useState<{ balance: number; held: number; available: number } | null>(null);
+
 
   // 🧾 Lấy chi tiết đơn hàng
   useEffect(() => {
@@ -68,9 +71,8 @@ export default function PaymentPage() {
           const ward = wardList.find(
             (w) => w.code.toString() === addr.wardCode
           );
-          return `${addr.line1}, ${ward?.name || ""}, ${district?.name || ""}, ${
-            province?.name || ""
-          }`;
+          return `${addr.line1}, ${ward?.name || ""}, ${district?.name || ""}, ${province?.name || ""
+            }`;
         } catch {
           return addr.line1;
         }
@@ -94,32 +96,57 @@ export default function PaymentPage() {
     setProcessing(true);
 
     try {
-      const payload = {
-        type: "pay_order" as const,
-        amount: order.price || 0,
-        description: `Thanh toán đơn hàng #${order.orderId}`,
-        related_order_id: order.orderId,
-        provider: method,
-        method: "bank",
-        returnUrl: `${window.location.origin}/payment-success?orderId=${order.orderId}`,
-        cancelUrl: `${window.location.origin}/payment-cancel?orderId=${order.orderId}`,
-        webhookUrl: "https://yoursite.com/webhook/payos",
-      };
-
-      const payment: Payment = await createPaymentForOrder(payload);
-      if (payment?.checkoutUrl) {
-        message.success("Đang chuyển đến cổng thanh toán...");
-        window.location.href = payment.checkoutUrl;
+      if (method === PaymentProvider.WALLET) {
+        // 🪙 Thanh toán qua ví nội bộ
+        const result = await payOrderWithWallet(order.orderId, total);
+        if (result?.success || result?.status === 200) {
+          message.success("Thanh toán ví nội bộ thành công!");
+          navigate(
+            `/payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${result?.data?.transactionId || "WALLET-" + Date.now()}`
+          );
+        } else {
+          message.error(result?.message || "Thanh toán ví thất bại!");
+        }
       } else {
-        message.error("Không nhận được đường dẫn thanh toán!");
+        // 💳 Thanh toán qua PayOS
+        const payload = {
+          type: "pay_order" as const,
+          amount: total,
+          description: `Thanh toán đơn hàng #${order.orderId}`,
+          related_order_id: order.orderId,
+          provider: method,
+          method: "bank",
+          returnUrl: `${window.location.origin}/payment-success?orderId=${order.orderId}`,
+          cancelUrl: `${window.location.origin}/payment-cancel?orderId=${order.orderId}`,
+          webhookUrl: "https://yoursite.com/webhook/payos",
+        };
+
+        const payment: Payment = await createPaymentForOrder(payload);
+        if (payment?.checkoutUrl) {
+          message.success("Đang chuyển đến cổng thanh toán...");
+          window.location.href = payment.checkoutUrl;
+        } else {
+          message.error("Không nhận được đường dẫn thanh toán!");
+        }
       }
     } catch (err) {
-      console.error("❌ Error creating payment:", err);
-      message.error("Không thể tạo thanh toán!");
+      console.error("❌ Error processing payment:", err);
+      message.error("Không thể xử lý thanh toán!");
     } finally {
       setProcessing(false);
     }
   };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getWalletAvailable();
+        setWallet(data);
+      } catch (err) {
+        console.error("Không thể tải số dư ví");
+      }
+    })();
+  }, []);
 
   if (loading)
     return (
@@ -137,18 +164,20 @@ export default function PaymentPage() {
 
   const total = Number(order.price || 0) + Number(order.shipping_fee || 0);
   const product = order.product;
+  const isWalletInsufficient =
+    method === PaymentProvider.WALLET && (wallet?.available ?? 0) < total;
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
-             {/* 🧾 Tiêu đề */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-[#0F74C7] mb-1">
-            Thanh toán đơn hàng
-          </h1>
-          <p className="text-gray-500">
-            Vui lòng kiểm tra thông tin trước khi thanh toán
-          </p>
-        </div>
+      {/* 🧾 Tiêu đề */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-[#0F74C7] mb-1">
+          Thanh toán đơn hàng
+        </h1>
+        <p className="text-gray-500">
+          Vui lòng kiểm tra thông tin trước khi thanh toán
+        </p>
+      </div>
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10 items-start">
         {/* 🧺 Thông tin đơn hàng */}
         <div className="bg-white rounded-xl shadow-md p-8 space-y-6 lg:col-span-2">
@@ -261,11 +290,10 @@ export default function PaymentPage() {
           >
             {/* PAYOS */}
             <div
-              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${
-                method === PaymentProvider.PAYOS
-                  ? "border-2 border-[#0F74C7] bg-[#f0f7ff]"
-                  : "border border-gray-200 bg-white"
-              }`}
+              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.PAYOS
+                ? "border-2 border-[#0F74C7] bg-[#f0f7ff]"
+                : "border border-gray-200 bg-white"
+                }`}
               onClick={() => setMethod(PaymentProvider.PAYOS)}
             >
               <div className="flex items-center gap-3">
@@ -286,11 +314,10 @@ export default function PaymentPage() {
 
             {/* WALLET */}
             <div
-              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${
-                method === PaymentProvider.WALLET
-                  ? "border-2 border-[#0F74C7] bg-[#f6fbff]"
-                  : "border border-gray-200 bg-white"
-              }`}
+              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.WALLET
+                ? "border-2 border-[#0F74C7] bg-[#f6fbff]"
+                : "border border-gray-200 bg-white"
+                }`}
               onClick={() => setMethod(PaymentProvider.WALLET)}
             >
               <div className="flex items-center gap-3">
@@ -301,6 +328,21 @@ export default function PaymentPage() {
                   <p className="text-sm font-medium text-gray-800">
                     Ví nội bộ ReEV
                   </p>
+                  {method === PaymentProvider.WALLET && (
+                    <div className="mt-3 text-sm text-gray-700">
+                      {wallet ? (
+                        <>
+                          <p>Số dư khả dụng: <span className="font-semibold text-[#0F74C7]">{wallet.available.toLocaleString()} ₫</span></p>
+                          {wallet.available < total && (
+                            <p className="text-red-500 mt-1">⚠️ Số dư không đủ để thanh toán!</p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-gray-400">Đang tải số dư ví...</p>
+                      )}
+                    </div>
+                  )}
+
                   <p className="text-gray-500 text-sm">
                     Thanh toán trực tiếp từ số dư tài khoản của bạn.
                   </p>
@@ -314,15 +356,15 @@ export default function PaymentPage() {
           <div className="pt-8 space-y-3">
             <button
               onClick={handlePayment}
-              disabled={processing}
-              className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${
-                processing
+              disabled={processing || isWalletInsufficient}
+              className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${processing || isWalletInsufficient
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#0F74C7] hover:bg-[#3888ca]"
-              }`}
+                }`}
             >
               {processing ? "Đang xử lý..." : "Thanh toán ngay"}
             </button>
+
 
             <button
               onClick={() => navigate(-1)}
