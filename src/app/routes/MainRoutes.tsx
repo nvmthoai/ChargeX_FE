@@ -33,7 +33,10 @@ import Header from "../layouts/Header/Header";
 import Payment from "../pages/Payment/Payment";
 import AuctionRequestManagement from "../pages/Admin/AuctionRequestManagement";
 import AuctionLiveManagement from "../pages/Admin/AuctionLiveManagement";
+
 import WithdrawManagement from "../pages/Admin/WithdrwaManagement";
+import OrderDetail from "../pages/Profile/ProfileOrder/OrderDetail";
+
 
 export default function MainRoutes() {
   return (
@@ -72,6 +75,8 @@ export default function MainRoutes() {
         </Route>
         <Route path="/productdetail/:id" element={<ProductDetail />} />
         <Route path="/auction/:id" element={<Auction />} />
+        <Route path='/orders/:id' element={<OrderDetail/>} />
+
 
         <Route path="/admin" element={<Navigate to="/admin/user-management" replace />} />
         <Route path="/admin" element={<NavigationBar />} >
