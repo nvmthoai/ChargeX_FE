@@ -70,3 +70,35 @@ export const deletePayment = async (id: string): Promise<void> => {
   }
 };
 
+export const payOrderWithWallet = async (
+  orderId: string,
+  amount: number
+): Promise<any> => {
+  try {
+    const res = await axiosInstance.post("/wallet/pay-order", {
+      orderId,
+      amount,
+    });
+    console.log("✅ Wallet payment result:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Error paying with wallet:", err);
+    throw err;
+  }
+};
+
+
+export const getWalletAvailable = async (): Promise<{
+  balance: number;
+  held: number;
+  available: number;
+}> => {
+  try {
+    const res = await axiosInstance.get("/wallet/available");
+    console.log("💰 Wallet available:", res.data);
+    return res.data.data;
+  } catch (err) {
+    console.error("❌ Error fetching wallet balance:", err);
+    throw err;
+  }
+};

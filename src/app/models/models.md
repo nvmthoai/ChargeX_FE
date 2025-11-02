@@ -1,1 +1,1 @@
-# Chứa những đối tượng được xài ở nhiều nơi
+# Chứa những đối tượng được xài ở nhiều nơ

@@ -1,12 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getMyProducts, getProductById, updateProduct } from "../../../../api/product/api";
 import type { Product } from "../../../../api/product/type";
-import { Pencil, Eye, ChevronDown, Check, X } from "lucide-react";
+import { Check, ChevronDown, Gavel, MoreVertical, Pencil, Eye, X } from "lucide-react";
 import ProductForm from "./ProductForm";
 import { useNavigate } from "react-router-dom";
+import AuctionRequestModal from "../component/AuctionRequestModal";
+import useAuction from "../../../hooks/useAuction";
+import FilterProduct from "./FilterProduct";
 
 export default function ProductManagerTable() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [keyword, setKeyword] = useState("");
+  const [status, setStatus] = useState<string | undefined>(undefined);
+  const [sort, setSort] = useState<string | undefined>("newest"); // 🆕 sort FE
+  const [appliedKeyword, setAppliedKeyword] = useState("");
+  const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined);
+const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
+
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const pageSize = 5;
@@ -15,26 +25,51 @@ export default function ProductManagerTable() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+  const [auctionModalOpen, setAuctionModalOpen] = useState(false);
+  const { handleSendRequest } = useAuction();
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
+  const openAuctionModal = (product: Product) => {
+    setSelectedProduct(product);
+    setAuctionModalOpen(true);
+  };
+
+  // 🟩 Fetch danh sách
   // 🟩 Fetch danh sách
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await getMyProducts(page, pageSize);
-      setProducts(res?.data ?? []);
-      setTotal(res?.total ?? 0);
+      // 🧠 Luôn lấy toàn bộ sản phẩm (BE vẫn filter & search)
+      const res = await getMyProducts(1, 9999, appliedKeyword, appliedStatus);
+      const list = res?.data ?? [];
+
+      // 🕒 FE sort toàn bộ danh sách
+      if (sort === "newest") {
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      } else if (sort === "oldest") {
+        list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      }
+
+      // ✂️ FE tự phân trang
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+
+      setProducts(list.slice(start, end));
+      setTotal(list.length);
     } catch (err) {
-      console.error("Lỗi tải sản phẩm:", err);
+      console.error("❌ Lỗi tải sản phẩm:", err);
     } finally {
       setLoading(false);
     }
   };
 
+
+  // 🔁 Tự fetch khi page, keyword, status, sort đổi
   useEffect(() => {
     fetchProducts();
-  }, [page]);
+  }, [page, appliedKeyword, appliedStatus, appliedSort]);
 
-  // 🟨 Gọi API đổi trạng thái
+  // 🟨 Đổi trạng thái
   const handleChangeStatus = async (productId: string, newStatus: Status) => {
     try {
       const formData = new FormData();
@@ -94,6 +129,30 @@ export default function ProductManagerTable() {
   return (
     <div className="p-6 space-y-6 relative">
       <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
+        <FilterProduct
+          keyword={keyword}
+          onKeywordChange={setKeyword}
+          status={status}
+          onStatusChange={setStatus}
+          sort={sort}
+          onSortChange={(v) => setSort(v)}  // local state thôi, không fetch liền
+          onSearch={() => {
+            setAppliedKeyword(keyword.trim());
+            setAppliedStatus(status);
+            setAppliedSort(sort);
+            setPage(1);
+          }}
+          onReset={() => {
+            setKeyword("");
+            setStatus(undefined);
+            setSort("newest");
+            setAppliedKeyword("");
+            setAppliedStatus(undefined);
+            setPage(1);
+          }}
+        />
+
+        {/* 🧾 Bảng sản phẩm */}
         {loading ? (
           <div className="p-10 text-center text-gray-400 animate-pulse">
             Đang tải sản phẩm...
@@ -112,7 +171,7 @@ export default function ProductManagerTable() {
                 <th className="px-5 py-3 w-28 text-right">Giá bán</th>
                 <th className="px-5 py-3 w-40">Tình trạng</th>
                 <th className="px-5 py-3 w-36">Ngày tạo</th>
-                <th className="px-5 py-3 w-52 text-center">Thao tác</th>
+                <th className="px-5 py-3 w-20 text-center">⋮</th>
               </tr>
             </thead>
             <tbody>
@@ -134,30 +193,20 @@ export default function ProductManagerTable() {
                   <td className="px-5 py-3">
                     {p.is_auction ? (
                       <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-xs font-medium px-3 py-1.5 rounded-full border border-indigo-200">
-                        <svg className="w-3.5 h-3.5 fill-indigo-500" viewBox="0 0 24 24">
-                          <path d="M4 21h16v-2H4v2zm15.9-11.6-1.4-1.4-4.1 4.1-4.4-4.4L8.6 9l4.4 4.4-4.1 4.1 1.4 1.4 4.1-4.1L18 18l1.4-1.4-4.1-4.1 4.6-4.1z" />
-                        </svg>
-                        Đấu giá
+                        <Gavel size={12} /> Đấu giá
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200">
-                        <svg className="w-3.5 h-3.5 fill-gray-400" viewBox="0 0 24 24">
-                          <path d="M18 4H6v16h12V4z" />
-                        </svg>
                         Bán thường
                       </span>
                     )}
                   </td>
 
                   <td className="px-5 py-3 text-right text-gray-900 font-semibold">
-                    {Number(p.price_buy_now).toLocaleString("vi-VN")}₫
+                   ${(Number(p.price_buy_now)).toLocaleString()}
                   </td>
 
-                  {/* Status dropdown */}
-                  <td
-                    className="px-5 py-3 relative "
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <td className="px-5 py-3 relative" onClick={(e) => e.stopPropagation()}>
                     <StatusBadge
                       value={(p.status as any) ?? "draft"}
                       isOpen={openDropdown === p.id}
@@ -174,31 +223,13 @@ export default function ProductManagerTable() {
                       : "-"}
                   </td>
 
-                  {/* Actions */}
-                  <td
-                    className="px-5 py-3"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => navigate(`/shop/productdetail/${p.id}`)}
-                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-gray-700 hover:bg-gray-100"
-                      >
-                        <Eye className="w-4 h-4" />
-                        Xem
-                      </button>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenEdit(p.id);
-                        }}
-                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-indigo-700 hover:bg-indigo-100"
-                      >
-                        <Pencil className="h-4 w-4" />
-                        Sửa
-                      </button>
-                    </div>
+                  <td className="px-5 py-3 text-center">
+                    <ActionMenu
+                      showAuction={!p.is_auction}
+                      onAuction={() => openAuctionModal(p)}
+                      onView={() => navigate(`/shop/productdetail/${p.id}`)}
+                      onEdit={() => handleOpenEdit(p.id)}
+                    />
                   </td>
                 </tr>
               ))}
@@ -222,11 +253,10 @@ export default function ProductManagerTable() {
               <button
                 key={i}
                 onClick={() => setPage(p)}
-                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${
-                  page === p
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "hover:bg-gray-50"
-                }`}
+                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${page === p
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "hover:bg-gray-50"
+                  }`}
               >
                 {p}
               </button>
@@ -246,7 +276,7 @@ export default function ProductManagerTable() {
         </div>
       )}
 
-      {/* 🟢 Modal edit */}
+      {/* 🟢 Modal edit giữ nguyên */}
       {showModal && editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40 animate-fadeIn">
           <div className="relative bg-white w-[900px] max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden animate-slideUp">
@@ -271,6 +301,19 @@ export default function ProductManagerTable() {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedProduct && (
+        <AuctionRequestModal
+          open={auctionModalOpen}
+          productId={selectedProduct.id}
+          productTitle={selectedProduct.title}
+          onClose={() => {
+            setAuctionModalOpen(false);
+            setSelectedProduct(null);
+          }}
+          onSubmit={handleSendRequest}
+        />
       )}
     </div>
   );
@@ -317,17 +360,14 @@ function StatusBadge({
   const statuses: Status[] = ["active", "sold", "ended", "draft"];
 
   return (
-    <div
-      className="relative inline-block"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           onToggle?.();
         }}
-        className={`inline-flex  cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm transition-colors ${s.wrap}`}
+        className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm transition-colors ${s.wrap}`}
       >
         <span className={`h-2 w-2 rounded-full ${s.dot}`} />
         {s.text}
@@ -346,14 +386,88 @@ function StatusBadge({
                 e.stopPropagation();
                 onSelect?.(st);
               }}
-              className={`flex w-full  cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 ${
-                st === value ? "text-blue-600 font-medium" : "text-gray-700"
-              }`}
+              className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 ${st === value ? "text-blue-600 font-medium" : "text-gray-700"
+                }`}
             >
               {st === value && <Check className="h-4 w-4" />}
               <span>{statusStyle[st].text}</span>
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- ActionMenu ---------------- */
+function ActionMenu({
+  onView,
+  onEdit,
+  onAuction,
+  showAuction,
+}: {
+  onView: () => void;
+  onEdit: () => void;
+  onAuction?: () => void;
+  showAuction?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative inline-block text-left">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
+        className="p-2 rounded-full hover:bg-gray-100 transition"
+      >
+        <MoreVertical className="w-5 h-5 text-gray-600" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-36 origin-top-right rounded-lg border border-gray-100 bg-white shadow-lg z-20 animate-scaleIn">
+          {showAuction && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAuction?.();
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm text-orange-600"
+            >
+              <Gavel size={14} /> Đấu giá
+            </button>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onView();
+              setOpen(false);
+            }}
+            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm text-gray-700"
+          >
+            <Eye size={14} /> Xem
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+              setOpen(false);
+            }}
+            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm text-indigo-600"
+          >
+            <Pencil size={14} /> Sửa
+          </button>
         </div>
       )}
     </div>

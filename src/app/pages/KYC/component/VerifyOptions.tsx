@@ -3,10 +3,13 @@ import { AlertTriangle, User } from "lucide-react";
 import { postKycProfile } from "../.././../../api/kyc/api";
 import KycUploadModal from "./KycUploadModal";
 
+
 export default function VerifyOptions({ profileId }: { profileId?: string }) {
 
   const [modalMode, setModalMode] = useState<"basic" | "advanced" | null>(null);
   const [loading, setLoading] = useState(false);
+  const [createdProfileId, setCreatedProfileId] = useState<string | null>(null);
+
 
   const handleVerification = async (mode: "basic" | "advanced") => {
     try {
@@ -19,7 +22,12 @@ export default function VerifyOptions({ profileId }: { profileId?: string }) {
       const res = await postKycProfile({ level: mode, note });
       console.log("✅ KYC created:", res);
 
-      setModalMode(mode);
+      if (res.success && res.data?.kycProfileId) {
+        setCreatedProfileId(res.data.kycProfileId); // ✅ Lưu lại ID mới
+        setModalMode(mode); // ✅ Mở modal upload
+      } else {
+        alert("Failed to create KYC profile.");
+      }
     } catch (error) {
       console.error("❌ Failed to create KYC:", error);
       alert("Cannot create KYC profile, please try again later.");
@@ -27,6 +35,7 @@ export default function VerifyOptions({ profileId }: { profileId?: string }) {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-6 space-y-10 profile-content">
@@ -90,10 +99,14 @@ export default function VerifyOptions({ profileId }: { profileId?: string }) {
       {modalMode && (
         <KycUploadModal
           mode={modalMode}
-          profileId={profileId ?? ""}
-          onClose={() => setModalMode(null)}
+          profileId={createdProfileId ?? profileId ?? ""}
+          onClose={() => {
+            setModalMode(null);
+            setCreatedProfileId(null);
+          }}
         />
       )}
+
     </div>
   );
 }
