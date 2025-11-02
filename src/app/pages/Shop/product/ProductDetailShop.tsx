@@ -23,14 +23,14 @@ export default function ProductDetailShop() {
   if (!product) return <div className="p-10 text-center">Không tìm thấy sản phẩm</div>;
 
   return (
-    <div className="flex flex-row gap-20 py-10 px-40 bg-gray-50 min-h-screen">
+    <div className="flex flex-col gap-5 py-10 px-40 bg-gray-50 min-h-screen">
       {/* Gallery bên trái */}
-      <div className="flex-1 max-w-lg h-full sticky top-10 self-start">
+      <div className="max-w-2xl h-full top-10 self-start">
         <ProductGallery images={product.imageUrls || []} />
       </div>
 
       {/* Thông tin sản phẩm bên phải */}
-      <div className="flex-1">
+      <div className="">
         <ProductInfo product={product} />
       </div>
     </div>

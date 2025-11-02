@@ -12,6 +12,7 @@
 
     .modal-box {
         width: 400px;
+        min-width: 400px;
         padding: 20px;
         background: var(--gray-2);
         border: 2px solid var(--gray-3);
@@ -30,10 +31,12 @@
         .buttons {
             display: flex;
             justify-content: space-between;
-            gap: 12px;
+            gap: 100px;
 
             button {
+                flex: 1;
                 color: #fff;
+                background: #ffffff10;
 
                 &:hover {
                     border-color: #fff;
