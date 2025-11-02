@@ -33,7 +33,10 @@ import Header from "../layouts/Header/Header";
 import Payment from "../pages/Payment/Payment";
 import AuctionRequestManagement from "../pages/Admin/AuctionRequestManagement";
 import AuctionLiveManagement from "../pages/Admin/AuctionLiveManagement";
+
+import WithdrawManagement from "../pages/Admin/WithdrwaManagement";
 import OrderDetail from "../pages/Profile/ProfileOrder/OrderDetail";
+
 
 export default function MainRoutes() {
   return (
@@ -83,6 +86,7 @@ export default function MainRoutes() {
           <Route path="kyc-management" element={<KycManagement />} />
           <Route path="transaction-management" element={<TransactionManagement />} />
           <Route path="revenue-management" element={<RevenueManagement />} />
+          <Route path="withdraw-request-management" element={<WithdrawManagement />} />
         </Route>
         <Route path="/cart" element={<Cart />} />
       </Routes>
