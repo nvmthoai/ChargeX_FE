@@ -7,6 +7,7 @@ import useAddress from "../../hooks/useAddress";
 import AddressList from "../Manage-Address/AddressList";
 import AddressFormModal from "../Manage-Address/AddressFormModal";
 import { getProductById } from "../../../api/product/api";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 
 export default function Checkout() {
   const [params] = useSearchParams();
@@ -23,6 +24,8 @@ export default function Checkout() {
   const [editingAddress, setEditingAddress] = useState<any>(null);
 
   const [loadingProduct, setLoadingProduct] = useState(true);
+  const DEFAULT_SHIPPING_FEE = 10000;
+  const [shippingFee] = useState(DEFAULT_SHIPPING_FEE);
 
   // 🧾 Fetch sản phẩm
   useEffect(() => {
@@ -59,19 +62,21 @@ export default function Checkout() {
     const user = userData ? JSON.parse(userData) : null;
     if (!user?.sub) return message.error("Bạn cần đăng nhập để đặt hàng!");
 
+
+
     setConfirming(true);
     try {
       const payload = {
         buyer_id: user.sub,
         seller_id: product.seller.userId,
         productId: product.id,
-        price: Number(product.price_buy_now),
-        shipping_fee: 20000,
+        price: product.price_buy_now,
+        shipping_fee: shippingFee,
         shipping_provider: "GHTK",
         shipping_code: "AUTO-" + Date.now(),
         status: OrderStatus.PENDING,
         contract_url: "https://example.com/contracts/sample.pdf",
-        pickup_address_id:product.seller.defaultAddress.addressId,
+        pickup_address_id: product.seller.defaultAddress.addressId,
         delivery_address_id: selectedAddressId,
       };
 
@@ -121,8 +126,8 @@ export default function Checkout() {
                 }}
                 onSelect={(id) => setSelectedAddressId(id)}
                 selectedAddressId={selectedAddressId}
-                onDelete={() => { }}    
-                onSetDefault={() => { }}   
+                onDelete={() => { }}
+                onSetDefault={() => { }}
               />
 
             )}
@@ -162,12 +167,12 @@ export default function Checkout() {
                 </p>
                 <p className="flex justify-between">
                   <span>Shipping Fee</span>
-                  <span>$20,000</span>
+                  <span>${Number(shippingFee).toLocaleString()}</span>
                 </p>
                 <p className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
                   <span className="text-[#0F74C7]">
-                    ${(Number(product.price_buy_now) + 20000).toLocaleString()}
+                    ${(Number(product.price_buy_now) + Number(shippingFee)).toLocaleString()}
                   </span>
                 </p>
               </div>
@@ -182,6 +187,12 @@ export default function Checkout() {
               >
                 {confirming ? "Đang xử lý..." : "Xác nhận thanh toán"}
               </button>
+              <button
+              onClick={() => navigate(-1)}
+              className="w-full py-3 rounded-lg border text-gray-700 hover:border-[#0F74C7] transition flex items-center justify-center gap-2"
+            >
+              <ArrowLeftOutlined /> Quay lại
+            </button>
             </>
           ) : (
             <p className="text-gray-500 italic">Không tìm thấy sản phẩm.</p>
