@@ -1,6 +1,5 @@
-"use client";
 
-import { Modal, Form, Input, Button, message } from "antd";
+import { Modal, Form, Input, Button } from "antd";
 import { useState } from "react";
 import BankSelect from "./BankSelect";
 
@@ -23,7 +22,7 @@ interface WithdrawalModalProps {
     accountNumber: string;
     bankCode: string;
     note: string;
-  }) => Promise<void>;
+  }) => Promise<any>;
   banks: Bank[];
   loadingBanks: boolean;
 }
@@ -41,17 +40,17 @@ export default function WithdrawalModal({
   const handleSubmit = async (values: any) => {
     try {
       setLoading(true);
-      await onSubmit({
+      const response = await onSubmit({
         amount: Number.parseFloat(values.amount),
         accountNumber: values.accountNumber,
         bankCode: values.bankCode,
         note: values.note || "",
       });
-      message.success("Withdrawal request submitted successfully");
-      form.resetFields();
-      onClose();
+      if (response) {
+        form.resetFields();
+      }
     } catch (error: any) {
-      message.error(error.message || "Failed to submit withdrawal request");
+      console.error(error.message || "Failed to submit withdrawal request");
     } finally {
       setLoading(false);
     }

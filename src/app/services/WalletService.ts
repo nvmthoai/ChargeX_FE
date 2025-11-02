@@ -54,6 +54,41 @@ const walletService = () => {
     [callApi]
   );
 
+  const adminGetWithdrawRequest = useCallback(
+    async () => {
+      try {
+        const response = await callApi(HTTP_METHOD.GET, `/wallet/admin/withdrawals?pageSize=50&page=1`);
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
+
+  const adminApproveRequest = useCallback(
+    async (id: string) => {
+      try {
+        const response = await callApi(HTTP_METHOD.POST, `/wallet/withdrawals/${id}/approve`);
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
+
+  const adminDenyRequest= useCallback(
+    async (id: string, values: any) => {
+      try {
+        const response = await callApi(HTTP_METHOD.POST, `/wallet/withdrawals/${id}/deny`, {...values});
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
   return {
     loading,
     getMyWallet,
@@ -61,6 +96,9 @@ const walletService = () => {
     setIsLoading,
     getBanks,
     memberWithdrawals,
+    adminGetWithdrawRequest,
+    adminApproveRequest,
+    adminDenyRequest
   };
 };
 
