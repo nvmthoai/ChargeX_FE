@@ -9,11 +9,9 @@ import { WalletOutlined, LogoutOutlined } from "@ant-design/icons";
 import WalletDisplay from "./WalletDisplay";
 import DepositModal from "./DepositModal";
 import WithdrawalModal from "./WithdrawalModal";
-import useWallet from "../../hooks/useWallet";
+import useWallet, { type memberWithdrawals } from "../../hooks/useWallet";
 
-
-
-interface Bank {
+export interface Bank {
   id: number;
   name: string;
   code: string;
@@ -29,11 +27,17 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const [depositModalOpen, setDepositModalOpen] = useState(false);
-  const [withdrawalModalOpen, setWithdrawalModalOpen] = useState(false);
+
   const [banks, setBanks] = useState<Bank[]>([]);
   const [loadingBanks, setLoadingBanks] = useState(false);
-const {handleDeposit, handleWithdrawls, myWallet} = useWallet()
+  const { handleDeposit, handleWithdrawls, myWallet, setWithdrawalModalOpen, withdrawalModalOpen } = useWallet();
 
+  // const handleSubmitWithdrawModal = async(values: memberWithdrawals)=>{
+  //   const response = await handleWithdrawls(values)
+  //   if(response){
+      
+  //   }
+  // }
   const handleWithdrawalOpen = async () => {
     setWithdrawalModalOpen(true);
     setLoadingBanks(true);
@@ -122,7 +126,7 @@ const {handleDeposit, handleWithdrawls, myWallet} = useWallet()
                 trigger={["click"]}
                 dropdownRender={() => (
                   <div className="bg-white rounded-lg shadow-lg p-4 w-80">
-                  { myWallet && <WalletDisplay wallet={myWallet} />}
+                    {myWallet && <WalletDisplay wallet={myWallet} />}
                   </div>
                 )}
               >
@@ -131,7 +135,7 @@ const {handleDeposit, handleWithdrawls, myWallet} = useWallet()
                   icon={<WalletOutlined className="text-blue-500" />}
                   className="text-sm font-semibold text-gray-700 hover:bg-white/60"
                 >
-                  ${myWallet&& myWallet.available}
+                  ${myWallet && myWallet.available}
                 </Button>
               </Dropdown>
 
