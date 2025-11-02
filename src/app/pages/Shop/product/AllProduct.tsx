@@ -6,9 +6,17 @@ import ProductForm from "./ProductForm";
 import { useNavigate } from "react-router-dom";
 import AuctionRequestModal from "../component/AuctionRequestModal";
 import useAuction from "../../../hooks/useAuction";
+import FilterProduct from "./FilterProduct";
 
 export default function ProductManagerTable() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [keyword, setKeyword] = useState("");
+  const [status, setStatus] = useState<string | undefined>(undefined);
+  const [sort, setSort] = useState<string | undefined>("newest"); // 🆕 sort FE
+  const [appliedKeyword, setAppliedKeyword] = useState("");
+  const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined);
+const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
+
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const pageSize = 5;
@@ -27,22 +35,39 @@ export default function ProductManagerTable() {
   };
 
   // 🟩 Fetch danh sách
+  // 🟩 Fetch danh sách
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await getMyProducts(page, pageSize);
-      setProducts(res?.data ?? []);
-      setTotal(res?.total ?? 0);
+      // 🧠 Luôn lấy toàn bộ sản phẩm (BE vẫn filter & search)
+      const res = await getMyProducts(1, 9999, appliedKeyword, appliedStatus);
+      const list = res?.data ?? [];
+
+      // 🕒 FE sort toàn bộ danh sách
+      if (sort === "newest") {
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      } else if (sort === "oldest") {
+        list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      }
+
+      // ✂️ FE tự phân trang
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+
+      setProducts(list.slice(start, end));
+      setTotal(list.length);
     } catch (err) {
-      console.error("Lỗi tải sản phẩm:", err);
+      console.error("❌ Lỗi tải sản phẩm:", err);
     } finally {
       setLoading(false);
     }
   };
 
+
+  // 🔁 Tự fetch khi page, keyword, status, sort đổi
   useEffect(() => {
     fetchProducts();
-  }, [page]);
+  }, [page, appliedKeyword, appliedStatus, appliedSort]);
 
   // 🟨 Đổi trạng thái
   const handleChangeStatus = async (productId: string, newStatus: Status) => {
@@ -104,6 +129,30 @@ export default function ProductManagerTable() {
   return (
     <div className="p-6 space-y-6 relative">
       <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
+        <FilterProduct
+          keyword={keyword}
+          onKeywordChange={setKeyword}
+          status={status}
+          onStatusChange={setStatus}
+          sort={sort}
+          onSortChange={(v) => setSort(v)}  // local state thôi, không fetch liền
+          onSearch={() => {
+            setAppliedKeyword(keyword.trim());
+            setAppliedStatus(status);
+            setAppliedSort(sort);
+            setPage(1);
+          }}
+          onReset={() => {
+            setKeyword("");
+            setStatus(undefined);
+            setSort("newest");
+            setAppliedKeyword("");
+            setAppliedStatus(undefined);
+            setPage(1);
+          }}
+        />
+
+        {/* 🧾 Bảng sản phẩm */}
         {loading ? (
           <div className="p-10 text-center text-gray-400 animate-pulse">
             Đang tải sản phẩm...
@@ -154,10 +203,9 @@ export default function ProductManagerTable() {
                   </td>
 
                   <td className="px-5 py-3 text-right text-gray-900 font-semibold">
-                    {Number(p.price_buy_now).toLocaleString("vi-VN")}₫
+                   ${(Number(p.price_buy_now)).toLocaleString()}
                   </td>
 
-                  {/* Status dropdown */}
                   <td className="px-5 py-3 relative" onClick={(e) => e.stopPropagation()}>
                     <StatusBadge
                       value={(p.status as any) ?? "draft"}
@@ -175,7 +223,6 @@ export default function ProductManagerTable() {
                       : "-"}
                   </td>
 
-                  {/* Actions */}
                   <td className="px-5 py-3 text-center">
                     <ActionMenu
                       showAuction={!p.is_auction}
@@ -206,11 +253,10 @@ export default function ProductManagerTable() {
               <button
                 key={i}
                 onClick={() => setPage(p)}
-                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${
-                  page === p
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "hover:bg-gray-50"
-                }`}
+                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${page === p
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "hover:bg-gray-50"
+                  }`}
               >
                 {p}
               </button>
@@ -230,7 +276,7 @@ export default function ProductManagerTable() {
         </div>
       )}
 
-      {/* 🟢 Modal edit */}
+      {/* 🟢 Modal edit giữ nguyên */}
       {showModal && editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40 animate-fadeIn">
           <div className="relative bg-white w-[900px] max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden animate-slideUp">
@@ -340,9 +386,8 @@ function StatusBadge({
                 e.stopPropagation();
                 onSelect?.(st);
               }}
-              className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 ${
-                st === value ? "text-blue-600 font-medium" : "text-gray-700"
-              }`}
+              className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 ${st === value ? "text-blue-600 font-medium" : "text-gray-700"
+                }`}
             >
               {st === value && <Check className="h-4 w-4" />}
               <span>{statusStyle[st].text}</span>
@@ -369,7 +414,6 @@ function ActionMenu({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Tự đóng khi click ngoài
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
