@@ -99,8 +99,8 @@ export default function Bidding() {
       const apiError = extractApiError(err);
       const friendlyMessage = mapErrorMessage(apiError.code, apiError.message);
 
-      if (isInsufficientFundsError(apiError.code, apiError.message)) {
-        const required = extractRequiredDeposit(apiError.message) ?? depositRequired;
+      if (isInsufficientFundsError(err)) {
+        const required = extractRequiredDeposit(err) ?? depositRequired;
         toast.error(`${friendlyMessage} Required: ${formatVND(required)}`);
         setShowDepositModal(true);
       } else {
@@ -118,11 +118,13 @@ export default function Bidding() {
     const depositRequired = calculateDeposit(amount, depositPercent);
     const shortfall = (wallet?.available ?? 0) < depositRequired ? depositRequired - (wallet?.available ?? 0) : depositRequired;
 
-    await deposit({
-      amount: shortfall,
-      returnUrl: window.location.href,
-      cancelUrl: window.location.href,
-    });
+    try {
+      await deposit(shortfall);
+      toast.success(`Deposited ${formatVND(shortfall)} successfully!`);
+      setShowDepositModal(false);
+    } catch (err: any) {
+      toast.error(`Deposit failed: ${err.message}`);
+    }
   };
 
   const isFinalSecond = countdown <= 1000 && countdown > 0;
@@ -161,7 +163,7 @@ export default function Bidding() {
             <p>
               Auction ended. Final price:{" "}
               <strong>
-                {formatCurrency(auction.finalPrice ?? currentPrice)}
+                {formatCurrency(currentPrice)}
               </strong>
             </p>
             {auction.winnerId === user?.sub ? (

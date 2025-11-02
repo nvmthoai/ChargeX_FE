@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+import api from '../config/axios';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -72,14 +73,8 @@ export default function useAuctionLive(
     if (!auctionId) return;
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/auction/${auctionId}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const response = await api.get(`/auction/${auctionId}`);
+      const data = response.data;
       
       if (mountedRef.current) {
         setAuction(data);
@@ -89,7 +84,7 @@ export default function useAuctionLive(
     } catch (err: any) {
       console.error('[useAuctionLive] Fetch error:', err);
       if (mountedRef.current) {
-        setError(err.message || 'Failed to fetch auction');
+        setError(err.response?.data?.message || err.message || 'Failed to fetch auction');
         setLoading(false);
       }
     }

@@ -6,10 +6,12 @@ import "swiper/css/navigation";
 
 interface Props {
   images?: string[];
+  user?: { sub: string };
+  product?: { seller?: { userId: string } };
 }
 
-export default function ProductGallery({ images }: Props) {
-  // 🧠 fallback: nếu chưa có ảnh, dùng placeholder
+export default function ProductGallery({ images, user, product }: Props) {
+  // 🧠 fallback ảnh placeholder
   const safeImages = useMemo(
     () =>
       images && images.length > 0
@@ -21,11 +23,15 @@ export default function ProductGallery({ images }: Props) {
   const [selected, setSelected] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
+  // 🧩 Xác định user có phải chủ sản phẩm không
+const isOwner = !!(user?.sub && product?.seller?.userId && user.sub === product.seller.userId);
+console.log("Is Owner:", isOwner);
+
   return (
     <div>
       {/* Ảnh chính */}
       <div
-        className="w-full aspect-[5/6] mb-6 rounded-lg overflow-hidden cursor-zoom-in"
+        className={`w-full mb-6 rounded-lg  overflow-hidden cursor-zoom-in transition-all duration-200`}
         onClick={() => setIsOpen(true)}
       >
         <img
@@ -55,7 +61,7 @@ export default function ProductGallery({ images }: Props) {
               <img
                 src={img}
                 alt={`thumb-${idx}`}
-                className="w-full h-24 object-cover select-none"
+                className={`w-full object-cover select-none rounded-md`}
                 draggable={false}
               />
             </div>
