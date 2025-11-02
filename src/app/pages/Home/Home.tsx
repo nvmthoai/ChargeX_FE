@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import useProduct from "../../hooks/useProduct";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 
 
 export default function EVMarketplace() {
@@ -46,10 +46,10 @@ export default function EVMarketplace() {
 
   const getDisplayPrice = (product: (typeof products)[0]) => {
     if (product.price_now)
-      return `$${Number(product.price_now).toLocaleString()}`;
+      return `$${(product.price_now).toLocaleString()}`;
     if (product.price_buy_now)
-      return `$${Number(product.price_buy_now).toLocaleString()}`;
-    return `$${Number(product.price_start).toLocaleString()}`;
+      return `$${(product.price_buy_now).toLocaleString()}`;
+    return `$${(product.price_start).toLocaleString()}`;
   };
 
   const getCondition = (product: (typeof products)[0]) => {
@@ -59,7 +59,7 @@ export default function EVMarketplace() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      {/* <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center space-x-6">
             <div className="text-sm text-gray-500">Marketplace Home</div>
@@ -139,7 +139,7 @@ export default function EVMarketplace() {
             />
           </div>
         </div>
-      </header>
+      </header> */}
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="flex gap-6">
@@ -375,7 +375,7 @@ export default function EVMarketplace() {
             </div>
 
             {/* Pagination */}
-            <div className="flex justify-center space-x-2">
+            {/* <div className="flex justify-center space-x-2">
               <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
                 Previous
               </button>
@@ -384,7 +384,7 @@ export default function EVMarketplace() {
               <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
                 Next
               </button>
-            </div>
+            </div> */}
           </div>
 
         </div>

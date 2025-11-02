@@ -14,7 +14,7 @@ export const getProductById = async (id: string): Promise<Product> => {
 };
 
 // 🟦 Tạo sản phẩm mới
-export const createProduct = async (formData: FormData): Promise<any> => {
+export const createProduct = async (formData: FormData): Promise<Product> => {
   try {
     const response = await axiosInstance.post("/product-listing", formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -28,14 +28,27 @@ export const createProduct = async (formData: FormData): Promise<any> => {
 
 export const getMyProducts = async (
   page = 1,
-  limit = 10
+  limit = 10,
+  keyword = "",
+  status?: string
 ): Promise<ProductListResponse> => {
   try {
-    const response = await axiosInstance.get(
-      `/product-listing/mine?page=${page}&limit=${limit}`
-    );
+    const userData = localStorage.getItem("user");
+    const sellerId = userData ? JSON.parse(userData)?.sub : null;
 
-    const res = response.data; // { success, statusCode, data: { data: [...], total, ... } }
+    if (!sellerId) throw new Error("❌ Missing seller_id — user chưa đăng nhập");
+
+    const response = await axiosInstance.get(`/product-listing`, {
+      params: {
+        q: keyword || "",
+        seller_id: sellerId,
+        page,
+        limit,
+        status: status || undefined,
+      },
+    });
+
+    const res = response.data;
     const payload = res.data || {};
 
     return {
@@ -54,7 +67,7 @@ export const getMyProducts = async (
 export const updateProduct = async (
   id: string,
   formData: FormData
-): Promise<any> => {
+): Promise<Product> => {
   try {
     const response = await axiosInstance.patch(
       `/product-listing/${id}`,

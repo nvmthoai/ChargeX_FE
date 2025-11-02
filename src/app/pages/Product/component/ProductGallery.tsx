@@ -24,18 +24,14 @@ export default function ProductGallery({ images, user, product }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   // 🧩 Xác định user có phải chủ sản phẩm không
-  const isOwner = user?.sub && product?.seller?.userId === user.sub;
-
-  // 📐 Tỉ lệ khác nhau tuỳ đối tượng
-  const mainAspect = isOwner ? "aspect-[5/6]" : "aspect-[6/3]"; // người mua → ngang
-  const thumbAspect = isOwner ? "aspect-[4/3]" : "aspect-[16/9]"; // người mua → ngang dài
-  const thumbHeight = isOwner ? "h-24" : "h-20"; // thấp hơn khi là người mua
+const isOwner = !!(user?.sub && product?.seller?.userId && user.sub === product.seller.userId);
+console.log("Is Owner:", isOwner);
 
   return (
     <div>
       {/* Ảnh chính */}
       <div
-        className={`w-full ${mainAspect} mb-6 rounded-lg overflow-hidden cursor-zoom-in transition-all duration-200`}
+        className={`w-full mb-6 rounded-lg  overflow-hidden cursor-zoom-in transition-all duration-200`}
         onClick={() => setIsOpen(true)}
       >
         <img
@@ -57,7 +53,7 @@ export default function ProductGallery({ images, user, product }: Props) {
         {safeImages.map((img, idx) => (
           <SwiperSlide key={idx}>
             <div
-              className={`cursor-pointer rounded-lg overflow-hidden border-2 ${thumbAspect} ${
+              className={`cursor-pointer rounded-lg overflow-hidden border-2 ${
                 selected === idx ? "border-blue-500" : "border-transparent"
               }`}
               onClick={() => setSelected(idx)}
@@ -65,7 +61,7 @@ export default function ProductGallery({ images, user, product }: Props) {
               <img
                 src={img}
                 alt={`thumb-${idx}`}
-                className={`w-full ${thumbHeight} object-cover select-none rounded-md`}
+                className={`w-full object-cover select-none rounded-md`}
                 draggable={false}
               />
             </div>
