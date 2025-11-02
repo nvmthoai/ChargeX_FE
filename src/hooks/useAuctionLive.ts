@@ -1,12 +1,15 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:3001";
 
 interface AuctionData {
   auctionId: string;
   productId: string;
-  status: 'scheduled' | 'live' | 'ended' | 'cancelled';
+  status: "scheduled" | "live" | "ended" | "cancelled";
   startTime: string;
   endTime: string;
   currentPrice: number;
@@ -65,31 +68,31 @@ export default function useAuctionLive(
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
-  const live = auction?.status === 'live';
+  const live = auction?.status === "live";
 
   // Fetch auction details from REST API
   const fetchAuctionDetail = useCallback(async () => {
     if (!auctionId) return;
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
       const response = await fetch(`${API_URL}/auction/${auctionId}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (mountedRef.current) {
         setAuction(data);
         setError(null);
         setLoading(false);
       }
     } catch (err: any) {
-      console.error('[useAuctionLive] Fetch error:', err);
+      console.error("[useAuctionLive] Fetch error:", err);
       if (mountedRef.current) {
-        setError(err.message || 'Failed to fetch auction');
+        setError(err.message || "Failed to fetch auction");
         setLoading(false);
       }
     }
@@ -106,8 +109,8 @@ export default function useAuctionLive(
 
     try {
       const socket = io(SOCKET_URL, {
-        path: '/socket.io/',
-        transports: ['websocket', 'polling'],
+        path: "/socket.io/",
+        transports: ["websocket", "polling"],
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionAttempts: 5,
@@ -115,31 +118,31 @@ export default function useAuctionLive(
 
       socketRef.current = socket;
 
-      socket.on('connect', () => {
-        console.log('[useAuctionLive] Socket connected:', socket.id);
+      socket.on("connect", () => {
+        console.log("[useAuctionLive] Socket connected:", socket.id);
         setReconnecting(false);
-        
+
         // Join auction room
-        socket.emit('auction:join', { auctionId });
+        socket.emit("auction:join", { auctionId });
       });
 
-      socket.on('disconnect', () => {
-        console.log('[useAuctionLive] Socket disconnected');
+      socket.on("disconnect", () => {
+        console.log("[useAuctionLive] Socket disconnected");
         if (mountedRef.current) {
           setReconnecting(true);
         }
       });
 
-      socket.on('connect_error', (err: Error) => {
-        console.error('[useAuctionLive] Connection error:', err);
+      socket.on("connect_error", (err: Error) => {
+        console.error("[useAuctionLive] Connection error:", err);
         if (mountedRef.current) {
           setReconnecting(true);
         }
       });
 
       // Listen for auction state updates
-      socket.on('auction:state', (state: AuctionData) => {
-        console.log('[useAuctionLive] Received auction state:', state);
+      socket.on("auction:state", (state: AuctionData) => {
+        console.log("[useAuctionLive] Received auction state:", state);
         if (mountedRef.current) {
           setAuction(state);
           setLoading(false);
@@ -147,8 +150,8 @@ export default function useAuctionLive(
       });
 
       // Listen for price updates
-      socket.on('auction:price_update', (update: PriceUpdate) => {
-        console.log('[useAuctionLive] Price update:', update);
+      socket.on("auction:price_update", (update: PriceUpdate) => {
+        console.log("[useAuctionLive] Price update:", update);
         if (mountedRef.current) {
           setAuction((prev) => {
             if (!prev) return prev;
@@ -166,8 +169,8 @@ export default function useAuctionLive(
       });
 
       // Listen for auction extended
-      socket.on('auction:extended', (data: { endTime: string }) => {
-        console.log('[useAuctionLive] Auction extended:', data);
+      socket.on("auction:extended", (data: { endTime: string }) => {
+        console.log("[useAuctionLive] Auction extended:", data);
         if (mountedRef.current) {
           setAuction((prev) => {
             if (!prev) return prev;
@@ -177,50 +180,54 @@ export default function useAuctionLive(
       });
 
       // Listen for errors
-      socket.on('auction:error', (err: { message: string }) => {
-        console.error('[useAuctionLive] Auction error:', err);
+      socket.on("auction:error", (err: { message: string }) => {
+        console.error("[useAuctionLive] Auction error:", err);
         if (mountedRef.current) {
           setError(err.message);
           setPendingBid(null);
         }
       });
-
     } catch (err: any) {
-      console.error('[useAuctionLive] Socket connection failed:', err);
-      setError(err.message || 'Failed to connect to auction');
+      console.error("[useAuctionLive] Socket connection failed:", err);
+      setError(err.message || "Failed to connect to auction");
     }
   }, [auctionId]);
 
   // Place bid function
-  const placeBid = useCallback(async (amount: number) => {
-    if (!socketRef.current?.connected) {
-      throw new Error('Not connected to auction server');
-    }
-
-    if (!auctionId) {
-      throw new Error('No auction ID');
-    }
-
-    // Set pending bid for optimistic UI
-    setPendingBid(amount);
-    setError(null);
-
-    const clientBidId = `bid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    // Emit bid to server
-    socketRef.current.emit('auction:place_bid', {
-      auctionId,
-      amount,
-      clientBidId,
-    });
-
-    // Clear pending after a timeout (in case we don't get response)
-    setTimeout(() => {
-      if (mountedRef.current) {
-        setPendingBid(null);
+  const placeBid = useCallback(
+    async (amount: number) => {
+      if (!socketRef.current?.connected) {
+        throw new Error("Not connected to auction server");
       }
-    }, 5000);
-  }, [auctionId]);
+
+      if (!auctionId) {
+        throw new Error("No auction ID");
+      }
+
+      // Set pending bid for optimistic UI
+      setPendingBid(amount);
+      setError(null);
+
+      const clientBidId = `bid-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+
+      // Emit bid to server
+      socketRef.current.emit("auction:place_bid", {
+        auctionId,
+        amount,
+        clientBidId,
+      });
+
+      // Clear pending after a timeout (in case we don't get response)
+      setTimeout(() => {
+        if (mountedRef.current) {
+          setPendingBid(null);
+        }
+      }, 5000);
+    },
+    [auctionId]
+  );
 
   // Update countdown
   useEffect(() => {
@@ -233,7 +240,7 @@ export default function useAuctionLive(
       const now = new Date().getTime();
       const end = new Date(auction.endTime).getTime();
       const distance = Math.max(0, end - now);
-      
+
       if (mountedRef.current) {
         setCountdown(Math.floor(distance / 1000)); // seconds
       }
@@ -283,7 +290,7 @@ export default function useAuctionLive(
 
       // Disconnect socket
       if (socketRef.current) {
-        socketRef.current.emit('auction:leave', { auctionId });
+        socketRef.current.emit("auction:leave", { auctionId });
         socketRef.current.disconnect();
         socketRef.current = null;
       }

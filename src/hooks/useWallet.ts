@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 interface Wallet {
   balance: number;
@@ -18,12 +18,17 @@ interface UseWalletReturn {
   error: string | null;
   deposit: (amount: number) => Promise<void>;
   calculateDeposit: (bidAmount: number, depositPercent: number) => number;
-  checkSufficientBalance: (bidAmount: number, depositPercent: number) => { sufficient: boolean; required: number; available: number };
+  checkSufficientBalance: (
+    bidAmount: number,
+    depositPercent: number
+  ) => { sufficient: boolean; required: number; available: number };
   formatCurrency: (amount: number) => string;
   fetchBalance: () => Promise<void>;
 }
 
-export default function useWallet(options: UseWalletOptions = {}): UseWalletReturn {
+export default function useWallet(
+  options: UseWalletOptions = {}
+): UseWalletReturn {
   const { autoFetch = false, refreshIntervalSeconds = 0 } = options;
 
   const [wallet, setWallet] = useState<Wallet | null>(null);
@@ -34,10 +39,10 @@ export default function useWallet(options: UseWalletOptions = {}): UseWalletRetu
   const fetchBalance = useCallback(async () => {
     setLoading(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
       const response = await fetch(`${API_URL}/wallet/balance`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
         },
       });
 
@@ -49,14 +54,14 @@ export default function useWallet(options: UseWalletOptions = {}): UseWalletRetu
       setWallet(data);
       setError(null);
     } catch (err: any) {
-      console.error('[useWallet] Fetch error:', err);
-      setError(err.message || 'Failed to fetch wallet');
+      console.error("[useWallet] Fetch error:", err);
+      setError(err.message || "Failed to fetch wallet");
       // Set mock data for development
       setWallet({
         balance: 1000000,
         available: 1000000,
         locked: 0,
-        userId: 'user-123',
+        userId: "user-123",
       });
     } finally {
       setLoading(false);
@@ -64,53 +69,62 @@ export default function useWallet(options: UseWalletOptions = {}): UseWalletRetu
   }, []);
 
   // Calculate required deposit
-  const calculateDeposit = useCallback((bidAmount: number, depositPercent: number): number => {
-    return Math.ceil((bidAmount * depositPercent) / 100);
-  }, []);
+  const calculateDeposit = useCallback(
+    (bidAmount: number, depositPercent: number): number => {
+      return Math.ceil((bidAmount * depositPercent) / 100);
+    },
+    []
+  );
 
   // Check if user has sufficient balance
-  const checkSufficientBalance = useCallback((bidAmount: number, depositPercent: number) => {
-    const required = calculateDeposit(bidAmount, depositPercent);
-    const available = wallet?.available ?? 0;
-    
-    return {
-      sufficient: available >= required,
-      required,
-      available,
-    };
-  }, [wallet, calculateDeposit]);
+  const checkSufficientBalance = useCallback(
+    (bidAmount: number, depositPercent: number) => {
+      const required = calculateDeposit(bidAmount, depositPercent);
+      const available = wallet?.available ?? 0;
+
+      return {
+        sufficient: available >= required,
+        required,
+        available,
+      };
+    },
+    [wallet, calculateDeposit]
+  );
 
   // Format currency (VND)
   const formatCurrency = useCallback((amount: number): string => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(amount);
   }, []);
 
   // Deposit money to wallet
-  const deposit = useCallback(async (amount: number): Promise<void> => {
-    try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/wallet/deposit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-        },
-        body: JSON.stringify({ amount }),
-      });
+  const deposit = useCallback(
+    async (amount: number): Promise<void> => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        const response = await fetch(`${API_URL}/wallet/deposit`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+          },
+          body: JSON.stringify({ amount }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        await fetchBalance();
+      } catch (err: any) {
+        console.error("[useWallet] Deposit error:", err);
+        throw new Error(err.message || "Failed to deposit");
       }
-
-      await fetchBalance();
-    } catch (err: any) {
-      console.error('[useWallet] Deposit error:', err);
-      throw new Error(err.message || 'Failed to deposit');
-    }
-  }, [fetchBalance]);
+    },
+    [fetchBalance]
+  );
 
   // Auto-fetch on mount
   useEffect(() => {

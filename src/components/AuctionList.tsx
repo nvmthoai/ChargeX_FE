@@ -1,6 +1,6 @@
-import React from 'react';
-import { useAuctionList } from '../hooks/useAuctionList';
-import type { AuctionSummary } from '../api/auction';
+import React from "react";
+import { useAuctionList } from "../hooks/useAuctionList";
+import type { AuctionSummary } from "../api/auction";
 
 export const AuctionList: React.FC = () => {
   const {
@@ -20,7 +20,9 @@ export const AuctionList: React.FC = () => {
     autoFetch: true,
   });
 
-  const handleStatusFilter = (status?: 'scheduled' | 'live' | 'ended' | 'cancelled') => {
+  const handleStatusFilter = (
+    status?: "scheduled" | "live" | "ended" | "cancelled"
+  ) => {
     setStatus(status);
   };
 
@@ -40,12 +42,18 @@ export const AuctionList: React.FC = () => {
         <h2>Danh sách đấu giá</h2>
         <div className="filter-buttons">
           <button onClick={() => handleStatusFilter()}>Tất cả</button>
-          <button onClick={() => handleStatusFilter('live')}>Đang diễn ra</button>
-          <button onClick={() => handleStatusFilter('scheduled')}>Sắp diễn ra</button>
-          <button onClick={() => handleStatusFilter('ended')}>Đã kết thúc</button>
+          <button onClick={() => handleStatusFilter("live")}>
+            Đang diễn ra
+          </button>
+          <button onClick={() => handleStatusFilter("scheduled")}>
+            Sắp diễn ra
+          </button>
+          <button onClick={() => handleStatusFilter("ended")}>
+            Đã kết thúc
+          </button>
         </div>
         <button onClick={refresh} disabled={isLoading}>
-          {isLoading ? 'Đang tải...' : 'Làm mới'}
+          {isLoading ? "Đang tải..." : "Làm mới"}
         </button>
       </div>
 
@@ -89,24 +97,24 @@ interface AuctionCardProps {
 const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { text: string; color: string }> = {
-      live: { text: 'Đang diễn ra', color: '#22c55e' },
-      scheduled: { text: 'Sắp diễn ra', color: '#3b82f6' },
-      ended: { text: 'Đã kết thúc', color: '#6b7280' },
-      cancelled: { text: 'Đã hủy', color: '#ef4444' },
+      live: { text: "Đang diễn ra", color: "#22c55e" },
+      scheduled: { text: "Sắp diễn ra", color: "#3b82f6" },
+      ended: { text: "Đã kết thúc", color: "#6b7280" },
+      cancelled: { text: "Đã hủy", color: "#ef4444" },
     };
-    const badge = badges[status] || { text: status, color: '#6b7280' };
+    const badge = badges[status] || { text: status, color: "#6b7280" };
     return <span style={{ color: badge.color }}>{badge.text}</span>;
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('vi-VN');
+    return new Date(date).toLocaleString("vi-VN");
   };
 
   return (
@@ -115,16 +123,20 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
         <h3>{auction.title}</h3>
         <div className="auction-status">{getStatusBadge(auction.status)}</div>
       </div>
-      
+
       <div className="auction-card-body">
         <div className="auction-info">
           <div className="info-row">
             <span className="label">Giá hiện tại:</span>
-            <span className="value price">{formatPrice(auction.currentPrice)}</span>
+            <span className="value price">
+              {formatPrice(auction.currentPrice)}
+            </span>
           </div>
           <div className="info-row">
             <span className="label">Bước giá:</span>
-            <span className="value">{formatPrice(auction.minBidIncrement)}</span>
+            <span className="value">
+              {formatPrice(auction.minBidIncrement)}
+            </span>
           </div>
           <div className="info-row">
             <span className="label">Bắt đầu:</span>

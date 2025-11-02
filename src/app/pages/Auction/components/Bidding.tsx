@@ -79,7 +79,9 @@ export default function Bidding() {
 
     if (!balanceCheck.sufficient) {
       toast.error(
-        `Insufficient funds. You need ${formatVND(depositRequired)} deposit, but only have ${formatVND(
+        `Insufficient funds. You need ${formatVND(
+          depositRequired
+        )} deposit, but only have ${formatVND(
           wallet?.available ?? 0
         )} available.`
       );
@@ -116,7 +118,10 @@ export default function Bidding() {
     const amount = parseFloat(input);
     if (Number.isNaN(amount)) return;
     const depositRequired = calculateDeposit(amount, depositPercent);
-    const shortfall = (wallet?.available ?? 0) < depositRequired ? depositRequired - (wallet?.available ?? 0) : depositRequired;
+    const shortfall =
+      (wallet?.available ?? 0) < depositRequired
+        ? depositRequired - (wallet?.available ?? 0)
+        : depositRequired;
 
     try {
       await deposit(shortfall);
@@ -151,7 +156,13 @@ export default function Bidding() {
           {wallet && (
             <p className="mt-2 text-gray-600">
               💰 Your Balance:{" "}
-              <strong className={wallet.available >= nextMinBid * 0.1 ? "text-green-600" : "text-red-600"}>
+              <strong
+                className={
+                  wallet.available >= nextMinBid * 0.1
+                    ? "text-green-600"
+                    : "text-red-600"
+                }
+              >
                 {formatVND(wallet.available)}
               </strong>
             </p>
@@ -162,9 +173,7 @@ export default function Bidding() {
           <div className="auction-ended">
             <p>
               Auction ended. Final price:{" "}
-              <strong>
-                {formatCurrency(currentPrice)}
-              </strong>
+              <strong>{formatCurrency(currentPrice)}</strong>
             </p>
             {auction.winnerId === user?.sub ? (
               <div>
