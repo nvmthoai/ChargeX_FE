@@ -1,6 +1,7 @@
 export interface UserDetail {
   user: {
     userId: string;
+    image: string;
     fullName: string;
     email: string;
     phone: string;

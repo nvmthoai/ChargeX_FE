@@ -29,11 +29,40 @@ const userService = () => {
     [callApi]
   );
 
+  const uploadAvatar = useCallback(
+    async (values: any) => {
+      const formData = new FormData();
+      formData.append("file", values.file);
+      try {
+        const response = await callApi(HTTP_METHOD.PATCH, `/users/upload-image`, formData);
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
+
+  const uploadProfile = useCallback(
+    async (values: any) => {
+
+      try {
+        const response = await callApi(HTTP_METHOD.PATCH, `/users/profile`, values);
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
+
   return {
     loading,
     getUserDetail,
     setIsLoading,
-    getShopDetail
+    getShopDetail,
+    uploadAvatar,
+    uploadProfile
   };
 };
 

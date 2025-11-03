@@ -11,6 +11,9 @@ import {
   Statistic,
   Row,
   Col,
+  Upload,
+  message,
+  Avatar,
 } from "antd";
 import {
   MailOutlined,
@@ -18,16 +21,41 @@ import {
   UserOutlined,
   HomeOutlined,
   WalletOutlined,
+  CameraOutlined,
 } from "@ant-design/icons";
+import { useState } from "react";
 import useUser from "../../../hooks/useUser";
 
 export default function ProfileDetail() {
   const [form] = Form.useForm();
-  const { userDetail } = useUser();
-  const handleSubmit = () => {
-    //   if (onUpdate) {
-    //     onUpdate(values);
-    //   }
+  const { userDetail, handleUploadAvatar, handleUploadProfile } = useUser();
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (values: any) => {
+    console.log('values: ', values)
+    setLoading(true);
+    try {
+      handleUploadProfile(values); // Gửi object {email, fullName, phone}
+    } catch (error) {
+      console.error("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    const isImage = file.type.startsWith("image/");
+    if (!isImage) {
+      message.error("You can only upload image files!");
+      return false;
+    }
+    try {
+      handleUploadAvatar({ file: file }); // Upload avatar riêng biệt
+    } catch (error) {
+      console.error("Failed to upload avatar");
+    }
+
+    return false; // Ngăn upload mặc định
   };
 
   if (!userDetail) {
@@ -40,6 +68,35 @@ export default function ProfileDetail() {
       label: "Personal Information",
       children: (
         <div className="bg-slate-50 rounded-lg p-6">
+          <div className="mb-8">
+            <div className="flex items-center gap-6">
+              <div className="flex flex-col items-center">
+                {userDetail.user.image ? (
+                  <Avatar size={100} src={userDetail.user.image} />
+                ) : (
+                  <Avatar size={100} icon={<UserOutlined />} />
+                )}
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  Profile Picture
+                </h3>
+                <Upload
+                  beforeUpload={handleAvatarUpload}
+                  maxCount={1}
+                  accept="image/*"
+                  showUploadList={false}
+                >
+                  <Button icon={<CameraOutlined />}>Upload Avatar</Button>
+                </Upload>
+                <p className="text-xs text-slate-500 mt-2">
+                  JPG, PNG, GIF - Max 5MB
+                </p>
+              </div>
+            </div>
+          </div>
+          <Divider />
+
           <Form
             form={form}
             layout="vertical"
@@ -59,7 +116,6 @@ export default function ProfileDetail() {
                 <Input
                   prefix={<UserOutlined />}
                   placeholder="Enter full name"
-                  disabled
                 />
               </Form.Item>
 
@@ -71,11 +127,7 @@ export default function ProfileDetail() {
                   { type: "email", message: "Invalid email" },
                 ]}
               >
-                <Input
-                  prefix={<MailOutlined />}
-                  placeholder="Enter email"
-                  disabled
-                />
+                <Input prefix={<MailOutlined />} placeholder="Enter email" />
               </Form.Item>
 
               <Form.Item
@@ -88,7 +140,6 @@ export default function ProfileDetail() {
                 <Input
                   prefix={<PhoneOutlined />}
                   placeholder="Enter phone number"
-                  disabled
                 />
               </Form.Item>
 
@@ -112,7 +163,7 @@ export default function ProfileDetail() {
             <Divider />
 
             <div className="flex gap-3">
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={loading}>
                 Update Profile
               </Button>
               <Button>Cancel</Button>
