@@ -39,7 +39,7 @@ export default function useWallet(
   const fetchBalance = useCallback(async () => {
     setLoading(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1";
       const response = await fetch(`${API_URL}/wallet/balance`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -103,7 +103,7 @@ export default function useWallet(
   const deposit = useCallback(
     async (amount: number): Promise<void> => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1";
         const response = await fetch(`${API_URL}/wallet/deposit`, {
           method: "POST",
           headers: {

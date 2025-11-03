@@ -9,16 +9,34 @@ export default function Product() {
     resyncIntervalSeconds: 8,
   });
 
+  // Debug log
+  console.log("🎯 [Product] Debug data:", {
+    auction,
+    loading,
+    live,
+    countdown,
+    auctionId,
+    auctionTitle: (auction as any)?.title,
+    auctionCurrentPrice: auction?.currentPrice,
+    auctionMinIncrement: auction?.minIncrement,
+  });
+
   // Try to read product info from auction snapshot.
-  const product = (auction as any)?.product ?? (auction as any)?.item ?? null;
-  const title =
-    product?.title ?? auction?.id ? `Auction #${auction?.id}` : "Live Auction";
+  // Server returns product info directly in auction object
+  const auctionWithProduct = auction as any;
+  const product = {
+    title: auctionWithProduct?.title,
+    description: auctionWithProduct?.description,
+    imageUrls: auctionWithProduct?.imageUrls || [],
+    price_start: auctionWithProduct?.startingPrice,
+  };
+  const title = product.title || (auctionId ? `Auction #${auctionId}` : "Live Auction");
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-US", {
+    new Intl.NumberFormat("vi-VN", {
       style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
+      currency: "VND",
+      minimumFractionDigits: 0,
     }).format(amount);
 
   const formatCountdown = useMemo(() => {
@@ -59,7 +77,7 @@ export default function Product() {
         </div>
         <div className="card-details">
           <h2 className="item-title">
-            {product?.title ?? `Item #${auction?.id ?? ""}`}
+            {product?.title ?? `Item #${auctionId ?? ""}`}
           </h2>
           {product?.description && (
             <p className="item-desc">{product.description}</p>
