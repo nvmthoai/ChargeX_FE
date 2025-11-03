@@ -17,11 +17,23 @@ const userService = () => {
     [callApi]
   );
 
+  const getShopDetail = useCallback(
+    async (id: string) => {
+      try {
+        const response = await callApi(HTTP_METHOD.GET, `/users/seller/${id}`);
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
+
   return {
     loading,
     getUserDetail,
     setIsLoading,
-    
+    getShopDetail
   };
 };
 

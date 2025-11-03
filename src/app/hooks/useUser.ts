@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import userService from "../services/UserService";
-import type { UserDetail } from "../models/user.model";
+import type { ShopDetail, UserDetail } from "../models/user.model";
 
 const useUser = () => {
   const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
+  const [shopDetail, setShopDetail] = useState<ShopDetail | null>(null);
+  const { getUserDetail, getShopDetail, loading } = userService();
 
-  const { getUserDetail } = userService();
   useEffect(() => {
     fetchUserDetail();
   }, []);
@@ -17,8 +18,18 @@ const useUser = () => {
     }
   };
 
+  const fetchShopDetail = async (id: string) => {
+    const response = await getShopDetail(id);
+    if (response) {
+      setShopDetail(response.data);
+    }
+  };
+
   return {
     userDetail,
+    fetchShopDetail,
+    loading,
+    shopDetail
   };
 };
 
