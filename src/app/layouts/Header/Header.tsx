@@ -9,7 +9,7 @@ import { WalletOutlined, LogoutOutlined } from "@ant-design/icons";
 import WalletDisplay from "./WalletDisplay";
 import DepositModal from "./DepositModal";
 import WithdrawalModal from "./WithdrawalModal";
-import useWallet, { type memberWithdrawals } from "../../hooks/useWallet";
+import useWallet from "../../hooks/useWallet";
 
 export interface Bank {
   id: number;
@@ -30,12 +30,18 @@ export default function Header() {
 
   const [banks, setBanks] = useState<Bank[]>([]);
   const [loadingBanks, setLoadingBanks] = useState(false);
-  const { handleDeposit, handleWithdrawls, myWallet, setWithdrawalModalOpen, withdrawalModalOpen } = useWallet();
+  const {
+    handleDeposit,
+    handleWithdrawls,
+    myWallet,
+    setWithdrawalModalOpen,
+    withdrawalModalOpen,
+  } = useWallet();
 
   // const handleSubmitWithdrawModal = async(values: memberWithdrawals)=>{
   //   const response = await handleWithdrawls(values)
   //   if(response){
-      
+
   //   }
   // }
   const handleWithdrawalOpen = async () => {
