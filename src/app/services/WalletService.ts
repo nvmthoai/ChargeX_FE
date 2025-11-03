@@ -43,9 +43,13 @@ const walletService = () => {
   const memberWithdrawals = useCallback(
     async (values: any) => {
       try {
-        const response = await callApi(HTTP_METHOD.POST, `/wallet/withdrawals`, {
-          ...values,
-        });
+        const response = await callApi(
+          HTTP_METHOD.POST,
+          `/wallet/withdrawals`,
+          {
+            ...values,
+          }
+        );
         return response;
       } catch (e: any) {
         console.log(e?.response?.data);
@@ -54,22 +58,25 @@ const walletService = () => {
     [callApi]
   );
 
-  const adminGetWithdrawRequest = useCallback(
-    async () => {
-      try {
-        const response = await callApi(HTTP_METHOD.GET, `/wallet/admin/withdrawals?pageSize=50&page=1`);
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
+  const adminGetWithdrawRequest = useCallback(async () => {
+    try {
+      const response = await callApi(
+        HTTP_METHOD.GET,
+        `/wallet/admin/withdrawals?pageSize=50&page=1`
+      );
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+    }
+  }, [callApi]);
 
   const adminApproveRequest = useCallback(
     async (id: string) => {
       try {
-        const response = await callApi(HTTP_METHOD.POST, `/wallet/withdrawals/${id}/approve`);
+        const response = await callApi(
+          HTTP_METHOD.POST,
+          `/wallet/withdrawals/${id}/approve`
+        );
         return response;
       } catch (e: any) {
         console.log(e?.response?.data);
@@ -78,10 +85,14 @@ const walletService = () => {
     [callApi]
   );
 
-  const adminDenyRequest= useCallback(
+  const adminDenyRequest = useCallback(
     async (id: string, values: any) => {
       try {
-        const response = await callApi(HTTP_METHOD.POST, `/wallet/withdrawals/${id}/deny`, {...values});
+        const response = await callApi(
+          HTTP_METHOD.POST,
+          `/wallet/withdrawals/${id}/deny`,
+          { ...values }
+        );
         return response;
       } catch (e: any) {
         console.log(e?.response?.data);
@@ -89,6 +100,19 @@ const walletService = () => {
     },
     [callApi]
   );
+
+  const memberGetTransacions = useCallback(async () => {
+    try {
+      const response = await callApi(
+        HTTP_METHOD.GET,
+        `/wallet/transactions?pageSize=20&page=1
+`
+      );
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+    }
+  }, [callApi]);
   return {
     loading,
     getMyWallet,
@@ -98,7 +122,8 @@ const walletService = () => {
     memberWithdrawals,
     adminGetWithdrawRequest,
     adminApproveRequest,
-    adminDenyRequest
+    adminDenyRequest,
+    memberGetTransacions,
   };
 };
 

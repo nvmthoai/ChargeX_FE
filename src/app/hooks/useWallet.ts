@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { MyWallet } from "../models/wallet.model";
 import walletService from "../services/WalletService";
 import { App } from "antd";
+import type { Transaction } from "../pages/Profile/ProfileWallet/ProfileWallet";
 export interface memberWithdrawals {
   amount: number;
   accountNumber: string;
@@ -11,12 +12,14 @@ export interface memberWithdrawals {
 
 const useWallet = () => {
   const [myWallet, setMyWallet] = useState<MyWallet | null>(null);
-  const { getMyWallet, deposit, memberWithdrawals } = walletService();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { getMyWallet, deposit, memberWithdrawals, memberGetTransacions } = walletService();
   const { message } = App.useApp();
   const [withdrawalModalOpen, setWithdrawalModalOpen] = useState(false);
 
   useEffect(() => {
     fetchMyWallet();
+    fetchTransactions();
   }, []);
 
   const fetchMyWallet = async () => {
@@ -45,12 +48,21 @@ const useWallet = () => {
     return null;
   };
 
+  const fetchTransactions = async () => {
+    const response = await memberGetTransacions();
+    if (response) {
+      setTransactions(response.data.items);
+    }
+  };
+
   return {
     myWallet,
+    transactions,
+    withdrawalModalOpen,
     handleDeposit,
     handleWithdrawls,
     setWithdrawalModalOpen,
-    withdrawalModalOpen
+    fetchTransactions
   };
 };
 
