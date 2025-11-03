@@ -21,6 +21,7 @@ export default function Bidding() {
     loading,
     live,
     reconnecting,
+    isConnected,
     countdown,
     placeBid,
     pendingBid,
@@ -47,6 +48,18 @@ export default function Bidding() {
   const minIncrement = auction?.minIncrement ?? 0;
   const nextMinBid = currentPrice + minIncrement;
 
+  // Debug log
+  console.log("🔍 [Bidding] Debug data:", {
+    auction,
+    currentPrice,
+    minIncrement,
+    nextMinBid,
+    live,
+    loading,
+    reconnecting,
+    isConnected: (auction as any)?.isConnected || false, // temporary cast
+  });
+
   const canBid = useMemo(() => {
     if (!user) return { ok: false, reason: "Not logged in" };
     if (!user.role || user.role !== "member")
@@ -58,10 +71,10 @@ export default function Bidding() {
   }, [user, live, reconnecting]);
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-US", {
+    new Intl.NumberFormat("vi-VN", {
       style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
+      currency: "VND",
+      minimumFractionDigits: 0,
     }).format(amount);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -29,7 +29,7 @@ export default function AuctionList() {
   const { callApi } = useApiService();
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "live" | "scheduled">("live");
+  const [filter, setFilter] = useState<"all" | "live" | "scheduled">("all");
 
   useEffect(() => {
     fetchAuctions();
@@ -47,9 +47,29 @@ export default function AuctionList() {
         params.status = filter;
       }
 
-      const response = await callApi("get", "/auction/joinable", { params });
+      console.log("🚀 [AuctionList] Calling API with params:", params);
+      console.log("🌐 [AuctionList] API URL:", "/auction/joinable");
       
-      console.log("📦 Raw API response:", response);
+      // Try different endpoints to find the correct one
+      let response;
+      try {
+        response = await callApi("get", "/auction/joinable", { params });
+        console.log("✅ [AuctionList] /auction/joinable worked!");
+      } catch (joinableError) {
+        console.warn("⚠️ [AuctionList] /auction/joinable failed, trying /auction");
+        try {
+          response = await callApi("get", "/auction", { params });
+          console.log("✅ [AuctionList] /auction worked!");
+        } catch (auctionError) {
+          console.warn("⚠️ [AuctionList] /auction failed, trying /auctions");
+          response = await callApi("get", "/auctions", { params });
+          console.log("✅ [AuctionList] /auctions worked!");
+        }
+      }
+      
+      console.log("📦 [AuctionList] Raw API response:", response);
+      console.log("📊 [AuctionList] Response type:", typeof response);
+      console.log("📋 [AuctionList] Response keys:", response ? Object.keys(response) : "null");
       
       // Handle different response formats
       let data: AuctionListResponse;
@@ -86,7 +106,14 @@ export default function AuctionList() {
       console.log("✅ Parsed auctions:", data.items);
       setAuctions(data.items || []);
     } catch (error: any) {
-      console.error("❌ Failed to fetch auctions:", error);
+      console.error("❌ [AuctionList] Failed to fetch auctions:", error);
+      console.error("❌ [AuctionList] Error details:", {
+        message: error?.message,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data,
+        url: error?.config?.url,
+      });
       const errorMessage = error?.response?.data?.message || error?.message || "Failed to load auctions";
       toast.error(errorMessage);
       setAuctions([]);

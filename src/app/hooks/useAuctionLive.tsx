@@ -14,6 +14,11 @@ type AuctionState = {
   status?: string;
   winnerId?: string | null;
   finalPrice?: number | null;
+  title?: string;
+  description?: string;
+  imageUrls?: string[];
+  startingPrice?: number;
+  buyNowPrice?: number;
 };
 
 type UseAuctionLiveOptions = {
@@ -53,6 +58,10 @@ export default function useAuctionLive(
   const baseUrl = ENV.BASE_URL || "";
 
   const buildSocketUrl = useCallback(() => {
+    // Use dedicated socket URL from env, or fallback to API URL base
+    const socketUrl = import.meta.env.VITE_SOCKET_URL;
+    if (socketUrl) return socketUrl;
+    
     if (!baseUrl) return null;
     // For socket.io we should connect to the API host origin (strip any api path like /api or /api/v1)
     try {
@@ -91,7 +100,7 @@ export default function useAuctionLive(
       const next: AuctionState = {
         id: String(snapshot.auctionId ?? auctionId),
         currentPrice: snapshot.currentPrice ?? 0,
-        minIncrement: snapshot.minIncrement ?? snapshot.minBidIncrement ?? 1000,
+        minIncrement: snapshot.minBidIncrement ?? snapshot.minIncrement ?? 1000,
         endAt: snapshot.endTime
           ? new Date(snapshot.endTime).getTime()
           : Date.now() + 3600000,
@@ -99,6 +108,11 @@ export default function useAuctionLive(
         status: snapshot.status ?? "live",
         winnerId: snapshot.winnerId ?? null,
         finalPrice: snapshot.finalPrice ?? null,
+        title: snapshot.title,
+        description: snapshot.description,
+        imageUrls: snapshot.imageUrls ?? [],
+        startingPrice: snapshot.startingPrice,
+        buyNowPrice: snapshot.buyNowPrice,
       };
 
       setAuction(next);
@@ -171,7 +185,7 @@ export default function useAuctionLive(
         const next: AuctionState = {
           id: String(snapshot.auctionId ?? auctionId),
           currentPrice: snapshot.currentPrice ?? 0,
-          minIncrement: snapshot.minIncrement ?? 1000,
+          minIncrement: snapshot.minBidIncrement ?? snapshot.minIncrement ?? 1000,
           endAt: snapshot.endTime
             ? new Date(snapshot.endTime).getTime()
             : Date.now() + 3600000,
@@ -179,6 +193,11 @@ export default function useAuctionLive(
           status: snapshot.status ?? "live",
           winnerId: snapshot.winnerId ?? null,
           finalPrice: snapshot.finalPrice ?? null,
+          title: snapshot.title,
+          description: snapshot.description,
+          imageUrls: snapshot.imageUrls ?? [],
+          startingPrice: snapshot.startingPrice,
+          buyNowPrice: snapshot.buyNowPrice,
         };
         setAuction(next);
         setLive(snapshot.status === "live");
