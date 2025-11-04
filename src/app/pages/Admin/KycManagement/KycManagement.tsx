@@ -9,7 +9,7 @@ const DefaultAvatar = '../../../../../public/lightning_thunder.png';
 const KycManagement = () => {
 
     const [KYCs, setKYCs] = useState<Record<string, any>>({});
-    const [selectedKyc, setSelectedKyc] = useState<Record<string, any>>({});
+    const [selectedDocument, setSelectedDocuments] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [selectedStatus, setSelectedStatus] = useState('');
     const [selectedLevel, setSelectedLevel] = useState('');
@@ -68,8 +68,7 @@ const KycManagement = () => {
             <div className='inner-container management-container kyc-management-container'>
 
                 <header className='main-header'>
-                    {/* FIX==popup */}
-                    <h1>Kyc Management {selectedKyc?.user?.email || 'null'}</h1>
+                    <h1>Kyc Management</h1>
                 </header>
 
                 <div className='controls'>
@@ -114,7 +113,7 @@ const KycManagement = () => {
                                 <th>CUSTOMER</th>
                                 <th>EMAIL</th>
                                 <th>CREATED</th>
-                                <th>IMAGE</th>
+                                {/* <th>IMAGE</th> */}
                                 <th>STATUS</th>
                                 <th>ACTIONS</th>
                             </tr>
@@ -141,11 +140,11 @@ const KycManagement = () => {
                                         </div>
                                     </td>
                                     <td>{new Date(kyc.createdAt).toLocaleDateString()}</td>
-                                    <td>
+                                    {/* <td>
                                         <div className='kyc-img'>
                                             <img src={`${kyc.user?.img || DefaultAvatar}`} alt='avatar' />
                                         </div>
-                                    </td>
+                                    </td> */}
                                     <td>
                                         {changeStatusLoading == index ? <SmallSpinner />
                                             :
@@ -164,9 +163,17 @@ const KycManagement = () => {
                                     </td>
                                     <td>
                                         <div className='action-buttons'>
-                                            <button onClick={() => setSelectedKyc(kyc)}>
+                                            {/* <button onClick={() => setSelectedKyc(kyc)}>
                                                 <span>Detail</span>
                                                 <i className='fa-solid fa-pencil' />
+                                            </button> */}
+                                            <button onClick={() => setSelectedDocuments(kyc.documents?.find((doc: any) => doc.type == 'front_id'))}>
+                                                <span>Front ID</span>
+                                                {/* <i className='fa-solid fa-pencil' /> */}
+                                            </button>
+                                            <button onClick={() => setSelectedDocuments(kyc.documents?.find((doc: any) => doc.type == 'back_id'))}>
+                                                <span>Back ID</span>
+                                                {/* <i className='fa-solid fa-pencil' /> */}
                                             </button>
                                         </div>
                                     </td>
@@ -194,6 +201,37 @@ const KycManagement = () => {
                     totalPages={KYCs?.totalPages}
                     onPageChange={setPage}
                 />
+
+                {selectedDocument && Object.keys(selectedDocument).length > 0 && (
+                    <div className="popup-container">
+                        <div className="popup-box">
+                            <button className='close-btn' onClick={() => setSelectedDocuments({})}><i className='fa-solid fa-xmark' /></button>
+                            <div className='documents'>
+                                {/* {selectedKyc?.documents?.map((doc: any, index: any) => ( */}
+                                {/* <div key={index}> */}
+                                <div className='doc-img'>
+                                    <img src={`${selectedDocument.fileUrl || DefaultAvatar}`} alt='avatar' />
+                                </div>
+                                {/* </div> */}
+                                {/* ))} */}
+                            </div>
+                            {/* <div className="title">{title}</div>
+                        <div className="message">{message}</div>
+                        <div className="buttons">
+                            {confirm && <button
+                                type="button"
+                                onClick={onConfirm}
+                                style={{ backgroundColor: color }}
+                            >
+                                <div className="text">{confirm}</div>
+                            </button>}
+                            {cancel && <button type="button" onClick={onCancel} className="cancel-btn">
+                                <div className="text">{cancel}</div>
+                            </button>}
+                        </div> */}
+                        </div>
+                    </div>
+                )}
             </div >
         </div >
     );
