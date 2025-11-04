@@ -37,13 +37,7 @@ export default function Header() {
     setWithdrawalModalOpen,
     withdrawalModalOpen,
   } = useWallet();
-
-  // const handleSubmitWithdrawModal = async(values: memberWithdrawals)=>{
-  //   const response = await handleWithdrawls(values)
-  //   if(response){
-
-  //   }
-  // }
+  
   const handleWithdrawalOpen = async () => {
     setWithdrawalModalOpen(true);
     setLoadingBanks(true);
