@@ -5,16 +5,18 @@ import type {
   Order,
   CreateOrderRequest,
   UpdateOrderRequest,
+  OrderStatus,
 } from "./type";
 
 
 export const createOrder = async (
+  buyerId: string,
   payload: CreateOrderRequest
 ): Promise<Order> => {
   try {
-    const res = await axiosInstance.post("/orders", payload);
-    console.log("✅ Order created:", res.data.data);
-    return res.data.data;
+    const res = await axiosInstance.post(`/orders/${buyerId}`, payload);
+    console.log("✅ Order created:", res.data?.data);
+    return res.data?.data;
   } catch (err) {
     console.error("❌ Error creating order:", err);
     throw err;
@@ -22,16 +24,29 @@ export const createOrder = async (
 };
 
 
-export const getAllOrders = async (): Promise<Order[]> => {
+export interface GetOrdersParams {
+  buyerId?: string;
+  sellerId?: string;
+  status?: OrderStatus;
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: "ASC" | "DESC";
+}
+
+export const getAllOrders = async (
+  params?: GetOrdersParams
+): Promise<Order[]> => {
   try {
-    const res = await axiosInstance.get("/orders");
-    console.log("✅ All orders:", res.data);
-    return res.data;
+    const res = await axiosInstance.get("/orders", { params });
+    console.log("✅ All orders:", res.data?.data?.data);
+    return res.data?.data?.data;
   } catch (err) {
     console.error("❌ Error fetching orders:", err);
     throw err;
   }
 };
+
 
 
 export const getOrderById = async (id: string): Promise<Order> => {
