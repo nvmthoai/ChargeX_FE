@@ -27,6 +27,7 @@ export default function NavigationBar() {
     { name: "SETTING", icon: "gear", path: "/admin/profile" },
     { name: "AUCTION", icon: "gear", path: "/admin/auction-management" },
     { name: "AUCTION LIVE", icon: "gear", path: "/admin/auction-live-management" },
+    { name: "WITHDRAW REQUEST", icon: "gear", path: "/admin/withdraw-request-management" },
   ];
 
   return (

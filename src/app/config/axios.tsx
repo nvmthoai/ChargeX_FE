@@ -1,8 +1,7 @@
 import axios from "axios";
 import ENV from "./env";
-import { message } from "antd";
+import { toast } from "react-toastify";
 
-console.log('ENV.BASE_URL: ', ENV.BASE_URL)
 const axiosInstance = axios.create({
   baseURL: ENV.BASE_URL,
 });
@@ -20,35 +19,36 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
+
+ console.log('err: ')
     if (error.response) {
-      const { status, data, config } = error.response;
+      const { statusCode, data, config } = error.response;
       let isTokenExpired = false;
-      const isLoginRequest = config?.url?.includes('/auth/login');
-      const isAuthError = status === 401 || status === 403;
+      const isLoginRequest = config?.url?.includes("/auth/login");
+      const isAuthError = statusCode === 401 || statusCode === 403;
       const token = localStorage.getItem("token");
 
-      // console.log(error.response, "error.response");
+
 
       // if (data.message === "Tài khoản chưa được xác thực" && data.statusCode === 400) {
       //   window.location.href = AUTH_ROUTES.AUTH + "/" + AUTH_ROUTES.REVERIFY_ACCOUNT;
       //   return error;
       // }
-
-      if ((status === 400 || status === 401) && data.errors) {
-        const messages = Object.values(data.errors).flat() as string[];
-        messages.forEach((msg) => message.error(msg));
+      console.log('data.message.message: ',data.message.message)
+      if ((statusCode === 400 || statusCode === 401) && data.message) {
+        toast.error(data.message.message);
       } else if (data.message) {
-        message.error(data.message as string);
+        toast.error(data.message.message as string);
       }
 
       if (isAuthError && !isLoginRequest && token) {
         if (!isTokenExpired) {
           isTokenExpired = true;
-          message.error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!');
+          toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
           setTimeout(() => {
             localStorage.clear();
             // store.dispatch(logout());
-            window.location.href = '/';
+            window.location.href = "/";
             isTokenExpired = false;
           }, 1300);
         }
