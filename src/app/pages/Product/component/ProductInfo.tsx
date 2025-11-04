@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Clock3, MapPin, Phone, Gavel } from "lucide-react";
 import type { Product } from "../../../../api/product/type";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function ProductInfo({ product }: { product: Product }) {
   const [loading, setLoading] = useState(false);
@@ -10,24 +10,6 @@ export default function ProductInfo({ product }: { product: Product }) {
   const userData = localStorage.getItem("user");
   const user = userData ? JSON.parse(userData) : null;
   const isOwner = user?.sub && product?.seller?.userId === user.sub;
-
-  // ⭐ Render stars
-  // const renderStars = (rating: number) => {
-  //   const rounded = Math.round(rating);
-  //   return (
-  //     <div className="flex">
-  //       {Array.from({ length: 5 }).map((_, i) => (
-  //         <Star
-  //           key={i}
-  //           size={18}
-  //           className={`${
-  //             i < rounded ? "text-[#83AD52] fill-[#83AD52]" : "text-gray-300"
-  //           }`}
-  //         />
-  //       ))}
-  //     </div>
-  //   );
-  // };
 
   // 🛒 Handle Buy Now
   const handleBuyNow = async () => {
@@ -88,17 +70,17 @@ export default function ProductInfo({ product }: { product: Product }) {
             <div className="grid grid-cols-2 gap-y-3 text-sm text-gray-800">
               <div className="font-medium text-gray-500">Start Price</div>
               <div className="font-semibold text-gray-900">
-                ${Number(product.price_start).toLocaleString()}
+                ${(product.price_start).toLocaleString()}
               </div>
 
               <div className="font-medium text-gray-500">Current Price</div>
               <div className="font-bold text-green-600 text-base">
-                ${Number(product.price_now ?? product.price_start).toLocaleString()}
+                ${(product.price_now ?? product.price_start).toLocaleString()}
               </div>
 
               <div className="font-medium text-gray-500">Buy Now Price</div>
               <div className="font-semibold text-blue-600">
-                ${Number(product.price_buy_now ?? 0).toLocaleString()}
+                ${(product.price_buy_now ?? 0).toLocaleString()}
               </div>
 
               <div className="font-medium text-gray-500">End Time</div>
@@ -126,7 +108,8 @@ export default function ProductInfo({ product }: { product: Product }) {
 
       {/* Seller Info (ẩn nếu user là chủ sản phẩm) */}
       {!isOwner && (
-        <div className="bg-white space-y-4">
+        <Link className="" to={`/shop-detail/${product.seller.userId}`}>
+        <div className="bg-white space-y-4 cursor-pointer">
           <h2 className="text-2xl font-semibold text-gray-900">
             Seller Information
           </h2>
@@ -135,7 +118,7 @@ export default function ProductInfo({ product }: { product: Product }) {
               {product.seller.fullName[0].toUpperCase()}
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">
+              <h3 className="font-semibold text-gray-900 ">
                 {product.seller.fullName}
               </h3>
               <p className="text-sm text-gray-500 flex items-center gap-1">
@@ -147,11 +130,12 @@ export default function ProductInfo({ product }: { product: Product }) {
             </div>
           </div>
         </div>
+        </Link>
       )}
 
       {/* Buy Now + Wishlist (ẩn nếu là sản phẩm của user) */}
       {!isOwner && (
-        <div className="flex gap-3">
+        <div className="flex gap-3 mt-5">
           <button
             onClick={handleBuyNow}
             disabled={loading}
@@ -162,7 +146,7 @@ export default function ProductInfo({ product }: { product: Product }) {
           >
             {loading
               ? "Đang xử lý..."
-              : `Buy Now • $${Number(product.price_buy_now).toLocaleString()}`}
+              : `Buy Now • $${(product.price_buy_now).toLocaleString()}`}
           </button>
           <button className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium">
             Add to Watchlist
