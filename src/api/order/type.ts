@@ -35,34 +35,44 @@ export interface ProductRef {
 
 export interface Order {
   orderId: string;
-  buyer: UserRef;                     // 🟩 object
-  seller: UserRef;                    // 🟩 object
-  product: ProductRef;                // 🟩 object
+  buyer: UserRef;                     
+  seller: UserRef;                    
+  product: ProductRef;                
   price: number;
-  shipping_fee: number;               // 🟩 đúng với backend
+  shipping_fee: number;               
   shipping_provider?: string;
   shipping_code?: string;
-  contract_url?: string;              // 🟩 sửa đúng
-  pickupAddress?: AddressRef;         // 🟩 object
-  deliveryAddress?: AddressRef;       // 🟩 object
+  contract_url?: string;             
+  pickupAddress?: AddressRef;
+  deliveryAddress?: AddressRef;
   status: OrderStatus;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface CreateOrderRequest {
-  buyer_id: string;
-  seller_id: string;
-  productId: string;
-  price: number;
-  shipping_fee: number;               // 🟩 rename lại cho đúng API
-  shipping_provider?: string;
-  shipping_code?: string;
-  contract_url?: string;
-  pickup_address_id: string;
-  delivery_address_id: string;
-  status?: OrderStatus;               // default: pending
+  receiverName: string;
+  receiverPhone: string;
+  // chỉ cần 1 trong 2 cách sau
+  receiverAddress?: string;
+  receiverDistrictId?: number;
+  receiverWardCode?: string;
+  receiverAddressId?: string;
+
+  orderShops: {
+    sellerId: string;
+    shippingProvider: string;
+    fromAddressId: string;
+    orderDetails: {
+      productId: string;
+      quantity: number;
+      price: number;
+      subtotal: number;
+    }[];
+  }[];
 }
+
+
 
 export interface UpdateOrderRequest {
   status?: OrderStatus;
