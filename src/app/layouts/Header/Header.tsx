@@ -1,3 +1,5 @@
+"use client";
+
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Info, Gavel, ShoppingBag } from "lucide-react";
 import { useAuth } from "../../hooks/AuthContext";
@@ -6,14 +8,51 @@ import { Button, Dropdown } from "antd";
 import { WalletOutlined, LogoutOutlined } from "@ant-design/icons";
 import WalletDisplay from "./WalletDisplay";
 import DepositModal from "./DepositModal";
+import WithdrawalModal from "./WithdrawalModal";
 import useWallet from "../../hooks/useWallet";
+
+export interface Bank {
+  id: number;
+  name: string;
+  code: string;
+  bin: string;
+  shortName: string;
+  logo: string;
+  transferSupported: number;
+  lookupSupported: number;
+}
 
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [depositModalOpen, setDepositModalOpen] = useState(false);
-  const { handleDeposit, myWallet } = useWallet();
+
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const [loadingBanks, setLoadingBanks] = useState(false);
+  const {
+    handleDeposit,
+    handleWithdrawls,
+    myWallet,
+    setWithdrawalModalOpen,
+    withdrawalModalOpen,
+  } = useWallet();
+  
+  const handleWithdrawalOpen = async () => {
+    setWithdrawalModalOpen(true);
+    setLoadingBanks(true);
+    try {
+      const response = await fetch("https://api.vietqr.io/v2/banks");
+      const data = await response.json();
+      if (data.code === "00" && data.data) {
+        setBanks(data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch banks:", error);
+    } finally {
+      setLoadingBanks(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -96,7 +135,7 @@ export default function Header() {
                   icon={<WalletOutlined className="text-blue-500" />}
                   className="text-sm font-semibold text-gray-700 hover:bg-white/60"
                 >
-                  {myWallet && myWallet.available}
+                  ${myWallet && myWallet.available}
                 </Button>
               </Dropdown>
 
@@ -107,6 +146,15 @@ export default function Header() {
                 className="bg-green-500 hover:bg-green-600"
               >
                 Deposit
+              </Button>
+
+              <Button
+                type="default"
+                size="small"
+                onClick={handleWithdrawalOpen}
+                className="rounded-lg"
+              >
+                Withdraw
               </Button>
             </div>
 
@@ -144,6 +192,13 @@ export default function Header() {
         open={depositModalOpen}
         onClose={() => setDepositModalOpen(false)}
         onSubmit={handleDeposit}
+      />
+      <WithdrawalModal
+        open={withdrawalModalOpen}
+        onClose={() => setWithdrawalModalOpen(false)}
+        onSubmit={handleWithdrawls}
+        banks={banks}
+        loadingBanks={loadingBanks}
       />
     </header>
   );

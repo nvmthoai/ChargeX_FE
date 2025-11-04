@@ -1,55 +1,76 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useProduct from "../../hooks/useProduct";
-import { Link, useNavigate } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 
 export default function EVMarketplace() {
   const navigate = useNavigate();
-  const [priceRange, setPriceRange] = useState([0, 100000]);
-  const [batteryCapacity, setBatteryCapacity] = useState([0, 100]);
-  const [yearRange, setYearRange] = useState([2010, 2024]);
-  const [selectedMakes, setSelectedMakes] = useState<string[]>([]);
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
-  const [selectedVehicleTypes, setSelectedVehicleTypes] = useState<string[]>(
-    []
+  const [sohRange, setSohRange] = useState([0, 100]);
+  const [cycleRange, setCycleRange] = useState([0, 10000]);
+  const [voltageRange, setVoltageRange] = useState([0, 500]);
+  const [isAuction, setIsAuction] = useState<boolean | null>(null); // null: all, true: auction, false: not auction
+  const [priceType, setPriceType] = useState<string[]>([]); // ['start', 'buy_now', 'now']
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+  const { products } = useProduct();
+  const [filteredProducts, setFilteredProducts] = useState(products);
+
+  useEffect(() => {
+    let filtered = products.filter((product) => {
+      const soh = product.soh_percent || 0;
+      const cycle = product.cycle_count || 0;
+      const voltage = product.nominal_voltage_v || 0;
+      const hasPriceStart =
+        product.price_start !== null && product.price_start !== undefined;
+      const hasPriceBuyNow =
+        product.price_buy_now !== null && product.price_buy_now !== undefined;
+      const hasPriceNow =
+        product.price_now !== null && product.price_now !== undefined;
+
+      return (
+        soh >= sohRange[0] &&
+        soh <= sohRange[1] &&
+        cycle >= cycleRange[0] &&
+        cycle <= cycleRange[1] &&
+        voltage >= voltageRange[0] &&
+        voltage <= voltageRange[1] &&
+        (isAuction === null || product.is_auction === isAuction) &&
+        (priceType.length === 0 ||
+          (priceType.includes("start") && hasPriceStart) ||
+          (priceType.includes("buy_now") && hasPriceBuyNow) ||
+          (priceType.includes("now") && hasPriceNow))
+      );
+    });
+    setFilteredProducts(filtered);
+    setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
+  }, [products, sohRange, cycleRange, voltageRange, isAuction, priceType]);
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const displayedProducts = filteredProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
-  const {products} = useProduct();
-  
-  const makes = ["Audi", "BMW", "Lucid", "Nissan", "Chevrolet", "Porsche"];
-  const conditions = ["New", "Used", "Refurbished"];
-  const vehicleTypes = ["EV", "E-bike", "Scooter"];
 
-  const handleMakeChange = (make: string, checked: boolean) => {
-    if (checked) {
-      setSelectedMakes([...selectedMakes, make]);
-    } else {
-      setSelectedMakes(selectedMakes.filter((m) => m !== make));
-    }
-  };
+  // const handlePriceTypeChange = (type: string, checked: boolean) => {
+  //   if (checked) {
+  //     setPriceType([...priceType, type]);
+  //   } else {
+  //     setPriceType(priceType.filter((t) => t !== type));
+  //   }
+  // };
 
-  const handleConditionChange = (condition: string, checked: boolean) => {
-    if (checked) {
-      setSelectedConditions([...selectedConditions, condition]);
-    } else {
-      setSelectedConditions(selectedConditions.filter((c) => c !== condition));
-    }
-  };
-
-  const handleVehicleTypeChange = (type: string, checked: boolean) => {
-    if (checked) {
-      setSelectedVehicleTypes([...selectedVehicleTypes, type]);
-    } else {
-      setSelectedVehicleTypes(selectedVehicleTypes.filter((t) => t !== type));
-    }
+  const handleResetFilters = () => {
+    setSohRange([0, 100]);
+    setCycleRange([0, 10000]);
+    setVoltageRange([0, 500]);
+    setIsAuction(null);
+    setPriceType([]);
   };
 
   const getDisplayPrice = (product: (typeof products)[0]) => {
-    if (product.price_now)
-      return `$${Number(product.price_now).toLocaleString()}`;
+    if (product.price_now) return `$${product.price_now.toLocaleString()}`;
     if (product.price_buy_now)
-      return `$${Number(product.price_buy_now).toLocaleString()}`;
-    return `$${Number(product.price_start).toLocaleString()}`;
+      return `$${product.price_buy_now.toLocaleString()}`;
+    return `$${product.price_start.toLocaleString()}`;
   };
 
   const getCondition = (product: (typeof products)[0]) => {
@@ -57,90 +78,12 @@ export default function EVMarketplace() {
     return product.status === "active" ? "Active" : "Draft";
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center space-x-6">
-            <div className="text-sm text-gray-500">Marketplace Home</div>
-            <div className="flex items-center space-x-2">
-              <div className="text-indigo-600 font-bold text-xl">
-                ⚡EVTradeHub
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 max-w-md mx-8">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search EVs and Batteries..."
-                className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg
-                  className="h-5 w-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <Link to="/">
-              <button className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-900 cursor-pointer">
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-5 5-5-5h5v-12h0z"
-                  />
-                </svg>
-                <span className="hidden md:inline">Notifications</span>
-              </button>
-            </Link>
-            <Link to="/profile/wallet">
-              <button className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-900 cursor-pointer">
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                  />
-                </svg>
-                <span className="hidden md:inline">Wallet</span>
-              </button>
-            </Link>
-            <img
-              src="/diverse-user-avatars.png"
-              alt="User"
-              className="h-8 w-8 rounded-full cursor-pointer"
-            />
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="flex gap-6">
           <div className="w-80 bg-white rounded-lg p-6 h-fit">
@@ -162,130 +105,148 @@ export default function EVMarketplace() {
             </div>
 
             <div className="mb-6">
-              <h4 className="font-medium mb-3">Vehicle Type</h4>
-              <div className="space-y-2">
-                {vehicleTypes.map((type) => (
-                  <label key={type} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedVehicleTypes.includes(type)}
-                      onChange={(e) =>
-                        handleVehicleTypeChange(type, e.target.checked)
-                      }
-                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">{type}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="font-medium mb-3">Make</h4>
-              <div className="space-y-2">
-                {makes.map((make) => (
-                  <label key={make} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedMakes.includes(make)}
-                      onChange={(e) => handleMakeChange(make, e.target.checked)}
-                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">{make}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="font-medium mb-3">Condition</h4>
-              <div className="space-y-2">
-                {conditions.map((condition) => (
-                  <label key={condition} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedConditions.includes(condition)}
-                      onChange={(e) =>
-                        handleConditionChange(condition, e.target.checked)
-                      }
-                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">
-                      {condition}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="font-medium mb-3">Price Range</h4>
-              <input
-                type="range"
-                min="0"
-                max="100000"
-                value={priceRange[1]}
-                onChange={(e) =>
-                  setPriceRange([0, Number.parseInt(e.target.value)])
-                }
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>$0</span>
-                <span>${priceRange[1].toLocaleString()}</span>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="font-medium mb-3">Battery Capacity</h4>
+              <h4 className="font-medium mb-3">SOH Percent</h4>
               <input
                 type="range"
                 min="0"
                 max="100"
-                value={batteryCapacity[1]}
+                value={sohRange[1]}
                 onChange={(e) =>
-                  setBatteryCapacity([0, Number.parseInt(e.target.value)])
+                  setSohRange([0, Number.parseInt(e.target.value)])
                 }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>0 kWh</span>
-                <span>{batteryCapacity[1]} kWh</span>
+                <span>0%</span>
+                <span>{sohRange[1]}%</span>
               </div>
             </div>
 
             <div className="mb-6">
-              <h4 className="font-medium mb-3">Year</h4>
+              <h4 className="font-medium mb-3">Cycle Count</h4>
               <input
                 type="range"
-                min="2010"
-                max="2024"
-                value={yearRange[1]}
+                min="0"
+                max="10000"
+                value={cycleRange[1]}
                 onChange={(e) =>
-                  setYearRange([2010, Number.parseInt(e.target.value)])
+                  setCycleRange([0, Number.parseInt(e.target.value)])
                 }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>2010</span>
-                <span>{yearRange[1]}</span>
+                <span>0</span>
+                <span>{cycleRange[1]}</span>
               </div>
             </div>
 
             <div className="mb-6">
-              <h4 className="font-medium mb-3">Location</h4>
+              <h4 className="font-medium mb-3">Nominal Voltage (V)</h4>
               <input
-                type="text"
-                placeholder="Enter Location"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                type="range"
+                min="0"
+                max="500"
+                value={voltageRange[1]}
+                onChange={(e) =>
+                  setVoltageRange([0, Number.parseInt(e.target.value)])
+                }
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
+              <div className="flex justify-between text-sm text-gray-500 mt-2">
+                <span>0V</span>
+                <span>{voltageRange[1]}V</span>
+              </div>
             </div>
+
+            <div className="mb-6">
+              <h4 className="font-medium mb-3">Auction Type</h4>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="auction"
+                    checked={isAuction === null}
+                    onChange={() => setIsAuction(null)}
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">All</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="auction"
+                    checked={isAuction === true}
+                    onChange={() => setIsAuction(true)}
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Auction</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="auction"
+                    checked={isAuction === false}
+                    onChange={() => setIsAuction(false)}
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Buy Now</span>
+                </label>
+              </div>
+            </div>
+
+            {/* <div className="mb-6">
+              <h4 className="font-medium mb-3">Price Types</h4>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={priceType.includes("start")}
+                    onChange={(e) =>
+                      handlePriceTypeChange("start", e.target.checked)
+                    }
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">
+                    Start Price
+                  </span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={priceType.includes("buy_now")}
+                    onChange={(e) =>
+                      handlePriceTypeChange("buy_now", e.target.checked)
+                    }
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">
+                    Buy Now Price
+                  </span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={priceType.includes("now")}
+                    onChange={(e) =>
+                      handlePriceTypeChange("now", e.target.checked)
+                    }
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">
+                    Current Price
+                  </span>
+                </label>
+              </div>
+            </div> */}
 
             <div className="space-y-3">
               <button className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
                 Apply Filters
               </button>
-              <button className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300">
+              <button
+                onClick={handleResetFilters}
+                className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300"
+              >
                 Reset Filters
               </button>
             </div>
@@ -295,22 +256,26 @@ export default function EVMarketplace() {
           <div className="flex-1">
             <h1 className="text-2xl font-bold mb-6">Explore EVs & Batteries</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {products.map((product) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch">
+              {displayedProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
                 >
-                 {
-                  product.imageUrls &&  <img
-                    src={product?.imageUrls[0] || ""}
-                    alt={product?.title}
-                    className="h-48 w-full object-cover"
-                  />
-                 }
-                  <div className="p-4 space-y-3">
-                    <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-semibold text-lg line-clamp-2 flex-1">
+                  {/* Ảnh sản phẩm */}
+                  {product.imageUrls && (
+                    <img
+                      src={product?.imageUrls[0] || ""}
+                      alt={product?.title}
+                      className="h-48 w-full object-cover"
+                    />
+                  )}
+
+                  {/* Nội dung */}
+                  <div className="flex flex-col flex-1 p-4">
+                    {/* Tiêu đề & nhãn */}
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <h3 className="font-semibold text-lg line-clamp-2 flex-1 min-h-[48px]">
                         {product.title}
                       </h3>
                       {product.is_auction && (
@@ -320,16 +285,19 @@ export default function EVMarketplace() {
                       )}
                     </div>
 
-                    <div className="text-2xl font-bold text-indigo-600">
+                    {/* Giá */}
+                    <div className="text-2xl font-bold text-indigo-600 mb-2">
                       {getDisplayPrice(product)}
                     </div>
 
-                    <p className="text-gray-600 text-sm line-clamp-3">
-                      {product.description}
+                    {/* Mô tả */}
+                    <p className="text-gray-600 text-sm line-clamp-3 min-h-[60px] mb-3">
+                      {product.description || "No description provided."}
                     </p>
 
+                    {/* Thông tin kỹ thuật */}
                     {product.soh_percent && (
-                      <div className="text-xs text-gray-600 space-y-1">
+                      <div className="text-xs text-gray-600 space-y-1 mb-3 min-h-[60px]">
                         <div>SOH: {product.soh_percent}%</div>
                         {product.cycle_count && (
                           <div>Cycles: {product.cycle_count}</div>
@@ -343,7 +311,8 @@ export default function EVMarketplace() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between">
+                    {/* Trạng thái + Người bán */}
+                    <div className="flex items-center justify-between mt-auto mb-3">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
                           getCondition(product) === "Active"
@@ -353,14 +322,16 @@ export default function EVMarketplace() {
                       >
                         {getCondition(product)}
                       </span>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 truncate max-w-[120px] text-right">
                         by {product.seller.fullName}
                       </div>
                     </div>
 
-                    <button 
-                    onClick={() => navigate(`/productdetail/${product.id}`)}
-                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+                    {/* Nút */}
+                    <button
+                      onClick={() => navigate(`/productdetail/${product.id}`)}
+                      className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 mt-auto"
+                    >
                       View Details
                     </button>
                   </div>
@@ -368,20 +339,40 @@ export default function EVMarketplace() {
               ))}
             </div>
 
-            <div className="flex justify-center space-x-2">
-              <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
-                Previous
-              </button>
-              <button className="px-3 py-2 bg-indigo-600 text-white rounded">
-                1
-              </button>
-              <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
-                2
-              </button>
-              <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
-                Next
-              </button>
-            </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-2 mt-8">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-2 rounded-md ${
+                        page === currentPage
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
