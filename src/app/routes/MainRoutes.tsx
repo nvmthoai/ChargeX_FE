@@ -37,6 +37,8 @@ import WithdrawManagement from "../pages/Admin/WithdrwaManagement";
 import OrderDetail from "../pages/Profile/ProfileOrder/OrderDetail";
 import ShopDetailPage from "../pages/Shop-Detail";
 
+import ChatBox from "../components/ChatBox/ChatBox";
+
 export default function MainRoutes() {
   return (
     <BrowserRouter>
@@ -103,6 +105,7 @@ export default function MainRoutes() {
         </Route>
         <Route path="/cart" element={<Cart />} />
       </Routes>
+      <ChatBox />
     </BrowserRouter>
   );
 }
