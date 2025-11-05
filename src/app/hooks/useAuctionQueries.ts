@@ -86,7 +86,7 @@ export function usePlaceBid(auctionId: string) {
       return { previousAuction };
     },
     // If mutation fails, rollback
-    onError: (err, newBid, context) => {
+    onError: (_err, _newBid, context) => {
       if (context?.previousAuction) {
         queryClient.setQueryData(
           auctionKeys.detail(auctionId),
@@ -110,7 +110,7 @@ export function useBuyNow() {
   return useMutation({
     mutationFn: ({ auctionId, buyerId }: { auctionId: string; buyerId: string }) =>
       auctionApi.buyNow(auctionId, buyerId),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate and refetch auction details
       queryClient.invalidateQueries({ queryKey: auctionKeys.detail(variables.auctionId) });
       queryClient.invalidateQueries({ queryKey: auctionKeys.lists() });
@@ -126,7 +126,7 @@ export function useEndAuction() {
 
   return useMutation({
     mutationFn: (auctionId: string) => auctionApi.endAuction(auctionId),
-    onSuccess: (data, auctionId) => {
+    onSuccess: (_data, auctionId) => {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: auctionKeys.detail(auctionId) });
       queryClient.invalidateQueries({ queryKey: auctionKeys.lists() });
