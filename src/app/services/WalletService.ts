@@ -105,14 +105,14 @@ const walletService = () => {
     try {
       const response = await callApi(
         HTTP_METHOD.GET,
-        `/wallet/transactions?pageSize=20&page=1
-`
+        `/wallet/transactions?pageSize=20&page=1`
       );
       return response;
     } catch (e: any) {
       console.log(e?.response?.data);
     }
   }, [callApi]);
+
   return {
     loading,
     getMyWallet,
