@@ -1,90 +1,140 @@
-import { useEffect, useState } from "react";
-import "./ProfileWallet.css";
+import {
+  Table,
+  Empty,
+  Input,
+  Tag,
+  Row,
+  Col,
+} from "antd";
+import {
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
+import { useState } from "react";
+import useWallet from "../../../hooks/useWallet";
 
-export default function ProfileWallet() {
+export interface Transaction {
+  id: string;
+  createdAt: string;
+  description: string;
+  type: "Deposit" | "Withdraw";
+  amount: number;
+}
 
-    const [selectedCardId, setSelectedCardId] = useState("");
-    const [userBalance, setUserBalance] = useState(0);
+export default function ProfileWallet({}) {
+  const [searchText, setSearchText] = useState("");
+  const { transactions } = useWallet();
 
-    useEffect(() => {
-        setUserBalance(0);
-    },[])
+  const filteredTransactions = transactions.filter((t) => {
+    const matchesSearch = t.description
+      .toLowerCase()
+      .includes(searchText.toLowerCase());
+    return matchesSearch
+  });
 
-    const cards = [
-        { id: "1", name: "VISA", type: "CREDIT", number: "**** **** **** 8763" },
-        { id: "2", name: "VISA", type: "CREDIT", number: "**** **** **** 1792" },
-    ]
+  const columns = [
+    {
+      title: "Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) =>
+        new Date(date).toLocaleDateString("vi-VN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      width: 200,
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      render: (text: string) => (
+        <span className="font-medium text-slate-700">{text}</span>
+      ),
+    },
+    {
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      render: (type: "Deposit" | "Withdraw") => {
+        const isDeposit = type === "Deposit";
+        return (
+          <Tag
+            icon={isDeposit ? <ArrowDownOutlined /> : <ArrowUpOutlined />}
+            color={isDeposit ? "green" : "red"}
+            className="font-medium"
+          >
+            {isDeposit ? "Deposit" : "Withdraw"}
+          </Tag>
+        );
+      },
+      width: 120,
+    },
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      key: "amount",
+      render: (amount: number, record: Transaction) => {
+        const isDeposit = record.type === "Deposit";
+        return (
+          <span
+            className={`font-semibold ${
+              isDeposit ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {isDeposit ? "+" : "-"}
+            {amount.toLocaleString("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            })}
+          </span>
+        );
+      },
+      width: 150,
+    },
+  ];
 
-    const transactions = [
-        { title: "Money Transfer Joana", date: "12/10/2015 14:48", amount: 120000, type: "Transfer", positive: true },
-        { title: "Design eBook", date: "08/10/2015 10:05", amount: 4000, type: "Books", positive: false },
-        { title: "Neon99", date: "29/09/2015 12:10", amount: 12000, type: "Food", positive: false },
-        { title: "Wages", date: "14/09/2015 11:38", amount: 26000, type: "Wages", positive: true },
-        { title: "Pig&Heifer", date: "26/09/2015 14:40", amount: 10000, type: "Food", positive: false },
-        { title: "Apple Store", date: "26/09/2015 14:40", amount: 10000, type: "Phone", positive: false },
-        { title: "Money Transfer Joana", date: "12/10/2015 14:48", amount: 120000, type: "Transfer", positive: true },
-        { title: "Design eBook", date: "08/10/2015 10:05", amount: 4000, type: "Books", positive: false },
-        { title: "Neon99", date: "29/09/2015 12:10", amount: 12000, type: "Food", positive: false },
-        { title: "Wages", date: "14/09/2015 11:38", amount: 26000, type: "Wages", positive: true },
-        { title: "Pig&Heifer", date: "26/09/2015 14:40", amount: 10000, type: "Food", positive: false },
-        { title: "Apple Store", date: "26/09/2015 14:40", amount: 10000, type: "Phone", positive: false },
-        { title: "Money Transfer Joana", date: "12/10/2015 14:48", amount: 120000, type: "Transfer", positive: true },
-        { title: "Design eBook", date: "08/10/2015 10:05", amount: 4000, type: "Books", positive: false },
-        { title: "Neon99", date: "29/09/2015 12:10", amount: 12000, type: "Food", positive: false },
-        { title: "Wages", date: "14/09/2015 11:38", amount: 26000, type: "Wages", positive: true },
-        { title: "Pig&Heifer", date: "26/09/2015 14:40", amount: 10000, type: "Food", positive: false },
-        { title: "Apple Store", date: "26/09/2015 14:40", amount: 10000, type: "Phone", positive: false },
-    ];
+  return (
+    <div className="min-h-screen bg-slate-100 p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">
+              Transaction History
+            </h2>
 
-    return (
-        <div className="profilewallet-container profile-content">
-            <div className="wallet-section">
-                <div className="title">My Wallet</div>
+            <Row gutter={16} className="mb-4">
+              <Col xs={24} sm={12}>
+                <Input
+                  placeholder="Search transactions..."
+                  prefix={<SearchOutlined />}
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  className="rounded-lg"
+                />
+              </Col>
+            </Row>
+          </div>
 
-                <div className="cards">
-                    {cards.map((c, index) => (
-                        <div key={index} className={`card ${c.id == selectedCardId ? "selected" : ""}`} onClick={() => setSelectedCardId(c.id)}>
-                            <div className="card-header">
-                                <span className="logo">{c.name}</span>
-                                <span className="type">{c.type}</span>
-                            </div>
-                            <p>{c.number}</p>
-                        </div>
-                    ))}
-
-                    <button className="add-card">
-                        <span>+</span>
-                    </button>
-                </div>
-
-                <div className="space"></div>
-            </div>
-
-            <div className="balance-section">
-                <div className="balance-header">
-                    <div className="flex justify-between items-center">
-                        <div className="title">Balance</div>
-                        <div className="balance">{userBalance.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</div>
-                    </div>
-                    <div className="sub-title">Transactions</div>
-                </div>
-
-                <div className="transactions">
-                    <div>
-                        {transactions.map((t, index) => (
-                            <div key={index} className={`item ${t.positive ? "positive" : "negative"}`}>
-                                <div className="info">
-                                    <span className="content">{t.title}</span>
-                                    <span className="date">{t.date}</span>
-                                </div>
-                                <div className="amount">{t.amount?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="space"></div>
-            </div>
+          {filteredTransactions.length > 0 ? (
+            <Table
+              columns={columns}
+              dataSource={filteredTransactions.map((t) => ({
+                ...t,
+                key: t.id,
+              }))}
+              pagination={{ pageSize: 10 }}
+              scroll={{ x: 800 }}
+            />
+          ) : (
+            <Empty description="No transactions found" />
+          )}
         </div>
-    )
+      </div>
+    </div>
+  );
 }

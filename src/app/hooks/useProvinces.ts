@@ -1,5 +1,7 @@
 
+
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 export interface Province {
   code: number;
@@ -29,9 +31,10 @@ const useProvinces = () => {
   const fetchProvinces = async () => {
     setLoading(true);
     try {
-      const response = await fetch("https://provinces.open-api.vn/api/p/");
-      const data = await response.json();
-      setProvinces(data);
+      const response = await axios.get("https://provinces.open-api.vn/api/p/");
+      if(response){
+        setProvinces(response.data);
+      }
     } catch (error) {
       console.error("Error fetching provinces:", error);
     } finally {
