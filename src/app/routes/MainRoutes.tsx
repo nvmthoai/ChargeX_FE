@@ -33,7 +33,12 @@ import Header from "../layouts/Header/Header";
 import Payment from "../pages/Payment/Payment";
 import AuctionRequestManagement from "../pages/Admin/AuctionRequestManagement";
 import AuctionLiveManagement from "../pages/Admin/AuctionLiveManagement";
+
+import WithdrawManagement from "../pages/Admin/WithdrwaManagement";
 import OrderDetail from "../pages/Profile/ProfileOrder/OrderDetail";
+import ShopDetailPage from "../pages/Shop-Detail";
+
+import ChatBox from "../components/ChatBox/ChatBox";
 
 export default function MainRoutes() {
   return (
@@ -49,6 +54,7 @@ export default function MainRoutes() {
         <Route path="/verify-otp" element={<VerifyOTPPage />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/shop-detail/:id" element={<ShopDetailPage />} />
 
         <Route element={<AuthRoute />}>
           <Route path="/auth" element={<AuthPage />} />
@@ -94,9 +100,14 @@ export default function MainRoutes() {
             element={<TransactionManagement />}
           />
           <Route path="revenue-management" element={<RevenueManagement />} />
+          <Route
+            path="withdraw-request-management"
+            element={<WithdrawManagement />}
+          />
         </Route>
         <Route path="/cart" element={<Cart />} />
       </Routes>
+      <ChatBox />
     </BrowserRouter>
   );
 }

@@ -1,138 +1,130 @@
-import axios from "../config/axios";
+import { useCallback } from "react";
+import useApiService from "../hooks/useApi";
+import { HTTP_METHOD } from "../constants/enum";
+import axiosInstance from "../config/axios";
 
-export interface Wallet {
-  walletId: string;
-  userId: string;
-  balance: number;
-  held: number;
-  available: number;
-}
+const walletService = () => {
+  const { callApi, loading, setIsLoading } = useApiService();
 
-export interface WalletTransaction {
-  id: string;
-  walletId: string;
-  paymentId?: string;
-  amount: number;
-  type: "deposit" | "hold" | "refund" | "release" | "withdrawal" | "fee";
-  description: string;
-  createdAt: string;
-}
+  const getMyWallet = useCallback(async () => {
+    try {
+      const response = await callApi(HTTP_METHOD.GET, `/wallet/available`);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+    }
+  }, [callApi]);
 
-export interface EscrowHold {
-  holdId: string;
-  walletId: string;
-  amount: number;
-  relatedBidId: string;
-  status: "held" | "refunded" | "released" | "applied";
-  createdAt: string;
-  expiresAt?: string;
-}
+  const deposit = useCallback(
+    async (amount: string) => {
+      try {
+        const response = await callApi(HTTP_METHOD.POST, `/wallet/deposit`, {
+          amount,
+        });
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
 
-export interface DepositRequest {
-  amount: number;
-  returnUrl: string;
-  cancelUrl?: string;
-}
+  const getBanks = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get(
+        "https://api.vietqr.io/v2/banks"
+      );
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+    }
+  }, [callApi]);
 
-export interface DepositResponse {
-  paymentId: string;
-  checkoutUrl: string;
-  qrCode?: string;
-}
+  const memberWithdrawals = useCallback(
+    async (values: any) => {
+      try {
+        const response = await callApi(
+          HTTP_METHOD.POST,
+          `/wallet/withdrawals`,
+          {
+            ...values,
+          }
+        );
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
 
-export interface PaginatedResponse<T> {
-  items: T[];
-  meta: {
-    total: number;
-    page: number;
-    pageSize: number;
+  const adminGetWithdrawRequest = useCallback(async () => {
+    try {
+      const response = await callApi(
+        HTTP_METHOD.GET,
+        `/wallet/admin/withdrawals?pageSize=50&page=1`
+      );
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+    }
+  }, [callApi]);
+
+  const adminApproveRequest = useCallback(
+    async (id: string) => {
+      try {
+        const response = await callApi(
+          HTTP_METHOD.POST,
+          `/wallet/withdrawals/${id}/approve`
+        );
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
+
+  const adminDenyRequest = useCallback(
+    async (id: string, values: any) => {
+      try {
+        const response = await callApi(
+          HTTP_METHOD.POST,
+          `/wallet/withdrawals/${id}/deny`,
+          { ...values }
+        );
+        return response;
+      } catch (e: any) {
+        console.log(e?.response?.data);
+      }
+    },
+    [callApi]
+  );
+
+  const memberGetTransacions = useCallback(async () => {
+    try {
+      const response = await callApi(
+        HTTP_METHOD.GET,
+        `/wallet/transactions?pageSize=20&page=1`
+      );
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+    }
+  }, [callApi]);
+
+  return {
+    loading,
+    getMyWallet,
+    deposit,
+    setIsLoading,
+    getBanks,
+    memberWithdrawals,
+    adminGetWithdrawRequest,
+    adminApproveRequest,
+    adminDenyRequest,
+    memberGetTransacions,
   };
-}
+};
 
-/**
- * WalletService
- * Handles all wallet-related API calls: balance, transactions, holds, deposits
- */
-class WalletService {
-  /**
-   * Get current user's wallet balance and state
-   */
-  async getBalance(): Promise<Wallet> {
-    const response = await axios.get<Wallet>("/wallet");
-    return response.data;
-  }
-
-  /**
-   * Get paginated wallet transactions
-   */
-  async getTransactions(
-    page: number = 1,
-    pageSize: number = 20
-  ): Promise<PaginatedResponse<WalletTransaction>> {
-    const response = await axios.get<PaginatedResponse<WalletTransaction>>(
-      "/wallet/transactions",
-      {
-        params: { page, pageSize },
-      }
-    );
-    return response.data;
-  }
-
-  /**
-   * Get paginated escrow holds
-   */
-  async getHolds(
-    page: number = 1,
-    pageSize: number = 20
-  ): Promise<PaginatedResponse<EscrowHold>> {
-    const response = await axios.get<PaginatedResponse<EscrowHold>>(
-      "/wallet/holds",
-      {
-        params: { page, pageSize },
-      }
-    );
-    return response.data;
-  }
-
-  /**
-   * Initiate deposit to wallet via PayOS
-   * Returns checkout URL for redirect
-   */
-  async deposit(request: DepositRequest): Promise<DepositResponse> {
-    const response = await axios.post<DepositResponse>(
-      "/wallet/deposit",
-      request
-    );
-    return response.data;
-  }
-
-  /**
-   * Calculate required deposit for a bid amount
-   * @param bidAmount - The bid amount in smallest unit (e.g. VND đồng)
-   * @param depositPercent - Deposit percentage (e.g. 10 for 10%)
-   * @returns Required deposit amount
-   */
-  calculateDeposit(bidAmount: number, depositPercent: number): number {
-    return Math.ceil((bidAmount * depositPercent) / 100);
-  }
-
-  /**
-   * Check if user has sufficient balance for a bid
-   * @param bidAmount - The bid amount
-   * @param depositPercent - Deposit percentage
-   * @param availableBalance - User's available wallet balance
-   * @returns { sufficient: boolean, required: number, shortfall: number }
-   */
-  checkSufficientBalance(
-    bidAmount: number,
-    depositPercent: number,
-    availableBalance: number
-  ): { sufficient: boolean; required: number; shortfall: number } {
-    const required = this.calculateDeposit(bidAmount, depositPercent);
-    const sufficient = availableBalance >= required;
-    const shortfall = sufficient ? 0 : required - availableBalance;
-    return { sufficient, required, shortfall };
-  }
-}
-
-export default new WalletService();
+export default walletService;

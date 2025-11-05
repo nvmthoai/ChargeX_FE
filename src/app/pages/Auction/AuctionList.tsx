@@ -23,45 +23,26 @@ export default function AuctionList() {
 
   const fetchAuctions = async () => {
     try {
-      console.log("🚀 [AuctionList] Starting fetch, filter:", filter);
       setLoading(true);
       
       const status = filter !== "all" ? filter : undefined;
-      console.log("🌐 [AuctionList] Calling auctionApi.getJoinableAuctions with status:", status);
-      
       const response = await auctionApi.getJoinableAuctions(status, 1, 20);
       
-      console.log("📦 [AuctionList] API response:", response);
-      console.log("📊 [AuctionList] Items count:", response?.items?.length || 0);
-      
       if (response && response.items) {
-        console.log("✅ [AuctionList] Setting auctions:", response.items);
         setAuctions(response.items);
       } else {
-        console.warn("⚠️ [AuctionList] No items in response");
         setAuctions([]);
       }
     } catch (error: any) {
-      console.error("❌ [AuctionList] Failed to fetch auctions:", error);
-      console.error("❌ [AuctionList] Error details:", {
-        message: error?.message,
-        status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        data: error?.response?.data,
-      });
-      
-      // Don't show error toast since auctionApi already handles fallback to mock data
-      // Just log the error
+      console.error("Failed to fetch auctions:", error);
       setAuctions([]);
     } finally {
       setLoading(false);
-      console.log("✅ [AuctionList] Fetch complete");
     }
   };
 
   // Fetch auctions on mount and when filter changes
   useEffect(() => {
-    console.log("🔄 [AuctionList] useEffect triggered, filter:", filter);
     fetchAuctions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
