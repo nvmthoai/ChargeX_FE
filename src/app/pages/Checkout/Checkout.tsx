@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { message, Spin } from "antd";
 import { createOrder } from "../../../api/order/api";
-import { OrderStatus } from "../../../api/order/type";
+// import { OrderStatus } from "../../../api/order/type";
 import useAddress from "../../hooks/useAddress";
 import AddressList from "../Manage-Address/AddressList";
 import AddressFormModal from "../Manage-Address/AddressFormModal";
@@ -53,7 +53,6 @@ export default function Checkout() {
     }
   }, [addresses]);
 
-  // 💳 Xác nhận thanh toán
   const handleConfirmPayment = async () => {
     if (!selectedAddressId) return message.warning("Vui lòng chọn địa chỉ giao hàng!");
     if (!product) return message.error("Không tìm thấy sản phẩm!");
@@ -62,36 +61,113 @@ export default function Checkout() {
     const user = userData ? JSON.parse(userData) : null;
     if (!user?.sub) return message.error("Bạn cần đăng nhập để đặt hàng!");
 
-
+    const selectedAddress = addresses.find((a: any) => a.addressId === selectedAddressId);
+    if (!selectedAddress) return message.error("Địa chỉ giao hàng không hợp lệ!");
 
     setConfirming(true);
     try {
       const payload = {
-        buyer_id: user.sub,
-        seller_id: product.seller.userId,
-        productId: product.id,
-        price: product.price_buy_now,
-        shipping_fee: shippingFee,
-        shipping_provider: "GHTK",
-        shipping_code: "AUTO-" + Date.now(),
-        status: OrderStatus.PENDING,
-        contract_url: "https://example.com/contracts/sample.pdf",
-        pickup_address_id: product.seller.defaultAddress.addressId,
-        delivery_address_id: selectedAddressId,
+        receiverName: selectedAddress.fullName,
+        receiverPhone: selectedAddress.phone,
+        receiverAddressId: selectedAddress.addressId, // ✅ chỉ truyền ID
+        orderShops: [
+          {
+            sellerId: product.seller.userId,
+            shippingProvider: "GHTK",
+            fromAddressId: product.seller.defaultAddress.addressId,
+            orderDetails: [
+              {
+                productId: product.id,
+                quantity: 1,
+                price: Number(product.price_buy_now),
+                subtotal: Number(product.price_buy_now),
+              },
+            ],
+          },
+        ],
       };
 
-      console.log("📦 Creating order with payload:", payload);
-      const order = await createOrder(payload);
+      console.log("📦 Creating order with FINAL payload:", payload);
+      console.log("🧩 user.sub:", user?.sub);
+
+      const order = await createOrder(user.sub, payload);
+      
+      console.log("📦 Order response object:", order);
 
       message.success("✅ Đơn hàng đã được tạo thành công!");
       navigate(`/payment?orderId=${order.orderId}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error("❌ Error creating order:", err);
+
+      if (err.response?.data) {
+        console.log("🚨 Server response:", err.response.data);
+        console.log("🧩 Error message:", err.response.data?.message?.message);
+      }
+
       message.error("Không thể tạo đơn hàng, vui lòng thử lại!");
-    } finally {
+    }
+    finally {
       setConfirming(false);
     }
   };
+
+
+
+
+
+  // const handleConfirmPayment = async () => {
+  //   const userData = localStorage.getItem("user");
+  //   const user = userData ? JSON.parse(userData) : null;
+  //   if (!user?.sub) return message.error("Bạn cần đăng nhập để đặt hàng!");
+
+  //   if (!product) return message.error("Không tìm thấy sản phẩm!");
+
+  //   setConfirming(true);
+  //   try {
+  //     // 🧩 Địa chỉ tạm cứng (mock)
+  //     // const tempAddress = {
+  //     //   fullName: "Nguyễn Văn A",
+  //     //   phone: "0912345678",
+  //     //   addressLine: "123 Lê Lợi, Quận 1, TP.HCM",
+  //     //   districtId: 1442, // Quận 1
+  //     //   wardCode: "510101", // Phường Mỹ Bình
+  //     // };
+  //     const payload = {
+  //       receiverName: "heloia",
+  //       receiverPhone: "0987654321",
+  //       receiverAddressId: "de8886d3-9dc3-4b06-bcb6-e517b61d325d", // ✅ người nhận
+  //       orderShops: [
+  //         {
+  //           sellerId: "35ae3768-d8ee-49de-bb38-6a3b740e2cd7", // ✅ người bán
+  //           shippingProvider: "GHN",
+  //           requiredNote: "CHOXEMHANGKHONGTHU", // ✅ GHN note chuẩn
+  //           fromAddressId: "d4bb2401-8231-4503-909c-f417c23084bf", // ✅ địa chỉ người gửi
+  //           orderDetails: [
+  //             {
+  //               productId: product.id,
+  //               quantity: 1,
+  //               price: Number(product.price_buy_now),
+  //               subtotal: Number(product.price_buy_now),
+  //             },
+  //           ],
+  //         },
+  //       ],
+  //     };
+
+  //     console.log("📦 Creating order with MOCK address payload:", payload);
+  //     const order = await createOrder(user.sub, payload);
+
+  //     message.success("✅ Đơn hàng đã được tạo thành công!");
+  //     navigate(`/payment?orderId=${order.orderId}`);
+  //   } catch (err: any) {
+  //     console.error("❌ Error creating order:", err);
+  //     if (err.response?.data) console.log("🚨 Server response:", err.response.data);
+  //     message.error("Không thể tạo đơn hàng, vui lòng thử lại!");
+  //   } finally {
+  //     setConfirming(false);
+  //   }
+  // };
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
@@ -188,11 +264,11 @@ export default function Checkout() {
                 {confirming ? "Đang xử lý..." : "Xác nhận thanh toán"}
               </button>
               <button
-              onClick={() => navigate(-1)}
-              className="w-full py-3 rounded-lg border text-gray-700 hover:border-[#0F74C7] transition flex items-center justify-center gap-2"
-            >
-              <ArrowLeftOutlined /> Quay lại
-            </button>
+                onClick={() => navigate(-1)}
+                className="w-full py-3 rounded-lg border text-gray-700 hover:border-[#0F74C7] transition flex items-center justify-center gap-2"
+              >
+                <ArrowLeftOutlined /> Quay lại
+              </button>
             </>
           ) : (
             <p className="text-gray-500 italic">Không tìm thấy sản phẩm.</p>
