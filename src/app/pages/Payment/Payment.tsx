@@ -48,6 +48,7 @@ export default function PaymentPage() {
     (async () => {
       try {
         const data = await getOrderById(orderId);
+        console.log("🧾 Order detail fetched:", data);
         setOrder(data);
       } catch (err) {
         console.error("❌ Error fetching order:", err);
@@ -89,8 +90,11 @@ export default function PaymentPage() {
   }, [order, provinces, fetchDistricts, fetchWards]);
 
   // 💰 Tính tổng
-  const total = (Number(order?.price) || 0) + (Number(order?.shipping_fee) || 0);
-  const product = order?.product;
+  const total =
+    (Number(order?.totalPrice) || 0) +
+    (Number(order?.totalShippingFee) || 0);
+  const product = order?.orderShops?.[0]?.orderDetails?.[0]?.product;
+  console.log("sản phẩm nè", product);
   const isWalletInsufficient = method === PaymentProvider.WALLET && (wallet?.available ?? 0) < total;
 
   // 💳 Xử lý thanh toán
@@ -117,7 +121,7 @@ export default function PaymentPage() {
             method: "wallet",
             returnUrl: `${window.location.origin}/payment-success`,
             cancelUrl: `${window.location.origin}/payment-cancel`,
-             webhookUrl: "https://yoursite.com/webhook/payos",
+            webhookUrl: "https://yoursite.com/webhook/payos",
           };
           console.log("🧾 createPaymentForOrder (WALLET) payload →", walletPaymentPayload);
 
@@ -189,6 +193,7 @@ export default function PaymentPage() {
         <p>Không tìm thấy đơn hàng.</p>
       </div>
     );
+  const seller = order?.orderShops?.[0]?.seller;
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
@@ -216,7 +221,7 @@ export default function PaymentPage() {
               <div className="flex-1">
                 <p className="font-semibold text-gray-900 text-lg">{product.title}</p>
                 <p className="text-sm text-gray-500 line-clamp-2">{product.description || "Không có mô tả"}</p>
-                <p className="font-semibold text-[#0F74C7] mt-1">{Number(order.price).toLocaleString()} ₫</p>
+                <p className="font-semibold text-[#0F74C7] mt-1">{Number(order.totalPrice).toLocaleString()} ₫</p>
               </div>
             </div>
           )}
@@ -228,7 +233,7 @@ export default function PaymentPage() {
               <h3 className="font-semibold text-gray-800">Người bán</h3>
             </div>
             <p className="text-gray-700">
-              <span className="font-medium">Tên:</span> {order.seller?.fullName}
+              <span className="font-medium">Tên:</span> {seller?.fullName}
             </p>
             {order.pickupAddress && (
               <p className="flex items-start gap-1 text-gray-700 mt-1">
@@ -270,7 +275,7 @@ export default function PaymentPage() {
             )}
             <p className="text-gray-700 mt-1">
               <span className="font-medium">Phí vận chuyển:</span>{" "}
-              {order.shipping_fee ? `${Number(order.shipping_fee).toLocaleString()} ₫` : "0 ₫"}
+              {order.totalShippingFee ? `${Number(order.totalShippingFee).toLocaleString()} ₫` : "0 ₫"}
             </p>
           </div>
 
@@ -294,9 +299,8 @@ export default function PaymentPage() {
           >
             {/* PAYOS */}
             <div
-              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${
-                method === PaymentProvider.PAYOS ? "border-2 border-[#0F74C7] bg-[#f0f7ff]" : "border border-gray-200 bg-white"
-              }`}
+              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.PAYOS ? "border-2 border-[#0F74C7] bg-[#f0f7ff]" : "border border-gray-200 bg-white"
+                }`}
               onClick={() => setMethod(PaymentProvider.PAYOS)}
             >
               <div className="flex items-center gap-3">
@@ -313,9 +317,8 @@ export default function PaymentPage() {
 
             {/* WALLET */}
             <div
-              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${
-                method === PaymentProvider.WALLET ? "border-2 border-[#0F74C7] bg-[#f6fbff]" : "border border-gray-200 bg-white"
-              }`}
+              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.WALLET ? "border-2 border-[#0F74C7] bg-[#f6fbff]" : "border border-gray-200 bg-white"
+                }`}
               onClick={() => setMethod(PaymentProvider.WALLET)}
             >
               <div className="flex items-center gap-3">
@@ -356,9 +359,8 @@ export default function PaymentPage() {
             <button
               onClick={handlePayment}
               disabled={processing || isWalletInsufficient}
-              className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${
-                processing || isWalletInsufficient ? "bg-gray-400 cursor-not-allowed" : "bg-[#0F74C7] hover:bg-[#3888ca]"
-              }`}
+              className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${processing || isWalletInsufficient ? "bg-gray-400 cursor-not-allowed" : "bg-[#0F74C7] hover:bg-[#3888ca]"
+                }`}
             >
               {processing ? "Đang xử lý..." : "Thanh toán ngay"}
             </button>

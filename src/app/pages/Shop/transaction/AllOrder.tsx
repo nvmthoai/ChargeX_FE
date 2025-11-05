@@ -89,20 +89,20 @@ export default function AllOrder() {
                   <td className="px-5 py-3 font-medium text-gray-700">
                     {(page - 1) * pageSize + idx + 1}
                   </td>
-                  <td className="px-5 py-3 text-gray-900">{o.buyer.fullName}</td>
-                  <td className="px-5 py-3 text-gray-900">{o.seller.fullName}</td>
+                  <td className="px-5 py-3 text-gray-900">{o.buyer?.fullName}</td>
+                  <td className="px-5 py-3 text-gray-900">{o.seller?.fullName}</td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-center gap-2">
                       <img
-                        src={o.product.imageUrls?.[0] || "/placeholder.png"}
-                        alt={o.product.title}
+                        src={o.product?.imageUrls?.[0] || "/placeholder.png"}
+                        alt={o.product?.title}
                         className="w-10 h-10 rounded-md object-cover border"
                       />
-                      <span>{o.product.title}</span>
+                      <span>{o.product?.title}</span>
                     </div>
                   </td>
                   <td className="px-5 py-3 text-right font-semibold">
-                    {o.price.toLocaleString()}₫
+                    {o.totalPrice?.toLocaleString()}₫
                   </td>
                   <td className="px-5 py-3 relative">
                     <OrderStatusBadge

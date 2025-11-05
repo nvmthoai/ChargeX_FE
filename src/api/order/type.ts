@@ -1,3 +1,7 @@
+// ===============================
+// 🧾 ORDER TYPES (Fixed version)
+// ===============================
+
 export enum OrderStatus {
   PENDING = "pending",
   PAID = "paid",
@@ -11,6 +15,7 @@ export enum OrderStatus {
   CANCELLED = "cancelled",
 }
 
+// 🏠 Tham chiếu địa chỉ
 export interface AddressRef {
   addressId: string;
   label: string;
@@ -19,6 +24,7 @@ export interface AddressRef {
   line1: string;
 }
 
+// 👤 Người dùng cơ bản
 export interface UserRef {
   userId: string;
   fullName: string;
@@ -26,6 +32,7 @@ export interface UserRef {
   phone?: string;
 }
 
+// 📦 Sản phẩm cơ bản (nếu có)
 export interface ProductRef {
   id: string;
   title: string;
@@ -33,26 +40,58 @@ export interface ProductRef {
   imageUrls: string[];
 }
 
+
+export interface OrderDetail {
+  orderDetailId: string;
+  price: number;
+  quantity?: number;
+  subtotal?: number;
+  product?: ProductRef;
+}
+
+export interface OrderShop {
+  orderShopId: string;
+  seller?: UserRef;
+  shippingFee?: number;
+  status?: string;
+  orderDetails?: OrderDetail[];
+}
+
+// 🧾 Đơn hàng trả về từ API
 export interface Order {
   orderId: string;
-  buyer: UserRef;                     
-  seller: UserRef;                    
-  product: ProductRef;                
-  price: number;
-  shipping_fee: number;               
+
+  buyer?: UserRef;                   
+  seller?: UserRef;                   
+  product?: ProductRef;               
+
+  orderShops?: OrderShop[]; 
+
+  receiverAddressRef?: AddressRef; 
+  receiverName?: string;
+  receiverPhone?: string;
+
+  totalPrice: number;
+  totalShippingFee: number;
+  grandTotal?: number;
+  status: OrderStatus;       
+
   shipping_provider?: string;
   shipping_code?: string;
-  contract_url?: string;             
-  pickupAddress?: AddressRef;
-  deliveryAddress?: AddressRef;
-  status: OrderStatus;
+  contract_url?: string;
+
+  pickupAddress?: AddressRef;    
+  deliveryAddress?: AddressRef;  
+
   createdAt?: string;
   updatedAt?: string;
 }
 
+// 🧩 Tạo mới đơn hàng
 export interface CreateOrderRequest {
   receiverName: string;
   receiverPhone: string;
+
   // chỉ cần 1 trong 2 cách sau
   receiverAddress?: string;
   receiverDistrictId?: number;
@@ -72,11 +111,21 @@ export interface CreateOrderRequest {
   }[];
 }
 
-
-
+// ✏️ Cập nhật đơn hàng
 export interface UpdateOrderRequest {
   status?: OrderStatus;
   shipping_code?: string;
   shipping_provider?: string;
-  contract_url?: string;              // 🟩 đồng bộ tên
+  contract_url?: string;
+}
+
+
+export interface GetOrdersParams {
+  buyerId?: string;
+  sellerId?: string;
+  status?: OrderStatus;
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: "ASC" | "DESC";
 }
