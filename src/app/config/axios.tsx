@@ -45,12 +45,15 @@ axiosInstance.interceptors.response.use(
         if (!isTokenExpired) {
           isTokenExpired = true;
           toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
-          setTimeout(() => {
-            localStorage.clear();
-            // store.dispatch(logout());
-            window.location.href = "/";
-            isTokenExpired = false;
-          }, 1300);
+          // Immediately clear storage and redirect to login page
+          localStorage.clear();
+          // store.dispatch(logout());
+          try {
+            const next = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/auth${next ? `?next=${next}` : ""}`;
+          } catch {
+            window.location.href = "/auth";
+          }
         }
       }
     }
