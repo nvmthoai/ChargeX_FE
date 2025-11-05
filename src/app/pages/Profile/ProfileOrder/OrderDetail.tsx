@@ -37,7 +37,7 @@ export default function OrderDetail() {
       </div>
     );
 
-  const total = Number(order.price) + Number(order.shipping_fee);
+  const total = Number(order.totalPrice) + Number(order.totalShippingFee);
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md my-10 p-10 border border-gray-200 relative">
@@ -85,19 +85,19 @@ export default function OrderDetail() {
           <div className="flex justify-between items-center py-4">
             <div className="flex gap-4">
               <img
-                src={order.product.imageUrls?.[0]}
-                alt={order.product.title}
+                src={order.product?.imageUrls?.[0]}
+                alt={order.product?.title}
                 className="w-20 h-20 object-cover rounded-md border"
               />
               <div>
-                <h4 className="font-medium text-gray-800">{order.product.title}</h4>
+                <h4 className="font-medium text-gray-800">{order.product?.title}</h4>
                 <p className="text-sm text-gray-500">
-                  {order.product.description}
+                  {order.product?.description}
                 </p>
               </div>
             </div>
             <p className="font-medium text-gray-700 text-right">
-              ${Number(order.price).toLocaleString()}
+              ${Number(order.totalPrice).toLocaleString()}
             </p>
           </div>
         </div>
@@ -107,11 +107,11 @@ export default function OrderDetail() {
       <div className="border-t pt-5">
         <div className="flex justify-between mb-2 text-gray-600">
           <span>Subtotal</span>
-          <span>${Number(order.price).toLocaleString()}</span>
+          <span>${Number(order.totalPrice).toLocaleString()}</span>
         </div>
         <div className="flex justify-between mb-2 text-gray-600">
           <span>Shipping Charge</span>
-          <span>${Number(order.shipping_fee).toLocaleString()}</span>
+          <span>${Number(order.totalShippingFee).toLocaleString()}</span>
         </div>
         <div className="flex justify-between mb-2 text-gray-600">
           <span>Tax Fee</span>
@@ -139,17 +139,17 @@ export default function OrderDetail() {
           <h4 className="font-semibold text-[#0F74C7] mb-2">
             Buyer Information
           </h4>
-          <p>{order.buyer.fullName}</p>
-          <p>{order.buyer.phone}</p>
-          <p>{order.buyer.email}</p>
+          <p>{order.buyer?.fullName}</p>
+          <p>{order.buyer?.phone}</p>
+          <p>{order.buyer?.email}</p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg border">
           <h4 className="font-semibold text-[#0F74C7] mb-2">
             Seller Information
           </h4>
-          <p>{order.seller.fullName}</p>
-          <p>{order.seller.phone}</p>
-          <p>{order.seller.email}</p>
+          <p>{order.seller?.fullName}</p>
+          <p>{order.seller?.phone}</p>
+          <p>{order.seller?.email}</p>
         </div>
       </div>
 

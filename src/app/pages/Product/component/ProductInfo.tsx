@@ -146,7 +146,7 @@ export default function ProductInfo({ product }: { product: Product }) {
           >
             {loading
               ? "Đang xử lý..."
-              : `Buy Now • $${(product.price_buy_now).toLocaleString()}`}
+              : `Buy Now • $${Number(product.price_buy_now).toLocaleString()}`}
           </button>
           <button className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium">
             Add to Watchlist
