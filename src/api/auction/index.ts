@@ -9,6 +9,7 @@ export interface AuctionSummary {
   endTime: string;
   currentPrice: number;
   minBidIncrement: number;
+  imageUrls?: string[];
 }
 
 export interface AuctionDetail extends AuctionSummary {

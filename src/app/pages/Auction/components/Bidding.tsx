@@ -21,29 +21,55 @@ export default function Bidding() {
     loading,
     live,
     reconnecting,
-    isConnected,
     countdown,
     placeBid,
     pendingBid,
-    resync,
   } = useAuctionLive(auctionId, {
     resyncIntervalSeconds: 8,
     bidderId: user?.sub || null, // Pass user ID from auth context
   });
 
   const {
-    wallet,
-    loading: walletLoading,
-    deposit,
-    calculateDeposit,
-    checkSufficientBalance,
-    formatCurrency: formatVND,
-    fetchBalance,
-  } = useWallet({ autoFetch: true, refreshIntervalSeconds: 30 });
+    myWallet,
+    handleDeposit: depositToWallet,
+  } = useWallet();
+
+  // Use myWallet as wallet for compatibility
+  const wallet = myWallet;
 
   const [input, setInput] = useState<string>("");
   const [placing, setPlacing] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
+
+  // Helper functions for wallet operations
+  const formatVND = (amount: number) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      minimumFractionDigits: 0,
+    }).format(amount);
+
+  const calculateDeposit = (bidAmount: number, depositPercent: number): number => {
+    return Math.ceil((bidAmount * depositPercent) / 100);
+  };
+
+  const checkSufficientBalance = (bidAmount: number, depositPercent: number) => {
+    const required = calculateDeposit(bidAmount, depositPercent);
+    const available = myWallet?.available ?? 0;
+    return {
+      sufficient: available >= required,
+      required,
+      available,
+    };
+  };
+
+  const fetchBalance = async () => {
+    // Wallet will auto-refresh via useEffect in useWallet hook
+  };
+
+  const deposit = async (amount: number) => {
+    await depositToWallet(amount.toString());
+  };
 
   // Use startingPrice if currentPrice is 0 (no bids yet)
   const rawCurrentPrice = auction?.currentPrice ?? 0;

@@ -86,7 +86,7 @@ export default function Product() {
             Current Bid:{" "}
             <span>
               {formatCurrency(
-                auction?.currentPrice > 0 
+                (auction?.currentPrice && auction.currentPrice > 0)
                   ? auction.currentPrice 
                   : (auction as any)?.startingPrice ?? (auction as any)?.product?.priceStart ?? 0
               )}
@@ -107,7 +107,7 @@ export default function Product() {
           </p>
           <p className="current-bid-amount">
             {formatCurrency(
-              auction?.currentPrice > 0 
+              (auction?.currentPrice && auction.currentPrice > 0)
                 ? auction.currentPrice 
                 : (auction as any)?.startingPrice ?? 0
             )}
