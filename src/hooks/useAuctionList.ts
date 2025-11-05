@@ -48,17 +48,29 @@ export function useAuctionList({
         setIsLoading(true);
         setError(null);
 
+        console.log("🚀 [Hook] Fetching auctions with params:", {
+          status: currentStatus,
+          page: pageToFetch,
+          pageSize
+        });
+
         const data: PaginatedAuctions = await auctionApi.getJoinableAuctions(
           currentStatus,
           pageToFetch,
           pageSize
         );
 
-        setAuctions(data.items);
-        setTotal(data.meta.total);
-        setPage(data.meta.page);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch auctions");
+        console.log("✅ [Hook] Received data:", data);
+        console.log("📝 [Hook] Items count:", data.items?.length);
+        console.log("📊 [Hook] Meta info:", data.meta);
+
+        setAuctions(data.items || []);
+        setTotal(data.meta?.total || 0);
+        setPage(data.meta?.page || pageToFetch);
+      } catch (err: unknown) {
+        console.error("❌ [Hook] Error fetching auctions:", err);
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch auctions";
+        setError(errorMessage);
         setAuctions([]);
       } finally {
         setIsLoading(false);

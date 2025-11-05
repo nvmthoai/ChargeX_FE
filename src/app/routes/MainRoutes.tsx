@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import About from "../pages/About/About";
 import Auction from "../pages/Auction/Auction";
-import AuctionList from "../pages/Auction/AuctionList";
+import AuctionList from "../pages/Auction/AuctionListOptimized";
 import AuthPage from "../pages/Auth/auth";
 import Cart from "../pages/Cart/Cart";
 import Home from "../pages/Home/Home";

@@ -7,6 +7,15 @@ const SOCKET_URL =
   import.meta.env.VITE_API_URL ||
   "http://localhost:3001";
 
+interface BidHistoryItem {
+  bidId: string;
+  userId: string;
+  userName?: string;
+  amount: number;
+  timestamp: string;
+  isWinning?: boolean;
+}
+
 interface AuctionData {
   auctionId: string;
   productId: string;
@@ -14,17 +23,27 @@ interface AuctionData {
   startTime: string;
   endTime: string;
   currentPrice: number;
-  startingPrice: number;
+  startingPrice?: number;
   buyNowPrice?: number;
-  minIncrement: number;
-  reserveMet: boolean;
-  bidCount: number;
-  winnerId: string | null;
+  minBidIncrement: number; // ✅ Fixed: Backend returns minBidIncrement, not minIncrement
+  reservePrice?: number;
+  antiSnipingSeconds?: number;
+  leadingBidId?: string | null;
+  bidCount?: number;
+  winnerId?: string | null;
+  bidHistory?: BidHistoryItem[]; // Add bid history
   product?: {
-    id: string;
     title: string;
     description: string;
-    images: string[];
+    imageUrls: string[];
+    sohPercent?: number;
+    cycleCount?: number;
+    nominalVoltageV?: number;
+    weightKg?: number;
+    conditionGrade?: string;
+    dimension?: string;
+    priceStart?: number;
+    priceBuyNow?: number;
   };
 }
 
@@ -33,10 +52,14 @@ interface PriceUpdate {
   endTime: string;
   bidId: string;
   winnerId: string;
+  timestamp: string;
+  userName?: string;
+  userId?: string;
 }
 
 interface UseAuctionLiveOptions {
   resyncIntervalSeconds?: number;
+  bidderId?: string | null; // User ID for placing bids
 }
 
 interface UseAuctionLiveReturn {
@@ -55,7 +78,7 @@ export default function useAuctionLive(
   auctionId: string | null,
   options: UseAuctionLiveOptions = {}
 ): UseAuctionLiveReturn {
-  const { resyncIntervalSeconds = 8 } = options;
+  const { resyncIntervalSeconds = 8, bidderId = null } = options;
 
   const [auction, setAuction] = useState<AuctionData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,22 +100,25 @@ export default function useAuctionLive(
 
     try {
       const response = await api.get(`/auction/${auctionId}`);
-      const data = response.data;
+      
+      // Unwrap NestJS response format: {success, statusCode, data}
+      let auctionData = response.data;
+      if (auctionData && typeof auctionData === 'object') {
+        // Check if response is wrapped
+        if ('data' in auctionData && 'success' in auctionData) {
+          auctionData = auctionData.data;
+        }
+      }
 
       if (mountedRef.current) {
-        setAuction(data);
+        setAuction(auctionData);
         setError(null);
         setLoading(false);
       }
-    } catch (err: any) {
-      console.error("[useAuctionLive] Fetch error:", err);
+        } catch (err: unknown) {
+      console.error("[useAuctionLive] Socket connection error:", err);
       if (mountedRef.current) {
-        setError(
-          err.response?.data?.message ||
-            err.message ||
-            "Failed to fetch auction"
-        );
-        setLoading(false);
+        setError("Failed to connect to live auction");
       }
     }
   }, [auctionId]);
@@ -113,20 +139,20 @@ export default function useAuctionLive(
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionAttempts: 5,
+        auth: {
+          userId: bidderId, // Pass user ID for authentication
+        },
       });
 
       socketRef.current = socket;
 
       socket.on("connect", () => {
-        console.log("[useAuctionLive] Socket connected:", socket.id);
         setReconnecting(false);
-
         // Join auction room
         socket.emit("auction:join", { auctionId });
       });
 
       socket.on("disconnect", () => {
-        console.log("[useAuctionLive] Socket disconnected");
         if (mountedRef.current) {
           setReconnecting(true);
         }
@@ -141,7 +167,6 @@ export default function useAuctionLive(
 
       // Listen for auction state updates
       socket.on("auction:state", (state: AuctionData) => {
-        console.log("[useAuctionLive] Received auction state:", state);
         if (mountedRef.current) {
           setAuction(state);
           setLoading(false);
@@ -150,16 +175,36 @@ export default function useAuctionLive(
 
       // Listen for price updates
       socket.on("auction:price_update", (update: PriceUpdate) => {
-        console.log("[useAuctionLive] Price update:", update);
+        
         if (mountedRef.current) {
           setAuction((prev) => {
             if (!prev) return prev;
+            
+            // Add new bid to history
+            const newBid: BidHistoryItem = {
+              bidId: update.bidId,
+              userId: update.userId || update.winnerId || 'unknown',
+              userName: update.userName,
+              amount: update.currentPrice,
+              timestamp: update.timestamp,
+              isWinning: true,
+            };
+            
+            // Update existing history - mark previous bids as not winning
+            const updatedHistory = (prev.bidHistory || []).map(bid => ({
+              ...bid,
+              isWinning: false,
+            }));
+            
+           
+            
             return {
               ...prev,
               currentPrice: update.currentPrice,
               endTime: update.endTime,
               winnerId: update.winnerId,
-              bidCount: (prev.bidCount || 0) + 1,
+              bidCount: updatedHistory.length + 1,
+              bidHistory: [newBid, ...updatedHistory], // Latest bid first
             };
           });
           // Clear pending bid on successful update
@@ -169,7 +214,7 @@ export default function useAuctionLive(
 
       // Listen for auction extended
       socket.on("auction:extended", (data: { endTime: string }) => {
-        console.log("[useAuctionLive] Auction extended:", data);
+        
         if (mountedRef.current) {
           setAuction((prev) => {
             if (!prev) return prev;
@@ -190,7 +235,7 @@ export default function useAuctionLive(
       console.error("[useAuctionLive] Socket connection failed:", err);
       setError(err.message || "Failed to connect to auction");
     }
-  }, [auctionId]);
+  }, [auctionId, bidderId]);
 
   // Place bid function
   const placeBid = useCallback(
@@ -211,12 +256,23 @@ export default function useAuctionLive(
         .toString(36)
         .substr(2, 9)}`;
 
+      // Check if we have bidderId
+      if (!bidderId) {
+        console.error("❌ [useAuctionLive] No bidderId provided!");
+        throw new Error("User not authenticated. Please log in to place a bid.");
+      }
+
+ 
+
       // Emit bid to server
       socketRef.current.emit("auction:place_bid", {
         auctionId,
+        bidderId,
         amount,
         clientBidId,
       });
+      
+      
 
       // Clear pending after a timeout (in case we don't get response)
       setTimeout(() => {
@@ -225,7 +281,7 @@ export default function useAuctionLive(
         }
       }, 5000);
     },
-    [auctionId]
+    [auctionId, bidderId]
   );
 
   // Update countdown
@@ -237,11 +293,20 @@ export default function useAuctionLive(
 
     const updateCountdown = () => {
       const now = new Date().getTime();
-      const end = new Date(auction.endTime).getTime();
+      
+      // Ensure endTime is properly parsed as ISO string (UTC)
+      let endTimeStr = auction.endTime;
+      // If endTime doesn't have timezone info, assume it's UTC
+      if (!endTimeStr.endsWith('Z') && !endTimeStr.includes('+') && !endTimeStr.includes('-', 10)) {
+        endTimeStr = endTimeStr + 'Z';
+      }
+      
+      const end = new Date(endTimeStr).getTime();
       const distance = Math.max(0, end - now);
+      const seconds = Math.floor(distance / 1000);
 
       if (mountedRef.current) {
-        setCountdown(Math.floor(distance / 1000)); // seconds
+        setCountdown(seconds);
       }
 
       if (distance <= 0 && countdownIntervalRef.current) {
@@ -262,6 +327,9 @@ export default function useAuctionLive(
   // Initial fetch and socket connection
   useEffect(() => {
     if (!auctionId) return;
+
+    // Set mounted state to true on mount
+    mountedRef.current = true;
 
     // Fetch initial data
     fetchAuctionDetail();

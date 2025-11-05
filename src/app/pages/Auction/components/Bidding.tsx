@@ -28,6 +28,7 @@ export default function Bidding() {
     resync,
   } = useAuctionLive(auctionId, {
     resyncIntervalSeconds: 8,
+    bidderId: user?.sub || null, // Pass user ID from auth context
   });
 
   const {
@@ -44,21 +45,13 @@ export default function Bidding() {
   const [placing, setPlacing] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
 
-  const currentPrice = auction?.currentPrice ?? 0;
-  const minIncrement = auction?.minIncrement ?? 0;
+  // Use startingPrice if currentPrice is 0 (no bids yet)
+  const rawCurrentPrice = auction?.currentPrice ?? 0;
+  const startingPrice = (auction as any)?.startingPrice ?? (auction as any)?.product?.priceStart ?? 0;
+  const currentPrice = rawCurrentPrice > 0 ? rawCurrentPrice : startingPrice;
+  
+  const minIncrement = auction?.minBidIncrement ?? 0;
   const nextMinBid = currentPrice + minIncrement;
-
-  // Debug log
-  console.log("🔍 [Bidding] Debug data:", {
-    auction,
-    currentPrice,
-    minIncrement,
-    nextMinBid,
-    live,
-    loading,
-    reconnecting,
-    isConnected: (auction as any)?.isConnected || false, // temporary cast
-  });
 
   const canBid = useMemo(() => {
     if (!user) return { ok: false, reason: "Not logged in" };
@@ -264,8 +257,34 @@ export default function Bidding() {
       <div className="auction-card bidding-history">
         <h2 className="card-title">Bidding History</h2>
         <div className="history-list">
-          {/* History should come from auction.participants or separate API — placeholder */}
-          <p>Live updates will appear here.</p>
+          {auction?.bidHistory && auction.bidHistory.length > 0 ? (
+            <div className="space-y-2">
+              {auction.bidHistory.map((bid) => (
+                <div 
+                  key={bid.bidId} 
+                  className={`p-3 rounded ${bid.isWinning ? 'bg-green-100 border-2 border-green-500' : 'bg-gray-100'}`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="font-semibold">
+                        {bid.isWinning && '🏆 '}
+                        {bid.userName || 'Anonymous'}
+                      </span>
+                      {bid.userId === user?.sub && (
+                        <span className="ml-2 text-xs text-blue-600 font-bold">(You)</span>
+                      )}
+                    </div>
+                    <span className="font-bold text-lg">{formatCurrency(bid.amount)}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {new Date(bid.timestamp).toLocaleString('vi-VN')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No bids yet. Be the first to bid!</p>
+          )}
         </div>
       </div>
     </div>
