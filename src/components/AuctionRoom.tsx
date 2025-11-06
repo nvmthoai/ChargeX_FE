@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuction } from "../hooks/useAuction";
+import { userApi } from "../api/user/api";
 
 interface AuctionRoomProps {
   auctionId: string;
@@ -27,6 +28,51 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
 
   const [bidAmount, setBidAmount] = useState<string>("");
   const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [ownerName, setOwnerName] = useState<string>("");
+  const [winnerName, setWinnerName] = useState<string>("");
+
+  // Fetch owner name
+  useEffect(() => {
+    const fetchOwnerName = async () => {
+      if (!auctionDetail) return;
+      
+      const sellerId = auctionDetail.sellerId || auctionDetail.product.sellerId;
+      if (!sellerId) {
+        setOwnerName("Người bán");
+        return;
+      }
+      
+      const user = await userApi.getUserById(sellerId);
+      if (user) {
+        setOwnerName(user.fullName || user.email || "Người bán");
+      } else {
+        // Fallback to showing partial user ID if API fails
+        setOwnerName(`User ${sellerId.substring(0, 8)}`);
+      }
+    };
+    
+    fetchOwnerName();
+  }, [auctionDetail]);
+
+  // Fetch winner name
+  useEffect(() => {
+    const fetchWinnerName = async () => {
+      if (!auctionDetail?.winnerId) {
+        setWinnerName("");
+        return;
+      }
+      
+      const user = await userApi.getUserById(auctionDetail.winnerId);
+      if (user) {
+        setWinnerName(user.fullName || user.email || "Người thắng");
+      } else {
+        // Fallback to showing partial user ID if API fails
+        setWinnerName(`User ${auctionDetail.winnerId.substring(0, 8)}`);
+      }
+    };
+    
+    fetchWinnerName();
+  }, [auctionDetail?.winnerId]);
 
   // Calculate time remaining
   useEffect(() => {
@@ -133,6 +179,11 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
       {/* Product Info */}
       <div className="auction-product-info">
         <h1>{auctionDetail.product.title}</h1>
+        {ownerName && (
+          <div className="owner-info">
+            <strong>Người sở hữu:</strong> {ownerName}
+          </div>
+        )}
         <div className="product-images">
           {auctionDetail.product.images.map((img: string, idx: number) => (
             <img key={idx} src={img} alt={`Product ${idx + 1}`} />
@@ -258,7 +309,7 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
       {hasEnded && auctionDetail.winnerId && (
         <div className="winner-panel">
           <h3>🏆 Người thắng cuộc</h3>
-          <p>User ID: {auctionDetail.winnerId}</p>
+          <p>Người thắng: {winnerName || "Đang tải..."}</p>
           <p>Giá cuối: {formatPrice(currentPrice)}</p>
         </div>
       )}
