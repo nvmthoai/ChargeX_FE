@@ -28,14 +28,14 @@ import UserManagement from "../pages/Admin/UserManagement/UserManagement";
 import KycManagement from "../pages/Admin/KycManagement/KycManagement";
 import TransactionManagement from "../pages/Admin/TransactionManagement/TransactionManagement";
 import RevenueManagement from "../pages/Admin/RevenueManagement/RevenueManagement";
-import Checkout from "../pages/Checkout/Checkout";
+import Checkout from "../pages/Order/Checkout";
 import Header from "../layouts/Header/Header";
 import Payment from "../pages/Payment/Payment";
 import AuctionRequestManagement from "../pages/Admin/AuctionRequestManagement";
 import AuctionLiveManagement from "../pages/Admin/AuctionLiveManagement";
 
 import WithdrawManagement from "../pages/Admin/WithdrwaManagement";
-import OrderDetail from "../pages/Profile/ProfileOrder/OrderDetail";
+import OrderDetail from "../pages/Order/OrderDetail";
 import ShopDetailPage from "../pages/Shop-Detail";
 
 import ChatBox from "../components/ChatBox/ChatBox";

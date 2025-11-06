@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Eye, ChevronDown, Check } from "lucide-react";
-import { getAllOrders, updateOrder } from "../../../../api/order/api";
+import { Eye} from "lucide-react";
+import { getAllOrders } from "../../../../api/order/api";
 import type { Order, OrderStatus } from "../../../../api/order/type";
 import { useNavigate } from "react-router-dom";
 
@@ -10,27 +10,41 @@ export default function AllOrder() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 6;
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  // const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const res = await getAllOrders({ page: 1, limit: 9999 });
-      const list = res ?? [];
-
-
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-
-      setOrders(list.slice(start, end));
-      setTotal(list.length);
-    } catch (err) {
-      console.error("❌ Lỗi tải đơn hàng:", err);
-    } finally {
-      setLoading(false);
+const fetchOrders = async () => {
+  setLoading(true);
+  try {
+    // ✅ Lấy thông tin user trong localStorage
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      console.warn("⚠️ No current user found in localStorage");
+      return;
     }
-  };
+
+    // ✅ Parse object và lấy userId/sub
+    const user = JSON.parse(storedUser);
+    const currentUserId = user?.sub; // "28829ea8-896d-4cd8-ae51-014e158b1e68"
+
+    // ✅ Gọi API lọc theo người bán
+    const res = await getAllOrders({
+      sellerId: currentUserId,
+      page,
+      limit: pageSize,
+      sortBy: "createdAt",
+      sortOrder: "DESC",
+    });
+
+    setOrders(res ?? []);
+    setTotal(res?.length ?? 0);
+  } catch (err) {
+    console.error("❌ Lỗi tải đơn hàng:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchOrders();
@@ -57,7 +71,6 @@ export default function AllOrder() {
   return (
     <div className="p-6 space-y-6 relative">
       <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
-        {/*Bảng đơn hàng */}
         {loading ? (
           <div className="p-10 text-center text-gray-400 animate-pulse">
             Đang tải đơn hàng...
@@ -72,7 +85,6 @@ export default function AllOrder() {
               <tr>
                 <th className="px-5 py-3 w-16">#</th>
                 <th className="px-5 py-3">Người mua</th>
-                <th className="px-5 py-3">Người bán</th>
                 <th className="px-5 py-3">Sản phẩm</th>
                 <th className="px-5 py-3 w-28 text-right">Giá</th>
                 <th className="px-5 py-3 w-40">Trạng thái</th>
@@ -81,57 +93,52 @@ export default function AllOrder() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((o, idx) => (
-                <tr
-                  key={o.orderId}
-                  className="border-b border-gray-200 last:border-none hover:bg-blue-50 transition text-center"
-                >
-                  <td className="px-5 py-3 font-medium text-gray-700">
-                    {(page - 1) * pageSize + idx + 1}
-                  </td>
-                  <td className="px-5 py-3 text-gray-900">{o.buyer?.fullName}</td>
-                  <td className="px-5 py-3 text-gray-900">{o.seller?.fullName}</td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center justify-center gap-2">
-                      <img
-                        src={o.product?.imageUrls?.[0] || "/placeholder.png"}
-                        alt={o.product?.title}
-                        className="w-10 h-10 rounded-md object-cover border"
-                      />
-                      <span>{o.product?.title}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 text-right font-semibold">
-                    {o.totalPrice?.toLocaleString()}₫
-                  </td>
-                  <td className="px-5 py-3 relative">
-                    <OrderStatusBadge
-                      value={o.status}
-                      isOpen={openDropdown === o.orderId}
-                      onToggle={() =>
-                        setOpenDropdown(openDropdown === o.orderId ? null : o.orderId)
-                      }
-                      onSelect={async (s) => {
-                        await updateOrder(o.orderId, { status: s });
-                        fetchOrders();
-                      }}
-                    />
-                  </td>
-                  <td className="px-5 py-3 text-gray-500">
-                    {o.createdAt
-                      ? new Date(o.createdAt).toLocaleDateString("vi-VN")
-                      : "-"}
-                  </td>
-                  <td className="px-5 py-3 text-center">
-                    <button
-                      onClick={() => navigate(`/orders/${o.orderId}`)}
-                      className="p-2 rounded-full hover:bg-gray-100 transition"
-                    >
-                      <Eye className="w-5 h-5 text-gray-600" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {orders.map((o, idx) => {
+                // const seller = o.orderShops?.[0]?.seller;
+                const product = o.orderShops?.[0]?.orderDetails?.[0]?.product;
+                return (
+                  <tr
+                    key={o.orderId}
+                    className="border-b border-gray-200 last:border-none hover:bg-blue-50 transition text-center"
+                  >
+                    <td className="px-5 py-3 font-medium text-gray-700">
+                      {(page - 1) * pageSize + idx + 1}
+                    </td>
+                    <td className="px-5 py-3 text-gray-900">
+                      {o.buyer?.fullName}
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center justify-center gap-2">
+                        <img
+                          src={product?.imageUrls?.[0] || "/placeholder.png"}
+                          alt={product?.title}
+                          className="w-10 h-10 rounded-md object-cover border"
+                        />
+                        <span>{product?.title}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3 text-right font-semibold">
+                      {o.totalPrice?.toLocaleString()}₫
+                    </td>
+                    <td className="px-5 py-3 relative">
+                      <OrderStatusBadge value={o.status} />
+                    </td>
+                    <td className="px-5 py-3 text-gray-500">
+                      {o.createdAt
+                        ? new Date(o.createdAt).toLocaleDateString("vi-VN")
+                        : "-"}
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      <button
+                        onClick={() => navigate(`/orders/${o.orderId}`)}
+                        className="p-2 rounded-full hover:bg-gray-100 transition"
+                      >
+                        <Eye className="w-5 h-5 text-gray-600" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -196,49 +203,14 @@ const statusMap: Record<
   cancelled: { text: "Đã hủy", color: "bg-gray-100 text-gray-500 border-gray-200", dot: "bg-gray-300" },
 };
 
-function OrderStatusBadge({
-  value,
-  isOpen,
-  onToggle,
-  onSelect,
-}: {
-  value: OrderStatus;
-  isOpen?: boolean;
-  onToggle?: () => void;
-  onSelect?: (s: OrderStatus) => void;
-}) {
+function OrderStatusBadge({ value }: { value: OrderStatus }) {
   const s = statusMap[value];
   return (
-    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
-      <button
-        type="button"
-        onClick={onToggle}
-        className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm border transition-colors ${s.color}`}
-      >
-        <span className={`h-2 w-2 rounded-full ${s.dot}`} />
-        {s.text}
-        <ChevronDown className="h-4 w-4 opacity-70" />
-      </button>
-
-      {isOpen && (
-        <div className="absolute z-20 mt-2 w-52 rounded-lg border border-gray-100 bg-white shadow-md">
-          {Object.entries(statusMap).map(([key, val]) => (
-            <button
-              key={key}
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect?.(key as OrderStatus);
-              }}
-              className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 ${
-                key === value ? "text-blue-600 font-medium" : "text-gray-700"
-              }`}
-            >
-              {key === value && <Check className="h-4 w-4" />}
-              <span>{val.text}</span>
-            </button>
-          ))}
-        </div>
-      )}
+    <div
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm border ${s.color}`}
+    >
+      <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+      {s.text}
     </div>
   );
 }
