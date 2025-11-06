@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import useAuctionLive from "../../../hooks/useAuctionLive";
 import { useAuth } from "../../../hooks/AuthContext";
 import useWallet from "../../../hooks/useWallet";
 import toast from "react-hot-toast";
+import { userApi } from "../../../../api/user/api";
 import {
   mapErrorMessage,
   extractApiError,
@@ -40,6 +41,22 @@ export default function Bidding() {
   const [input, setInput] = useState<string>("");
   const [placing, setPlacing] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
+  const [winnerName, setWinnerName] = useState<string>("");
+
+  // Fetch winner name when auction ends
+  useEffect(() => {
+    const fetchWinnerName = async () => {
+      if (auction?.status === "ended" && auction?.winnerId) {
+        const winnerUser = await userApi.getUserById(auction.winnerId);
+        if (winnerUser) {
+          setWinnerName(winnerUser.fullName || winnerUser.email || `User ${auction.winnerId.substring(0, 8)}`);
+        } else {
+          setWinnerName(`User ${auction.winnerId.substring(0, 8)}`);
+        }
+      }
+    };
+    fetchWinnerName();
+  }, [auction?.status, auction?.winnerId]);
 
   // Helper functions for wallet operations
   const formatVND = (amount: number) =>
@@ -216,7 +233,7 @@ export default function Bidding() {
               </div>
             ) : (
               <p className="loser">
-                Auction finished. Winner: {auction.winnerId ?? "N/A"}
+                Auction finished. Winner: {winnerName || "Loading..."}
               </p>
             )}
           </div>
