@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getOrderById, updateOrder } from "../../../api/order/api";
+import { getOrderEventsByOrderId } from "../../../api/orderevent/api";
 import type { Order } from "../../../api/order/type";
-// import { OrderStatus } from "../../../api/order/type";
+import type { OrderEvent } from "../../../api/orderevent/type";
 import { Spin, Button, message } from "antd";
 import {
   ArrowLeftOutlined,
@@ -11,22 +12,36 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { orderActions } from "../../config/order-status-config";
+import OrderTracking from "./component/OrderTracking";
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null>(null);
+  const [events, setEvents] = useState<OrderEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // 🧩 Lấy order chi tiết
+  // 🧩 Fetch order + events song song
   useEffect(() => {
     if (!id) return;
-    getOrderById(id)
-      .then((res) => setOrder(res))
-      .catch((err) => console.error("❌ Error fetching order:", err))
-      .finally(() => setLoading(false));
+    const fetchData = async () => {
+      try {
+        const [orderRes, eventRes] = await Promise.all([
+          getOrderById(id),
+          getOrderEventsByOrderId(id),
+        ]);
+        setOrder(orderRes);
+        setEvents(eventRes);
+      } catch (err) {
+        console.error("❌ Error fetching order or events:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [id]);
 
+  // 🌀 Loading state
   if (loading)
     return (
       <div className="flex justify-center items-center h-[60vh]">
@@ -34,6 +49,7 @@ export default function OrderDetail() {
       </div>
     );
 
+  // ❌ Order not found
   if (!order)
     return (
       <div className="p-8 text-center text-gray-500">
@@ -44,21 +60,26 @@ export default function OrderDetail() {
       </div>
     );
 
-  // 🧠 Xác định người bán / người mua
-  const currentUserId = "user"; // ⚠️ TODO: lấy từ auth context
-  const isOwner = order.orderShops?.[0]?.seller?.userId === currentUserId;
-  console.log("isOwner:", isOwner);
-  const role = isOwner ? "seller" : "buyer";
+  // ✅ Lấy user object từ localStorage
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // 🧩 Lấy cấu hình action từ order-status-config
+  // ✅ Dùng field 'sub' làm userId
+  const currentUserId = currentUser?.sub;
+
+  // ✅ Lấy sellerId từ đơn hàng
+  const sellerId = order.orderShops?.[0]?.seller?.userId;
+
+  // ✅ So sánh để xác định vai trò
+  const isSeller = sellerId === currentUserId;
+  const role = isSeller ? "seller" : "buyer";
   const actions = orderActions[order.status]?.[role] ?? [];
 
-  // ⚙️ Xử lý hành động động
+
+  // ⚙️ Action handler (update status)
   const handleAction = async (key: string) => {
     const action = actions.find((a) => a.key === key);
     if (!action) return;
 
-    // Nếu là action mở trang review thì không cần gọi API
     if (key === "review") {
       navigate(`/review/${order.orderId}`);
       return;
@@ -67,8 +88,16 @@ export default function OrderDetail() {
     if (!action.nextStatus) return;
 
     try {
-      await updateOrder(order.orderId, { status: action.nextStatus });
+      await updateOrder(order.orderId, {
+        status: action.nextStatus,
+        eventNote: `${action.label} bởi người dùng`, // 🆕 thêm dòng này
+      });
       setOrder({ ...order, status: action.nextStatus });
+
+      // 🟢 Reload events sau khi update
+      const eventRes = await getOrderEventsByOrderId(order.orderId);
+      setEvents(eventRes);
+
       message.success(`✅ ${action.label} thành công`);
     } catch (err) {
       console.error(err);
@@ -76,6 +105,8 @@ export default function OrderDetail() {
     }
   };
 
+
+  // 🧮 Tính toán dữ liệu cơ bản
   const total = Number(order.totalPrice) + Number(order.totalShippingFee);
   const seller = order.orderShops?.[0]?.seller;
   const product = order.orderShops?.[0]?.orderDetails?.[0]?.product;
@@ -106,25 +137,8 @@ export default function OrderDetail() {
         </Button>
       </div>
 
-      {/* Order Tracking */}
-      <div className="bg-gray-50 p-5 rounded-xl mb-8">
-        <h3 className="text-lg font-semibold mb-4">Order Tracking</h3>
-        <div className="flex justify-between text-sm text-gray-600">
-          {[
-            "Order Created",
-            "Paid",
-            "Shipping",
-            "Delivered",
-            "Completed",
-          ].map((label, index) => (
-            <div key={index} className="flex flex-col items-center w-1/5">
-              <CheckCircleFilled className="text-green-500 text-xl mb-1" />
-              <span>{label}</span>
-              <span className="text-xs text-gray-400 mt-1">--/--/----</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ✅ Order Tracking (dựa theo OrderEvent) */}
+      <OrderTracking events={events} />
 
       {/* Order Items */}
       <div className="mb-8">
@@ -199,7 +213,7 @@ export default function OrderDetail() {
         </div>
       </div>
 
-      {/* 🧠 Action Buttons */}
+      {/* Action Buttons */}
       {actions.length > 0 && (
         <div className="mt-10 flex justify-center gap-4 flex-wrap">
           {actions.map((a) => (

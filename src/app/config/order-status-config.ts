@@ -31,13 +31,7 @@ export const orderActions: Record<
         label: "Xác nhận giao hàng",
         nextStatus: OrderStatus.IN_TRANSIT,
         variant: "primary",
-      },
-      {
-        key: "refund",
-        label: "Hoàn tiền",
-        nextStatus: OrderStatus.REFUNDED,
-        variant: "danger",
-      },
+      }
     ],
   },
 

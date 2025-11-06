@@ -114,6 +114,7 @@ export interface UpdateOrderRequest {
   shipping_code?: string;
   shipping_provider?: string;
   contract_url?: string;
+  eventNote?: string;
 }
 
 // 🧭 Tham số truy vấn danh sách
