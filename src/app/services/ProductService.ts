@@ -21,7 +21,7 @@ const productService = () => {
   const sendRequestCreateAuction = useCallback(
     async () => {
       try {
-        const response = await callApi(HTTP_METHOD.POST, `//all`);
+        const response = await callApi(HTTP_METHOD.POST, `/all`);
         return response;
       } catch (e: any) {
         console.log(e?.response?.data);

@@ -20,12 +20,12 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
 
- console.log('err: ')
+ console.log('error.response: ',  error.response)
     if (error.response) {
-      const { statusCode, data, config } = error.response;
+      const { status, data, config } = error.response;
       let isTokenExpired = false;
-      const isLoginRequest = config?.url?.includes("/auth/login");
-      const isAuthError = statusCode === 401 || statusCode === 403;
+      const isLoginRequest = config?.url?.includes("/auth");
+      const isAuthError = status === 401 || status === 403;
       const token = localStorage.getItem("token");
 
 
@@ -35,7 +35,7 @@ axiosInstance.interceptors.response.use(
       //   return error;
       // }
       console.log('data.message.message: ',data.message.message)
-      if ((statusCode === 400 || statusCode === 401) && data.message) {
+      if ((status === 400 || status === 401) && data.message) {
         toast.error(data.message.message);
       } else if (data.message) {
         toast.error(data.message.message as string);
