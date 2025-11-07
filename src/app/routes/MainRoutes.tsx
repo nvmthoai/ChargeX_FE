@@ -39,6 +39,7 @@ import OrderDetail from "../pages/Order/OrderDetail";
 import ShopDetailPage from "../pages/Shop-Detail";
 
 import ChatBox from "../components/ChatBox/ChatBox";
+import OrderManagement from "../pages/Profile/Orders";
 
 export default function MainRoutes() {
   return (
@@ -67,6 +68,7 @@ export default function MainRoutes() {
           <Route path="kyc" element={<KnowYourCus />} />
           <Route path="address" element={<AddressManagement />} />
           <Route path="wallet" element={<ProfileWallet />} />
+           <Route path="orders" element={<OrderManagement />} />
         </Route>
         <Route path="/shop" element={<Shop />}>
           <Route index element={<Navigate to="products" />} />
