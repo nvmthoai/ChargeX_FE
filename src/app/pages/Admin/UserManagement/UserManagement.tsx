@@ -17,9 +17,7 @@ const DefaultAvatar = '../../../../../public/lightning_thunder.png';
 // };
 
 const UserManagement = () => {
-
     const [USERs, setUSERs] = useState<Record<string, any>>({});
-    const [detailNumber, setDetailNumber] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [selectedEmailVerified, setSelectedEmailVerified] = useState('');
     const [selectedIsActive, setSelectedIsActive] = useState('');
@@ -40,12 +38,6 @@ const UserManagement = () => {
             try {
                 const AllUsersResponse = await fetchData(`/users${getQueryString({ page: 1, limit: 1000 })}`, token);
                 console.log('AllUsersResponse', AllUsersResponse);
-                setDetailNumber({
-                    totalMember: AllUsersResponse.data.total,
-                    newMember: AllUsersResponse.data.total,
-                    postPerMember: 0,
-                    incomePerPost: 0,
-                });
 
                 console.log(`/users${getQueryString({ page: page, limit: 10, emailVerified: selectedEmailVerified, isActive: selectedIsActive, isDelete: selectedIsDelete, sortBy: selectedSortBy, order: selectedOrder })}`);
                 const PageUsersResponse = await fetchData(`/users${getQueryString({ page: page, limit: 10, emailVerified: selectedEmailVerified, isActive: selectedIsActive, isDelete: selectedIsDelete, sortBy: selectedSortBy, order: selectedOrder })}`, token);
