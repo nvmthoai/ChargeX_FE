@@ -1,10 +1,11 @@
+import { Link } from "react-router-dom";
+
 interface OrderSummaryProps {
   subtotal: number;
   shipping: number;
   tax: number;
   total: number;
   onCheckout?: () => void;
-  onContinue?: () => void;
 }
 
 export default function OrderSummary({
@@ -13,7 +14,6 @@ export default function OrderSummary({
   tax,
   total,
   onCheckout,
-  onContinue,
 }: OrderSummaryProps) {
   return (
     <aside className="bg-white border border-gray-200 rounded-lg p-6 h-fit sticky top-20 self-start">
@@ -45,14 +45,11 @@ export default function OrderSummary({
           Proceed to Checkout
         </button>
       )}
-      {onContinue && (
-        <button
-          onClick={onContinue}
-          className="mt-2 w-full border py-2 rounded-lg text-gray-600 hover:bg-gray-50"
-        >
+      <Link to='/'>
+        <button className="mt-2 w-full border py-2 rounded-lg text-gray-600 hover:bg-gray-50" >
           Continue Shopping
         </button>
-      )}
+      </Link>
     </aside>
   );
 }
