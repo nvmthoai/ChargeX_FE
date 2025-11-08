@@ -14,8 +14,7 @@ export default function Checkout() {
   const productId = params.get("productId");
   const navigate = useNavigate();
 
-  const { addresses, handleCreateAddress, handleUpdateAddress, isLoading } =
-    useAddress();
+  const { addresses, handleCreateAddress, handleUpdateAddress, isLoading } = useAddress();
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -91,7 +90,7 @@ export default function Checkout() {
       console.log("🧩 user.sub:", user?.sub);
 
       const order = await createOrder(user.sub, payload);
-      
+
       console.log("📦 Order response object:", order);
 
       message.success("✅ Đơn hàng đã được tạo thành công!");
