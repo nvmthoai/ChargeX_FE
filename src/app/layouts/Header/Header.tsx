@@ -144,7 +144,7 @@ export default function Header() {
                   size="small"
                   className="bg-green-500 hover:bg-green-600"
                 >
-                  <i className="fa-solid fa-cart-shopping color-black"/>
+                  <i className="fa-solid fa-cart-shopping"/>
                 </Button>
               </Link>
 
