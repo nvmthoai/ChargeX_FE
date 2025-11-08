@@ -16,7 +16,7 @@ export default function OrderSummary({
   onContinue,
 }: OrderSummaryProps) {
   return (
-    <aside className="bg-white border border-gray-200 rounded-lg p-6 h-fit sticky top-8 self-start">
+    <aside className="bg-white border border-gray-200 rounded-lg p-6 h-fit sticky top-20 self-start">
       <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
 
       <div className="flex justify-between mb-2">
