@@ -2,11 +2,14 @@
 
 import { useState, useMemo } from "react";
 import { Table, Input, Select, Tag, Button, Image, Badge } from "antd";
-import { StarOutlined } from "@ant-design/icons";
+import { EyeOutlined, StarOutlined } from "@ant-design/icons";
 import ReviewModal from "./ReviewModal";
 import type { Order, OrderShop } from "../../../models/order.model";
 import useOrder from "../../../hooks/useOrder";
 import useReview from "../../../hooks/useReview";
+import ReviewListModal from "./ReviewListModal";
+import { getUserInfo } from "../../../hooks/useAddress";
+import { Link } from "react-router-dom";
 
 const ORDER_STATUSES = [
   "pending",
@@ -36,9 +39,19 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function OrderManagement() {
   const { orders } = useOrder();
-  const { handleCreateReview } = useReview();
+
+  const {
+    handleCreateReview,
+    fetchMyReviewInEachShop,
+    handleDeleteReview,
+    handleUpdateReview,
+    reviews,
+  } = useReview();
+
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const user = getUserInfo();
+  const [shopSelected, setShopSelected] = useState<OrderShop | null>(null);
   const [reviewModal, setReviewModal] = useState<{
     visible: boolean;
     orderId: string;
@@ -51,6 +64,17 @@ export default function OrderManagement() {
     sellerName: "",
   });
 
+  const [reviewListModal, setReviewListModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    sellerId: string;
+    sellerName: string;
+  }>({
+    visible: false,
+    orderId: "",
+    sellerId: "",
+    sellerName: "",
+  });
   const filteredOrders = useMemo(() => {
     return orders.filter((order: any) => {
       const matchesSearch = order.orderId
@@ -61,6 +85,19 @@ export default function OrderManagement() {
     });
   }, [orders, searchText, statusFilter]);
 
+  const handleViewReviewsClick = (orderId: string, shopItem: OrderShop) => {
+    setShopSelected(shopItem);
+    fetchMyReviewInEachShop(user.sub, shopItem.seller.userId);
+    setReviewListModal({
+      visible: true,
+      orderId,
+      sellerId: shopItem.seller.userId,
+      sellerName: shopItem.seller.fullName,
+    });
+  };
+  const handleCloseReviewList = () => {
+    setReviewListModal({ ...reviewListModal, visible: false });
+  };
   const handleReviewClick = (orderId: string, shopItem: OrderShop) => {
     setReviewModal({
       visible: true,
@@ -74,6 +111,20 @@ export default function OrderManagement() {
     setReviewModal({ ...reviewModal, visible: false });
   };
 
+  const handleUpdateReviewSuccess = async (id: string, values: any) => {
+    const response = await handleUpdateReview(id, values);
+    if (response && shopSelected) {
+      fetchMyReviewInEachShop(user.sub, shopSelected.seller.userId);
+    }
+  };
+
+  const handleDeleteReviewSuccess = async (id: string) => {
+    const response = await handleDeleteReview(id);
+    if (response && shopSelected) {
+      fetchMyReviewInEachShop(user.sub, shopSelected.seller.userId);
+    }
+  };
+
   const expandedRowRender = (record: Order) => {
     return (
       <div className="space-y-4">
@@ -83,9 +134,9 @@ export default function OrderManagement() {
             className="bg-slate-50 p-4 rounded-lg border border-slate-200"
           >
             <div className="mb-3">
-              <h4 className="font-semibold text-slate-900">
+              <Link to={`/shop-detail/${shop.seller.userId}`}><h4 className="font-semibold text-slate-900">
                 Shop: {shop.seller.fullName}
-              </h4>
+              </h4></Link>
               <p className="text-sm text-slate-600">{shop.seller.email}</p>
             </div>
 
@@ -136,16 +187,26 @@ export default function OrderManagement() {
                   {shop.status}
                 </Tag>
               </div>
-              {record.status === "completed" && (
+              <div className="flex gap-2">
                 <Button
-                  type="primary"
+                  type="default"
                   size="small"
-                  icon={<StarOutlined />}
-                  onClick={() => handleReviewClick(record.orderId, shop)}
+                  icon={<EyeOutlined />}
+                  onClick={() => handleViewReviewsClick(record.orderId, shop)}
                 >
-                  Review Seller
+                  View Reviews
                 </Button>
-              )}
+                {record.status === "completed" && (
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<StarOutlined />}
+                    onClick={() => handleReviewClick(record.orderId, shop)}
+                  >
+                    Review Seller
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -261,6 +322,21 @@ export default function OrderManagement() {
         sellerName={reviewModal.sellerName}
         onClose={handleCloseReview}
         onSubmit={handleCreateReview || (async () => {})}
+      />
+
+      <ReviewListModal
+        visible={reviewListModal.visible}
+        orderId={reviewListModal.orderId}
+        sellerId={reviewListModal.sellerId}
+        sellerName={reviewListModal.sellerName}
+        onClose={handleCloseReviewList}
+        reviews={reviews.filter(
+          (r) =>
+            r.order.orderId === reviewListModal.orderId &&
+            r.reviewee.userId === reviewListModal.sellerId
+        )}
+        onUpdateReview={handleUpdateReviewSuccess}
+        onDeleteReview={handleDeleteReviewSuccess}
       />
     </div>
   );

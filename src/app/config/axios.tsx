@@ -19,8 +19,6 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-
- console.log('error.response: ',  error.response)
     if (error.response) {
       const { status, data, config } = error.response;
       let isTokenExpired = false;
