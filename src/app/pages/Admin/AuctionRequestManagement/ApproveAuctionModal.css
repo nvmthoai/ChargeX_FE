@@ -1,0 +1,147 @@
+/* Approve Auction Modal - Dark Theme */
+.approve-auction-modal .ant-modal-content {
+  background: var(--gray-2);
+  color: var(--text-primary);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.approve-auction-modal .ant-modal-header {
+  background: var(--gray-2);
+  border-bottom: 2px solid var(--gray-3);
+  padding: 20px 24px;
+  color: var(--text-primary);
+}
+
+.approve-auction-modal .ant-modal-title {
+  color: var(--text-primary);
+}
+
+.approve-auction-modal .ant-modal-body {
+  padding: 0 24px 24px;
+  background: var(--gray-2);
+  color: var(--text-primary);
+}
+
+.approve-auction-modal .ant-form-item-label > label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.approve-auction-modal .ant-input-number,
+.approve-auction-modal .ant-input,
+.approve-auction-modal .ant-picker {
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--gray-3);
+}
+
+.approve-auction-modal .ant-input[disabled] {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-color: var(--gray-3);
+  cursor: not-allowed;
+}
+
+.approve-auction-modal h3 {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--gray-3);
+  padding-bottom: 8px;
+}
+
+.approve-auction-modal .ant-btn-primary {
+  background-color: var(--button-primary-bg);
+  border-color: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  height: 40px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.approve-auction-modal .ant-btn-primary:hover {
+  background-color: #e6edf3;
+  color: var(--button-primary-text);
+}
+
+.approve-auction-modal .ant-btn-default {
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 2px solid var(--gray-3);
+  color: var(--text-primary);
+  background: transparent;
+}
+
+.approve-auction-modal .ant-form-item-tooltip {
+  cursor: help;
+  color: var(--text-secondary);
+}
+
+.approve-auction-modal .border-t {
+  border-top: 1px solid var(--gray-3);
+}
+
+.approve-auction-modal .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.approve-auction-modal .grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* DatePicker placeholder white for dark modal */
+.approve-auction-modal .ant-picker-input > input::placeholder {
+  color: rgba(255,255,255,0.8) !important;
+}
+
+/* Make the inner input text white */
+.approve-auction-modal .ant-picker-input > input,
+.approve-auction-modal .ant-input {
+  color: #fff !important;
+}
+
+/* ensure picker panel matches dark theme */
+.approve-auction-modal .ant-picker-panel,
+.approve-auction-modal .ant-picker-dropdown {
+  background: #0f1724 !important;
+  color: #fff !important;
+}
+
+/* keep buttons visible */
+.approve-auction-modal .ant-picker-footer button {
+  color: #fff !important;
+}
+
+/* Ensure InputNumber text and placeholder are white in dark modal */
+.approve-auction-modal .ant-input-number .ant-input,
+.approve-auction-modal .ant-input-number input {
+  color: #ffffff !important;
+  background: rgba(255,255,255,0.02) !important;
+}
+.approve-auction-modal .ant-input-number .ant-input::placeholder,
+.approve-auction-modal .ant-input-number input::placeholder {
+  color: rgba(255,255,255,0.6) !important;
+}
+
+/* Make numeric control handlers visible */
+.approve-auction-modal .ant-input-number-handler-wrap,
+.approve-auction-modal .ant-input-number-handler-up,
+.approve-auction-modal .ant-input-number-handler-down {
+  color: #fff !important;
+}
+
+/* ensure when focused the numeric input still shows white text */
+.approve-auction-modal .ant-input-number-focused .ant-input,
+.approve-auction-modal .ant-input-number:focus-within .ant-input {
+  color: #ffffff !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .approve-auction-modal .grid {
+    grid-template-columns: 1fr;
+  }
+}

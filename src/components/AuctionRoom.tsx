@@ -76,32 +76,40 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
 
   // Calculate time remaining
   useEffect(() => {
-    if (!auctionDetail?.endTime) return;
+    if (!auctionDetail?.endTime) return
 
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const end = new Date(auctionDetail.endTime).getTime();
-      const distance = end - now;
+    // Compute client-server offset when server provides serverNow (ISO)
+    const serverNowStr = (auctionDetail as any).serverNow
+    const offset = serverNowStr ? Date.parse(serverNowStr) - Date.now() : 0
+
+    const endTs = Date.parse(auctionDetail.endTime)
+
+    const tick = () => {
+      const now = Date.now() + offset
+      const distance = endTs - now
 
       if (distance < 0) {
-        setTimeRemaining("Đã kết thúc");
-        clearInterval(interval);
-        return;
+        setTimeRemaining('Đã kết thúc')
+        return
       }
 
-      const hours = Math.floor(distance / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      const hours = Math.floor(distance / (1000 * 60 * 60))
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000)
 
       setTimeRemaining(
-        `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+        `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
           .toString()
-          .padStart(2, "0")}`
-      );
-    }, 1000);
+          .padStart(2, '0')}`
+      )
+    }
 
-    return () => clearInterval(interval);
-  }, [auctionDetail?.endTime]);
+    // Run immediately and then on interval
+    tick()
+    const interval = setInterval(tick, 1000)
+
+    return () => clearInterval(interval)
+  }, [auctionDetail?.endTime])
 
   const handlePlaceBid = () => {
     const amount = parseFloat(bidAmount);
@@ -140,7 +148,13 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleString("vi-VN");
+    // Ensure input ISO string parsed as UTC then shown in local timezone
+    try {
+      const dt = new Date(date)
+      return dt.toLocaleString('vi-VN', { hour12: false })
+    } catch (e) {
+      return date
+    }
   };
 
   if (isLoading) {
