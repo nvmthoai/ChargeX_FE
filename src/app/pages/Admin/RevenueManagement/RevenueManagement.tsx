@@ -132,7 +132,6 @@ export default function RevenueManagement() {
 
                             <button type="submit">SEARCH</button>
                         </form>
-                        <button className="export-btn">📥 Export</button>
                     </div>
                 </header>
 
@@ -142,7 +141,7 @@ export default function RevenueManagement() {
                             <div className="info">
                                 <p className="title">{item.title}</p>
                                 <h3>{item.value?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</h3>
-                                <span className="change">{item.change}</span>
+                                {/* <span className="change">{item.change}</span> */}
                             </div>
                             <div className="icon" style={{ backgroundColor: item.color + '40' }}>
                                 <i className={`fa-solid fa-${item.icon}`} style={{ color: item.color }} />
