@@ -1,6 +1,6 @@
-import type { CartItem } from "../app/pages/Cart/components/CartItemList";
+// import type { CartItem } from "../app/pages/Cart/components/CartItemList";
 
-export const initialItems: CartItem[] = [
+export const initialItems: any = [
   {
     id: 1,
     title: "EV Battery Pack 13S5P",
