@@ -42,8 +42,6 @@ export default function ReviewModal({
         rating: values.rating,
         comment: values.comment,
       });
-
-      message.success("Review submitted successfully");
       form.resetFields();
       onClose();
     } catch (error) {
