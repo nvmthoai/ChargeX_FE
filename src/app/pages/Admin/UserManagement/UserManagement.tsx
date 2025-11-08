@@ -173,30 +173,7 @@ const UserManagement = () => {
                     <button className='btn btn-secondary' onClick={() => setRefresh(p => p + 1)}>
                         Refresh
                     </button>
-                    <button className='btn btn-secondary btn-export'>
-                        <span>Export list</span>
-                        <i className='fa-solid fa-chevron-down' />
-                    </button>
                 </div>
-
-                <section className='stats-grid'>
-                    <div className='stat-card'>
-                        <span className='stat-title'>Total member</span>
-                        <span className='stat-value'>{detailNumber.totalMember}</span>
-                    </div>
-                    <div className='stat-card'>
-                        <span className='stat-title'>New member</span>
-                        <span className='stat-value'>{detailNumber.newMember}</span>
-                    </div>
-                    <div className='stat-card'>
-                        <span className='stat-title'>Average post/member</span>
-                        <span className='stat-value'>{detailNumber.postPerMember}</span>
-                    </div>
-                    <div className='stat-card'>
-                        <span className='stat-title'>Average income/post</span>
-                        <span className='stat-value'>{detailNumber.incomePerPost}</span>
-                    </div>
-                </section>
 
                 <section className='admin-table-container'>
                     <table className='admin-table'>

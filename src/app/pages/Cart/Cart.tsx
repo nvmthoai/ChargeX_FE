@@ -22,8 +22,9 @@ export default function CartPage() {
         const ItemsResponse = await fetchData(`/orders${getQueryString({ page: 1, limit: 1000 })}`, token);
         console.log('ItemsResponse', ItemsResponse.data.data);
         const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub);
+        // const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub && i.status == 'PENDING');
+        console.log('FilterItems', FilterItems);
 
-        // setItems(ItemsResponse.data.data);
         setItems(FilterItems);
       } catch (error) {
         setError('Error');
@@ -33,7 +34,7 @@ export default function CartPage() {
     };
 
     fetchDataAPI();
-  }, [refresh]);
+  }, [refresh, user]);
 
   // const updateQty = (id: number, qty: number) => {
   //   setItems(items.map((i: any) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i)));
@@ -92,7 +93,6 @@ export default function CartPage() {
           tax={tax}
           total={total}
           onCheckout={() => alert(selectedItems)}
-          onContinue={() => alert("Continue Shopping")}
         />
       </div>
     </div>

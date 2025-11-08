@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Clock3, MapPin, Phone, Gavel } from "lucide-react";
 import type { Product } from "../../../../api/product/type";
+import AddToCart from "../../Order/AddToCart";
+import useAddress from "../../../hooks/useAddress";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function ProductInfo({ product }: { product: Product }) {
@@ -10,6 +12,19 @@ export default function ProductInfo({ product }: { product: Product }) {
   const userData = localStorage.getItem("user");
   const user = userData ? JSON.parse(userData) : null;
   const isOwner = user?.sub && product?.seller?.userId === user.sub;
+
+  const { addresses } = useAddress();
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  useEffect(() => {
+    if (addresses && addresses.length > 0) {
+      const defaultAddr = addresses.find((a: any) => a.isDefault);
+      if (defaultAddr) setSelectedAddressId(defaultAddr.addressId);
+    }
+  }, [addresses]);
+
+
+
+
 
   // 🛒 Handle Buy Now
   const handleBuyNow = async () => {
@@ -23,6 +38,27 @@ export default function ProductInfo({ product }: { product: Product }) {
     } catch (error) {
       console.error("❌ Buy Now error:", error);
       alert("Có lỗi xảy ra, vui lòng thử lại!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToCart = async (): Promise<boolean> => {
+    try {
+      console.log("Thực hiện tác vụ!");
+      setLoading(true);
+      const success = await AddToCart(product, selectedAddressId, addresses);
+
+      if (success) {
+        console.log("✅ Tác vụ đã hoàn thành!");
+        return true;
+      } else {
+        console.warn("⚠️ Tác vụ không thành công!");
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ Lỗi trong quá trình thực hiện tác vụ:", error);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -109,27 +145,27 @@ export default function ProductInfo({ product }: { product: Product }) {
       {/* Seller Info (ẩn nếu user là chủ sản phẩm) */}
       {!isOwner && (
         <Link className="" to={`/shop-detail/${product.seller.userId}`}>
-        <div className="bg-white space-y-4 cursor-pointer">
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Seller Information
-          </h2>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xl">
-              {product.seller.fullName[0].toUpperCase()}
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 ">
-                {product.seller.fullName}
-              </h3>
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                <MapPin size={14} /> TP. Hồ Chí Minh
-              </p>
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                <Phone size={14} /> 0901 234 567
-              </p>
+          <div className="bg-white space-y-4 cursor-pointer">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Seller Information
+            </h2>
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xl">
+                {product.seller.fullName[0].toUpperCase()}
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 ">
+                  {product.seller.fullName}
+                </h3>
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <MapPin size={14} /> TP. Hồ Chí Minh
+                </p>
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <Phone size={14} /> 0901 234 567
+                </p>
+              </div>
             </div>
           </div>
-        </div>
         </Link>
       )}
 
@@ -140,15 +176,17 @@ export default function ProductInfo({ product }: { product: Product }) {
             onClick={handleBuyNow}
             disabled={loading}
             className={`flex-1 bg-[#0F74C7] text-white px-4 py-2 rounded font-medium ${loading
-                ? "opacity-60 cursor-not-allowed"
-                : "hover:bg-[#3888ca] transition"
+              ? "opacity-60 cursor-not-allowed"
+              : "hover:bg-[#3888ca] transition"
               }`}
           >
             {loading
               ? "Đang xử lý..."
               : `Buy Now • $${Number(product.price_buy_now).toLocaleString()}`}
           </button>
-          <button className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium">
+          <button
+            onClick={() => handleAddToCart()}
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium">
             Add to Watchlist
           </button>
         </div>
