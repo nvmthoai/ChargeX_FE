@@ -37,7 +37,7 @@ export default function Header() {
     setWithdrawalModalOpen,
     withdrawalModalOpen,
   } = useWallet();
-  
+
   const handleWithdrawalOpen = async () => {
     setWithdrawalModalOpen(true);
     setLoadingBanks(true);
@@ -103,11 +103,10 @@ export default function Header() {
             <Link
               key={item.to}
               to={item.to}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                active
-                  ? "bg-sky-300/80 text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${active
+                ? "bg-sky-300/80 text-gray-900 shadow-sm"
+                : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
+                }`}
             >
               <item.icon size={16} />
               {item.label}
@@ -138,6 +137,16 @@ export default function Header() {
                   ${myWallet && myWallet.available}
                 </Button>
               </Dropdown>
+
+              <Link to='/cart'>
+                <Button
+                  type="primary"
+                  size="small"
+                  className="bg-green-500 hover:bg-green-600"
+                >
+                  <i className="fa-solid fa-cart-shopping color-black"/>
+                </Button>
+              </Link>
 
               <Button
                 type="primary"
