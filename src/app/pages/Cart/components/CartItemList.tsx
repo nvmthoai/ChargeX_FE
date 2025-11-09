@@ -38,7 +38,7 @@ export default function CartItemsList({
               type="checkbox"
               checked={selectedItems.includes(item.orderId)}
               onChange={() => onCheck(item.orderId)}
-              className=""
+              className="cursor-pointer"
             />
             <img
               src={item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || null}

@@ -1,19 +1,19 @@
 import { Link } from "react-router-dom";
 
 interface OrderSummaryProps {
+  selectedItems: any,
   subtotal: number;
   shipping: number;
   tax: number;
   total: number;
-  onCheckout?: () => void;
 }
 
 export default function OrderSummary({
+  selectedItems,
   subtotal,
   shipping,
   tax,
   total,
-  onCheckout,
 }: OrderSummaryProps) {
   return (
     <aside className="bg-white border border-gray-200 rounded-lg p-6 h-fit sticky top-20 self-start">
@@ -37,14 +37,13 @@ export default function OrderSummary({
         <span>${total.toFixed(2)}</span>
       </div>
 
-      {onCheckout && (
-        <button
-          onClick={onCheckout}
-          className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-        >
+      {/* {onCheckout && ( */}
+      <Link to='/checkout-cart' state={selectedItems}>
+        <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
           Proceed to Checkout
         </button>
-      )}
+      </Link>
+      {/* )} */}
       <Link to='/'>
         <button className="mt-2 w-full border py-2 rounded-lg text-gray-600 hover:bg-gray-50" >
           Continue Shopping
