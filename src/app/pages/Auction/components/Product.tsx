@@ -1,33 +1,33 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import useAuctionLive from "../../../hooks/useAuctionLive";
 
 export default function Product() {
   const { id } = useParams();
   const auctionId = id ?? null;
-  const [renderKey, setRenderKey] = useState(0);
-  const [backupAuction, setBackupAuction] = useState<any>(null);
-  
   const { auction, countdown, loading, live } = useAuctionLive(auctionId, {
     resyncIntervalSeconds: 8,
   });
 
-  // Track auction changes and force re-render if needed
-  useEffect(() => {
-    if (auction && auction !== backupAuction) {
-      setBackupAuction(auction);
-      setRenderKey(prev => prev + 1);
-    }
-  }, [auction, backupAuction]);
-  
-  // Use backup auction if main auction is null but backup exists
-  const displayAuction = auction || backupAuction;
-  const auctionWithProduct = displayAuction;
-  
+  // Debug log
+  console.log("🎯 [Product] Debug data:", {
+    auction,
+    loading,
+    live,
+    countdown,
+    auctionId,
+    auctionTitle: (auction as any)?.title,
+    auctionCurrentPrice: auction?.currentPrice,
+    auctionMinIncrement: auction?.minIncrement,
+  });
+
+  // Try to read product info from auction snapshot.
+  // Server returns product info directly in auction object
+  const auctionWithProduct = auction as any;
   const product = {
-    title: auctionWithProduct?.product?.title || auctionWithProduct?.title,
-    description: auctionWithProduct?.product?.description || auctionWithProduct?.description,
-    imageUrls: auctionWithProduct?.product?.imageUrls || auctionWithProduct?.imageUrls || [],
+    title: auctionWithProduct?.title,
+    description: auctionWithProduct?.description,
+    imageUrls: auctionWithProduct?.imageUrls || [],
     price_start: auctionWithProduct?.startingPrice,
   };
   const title = product.title || (auctionId ? `Auction #${auctionId}` : "Live Auction");
@@ -40,10 +40,10 @@ export default function Product() {
     }).format(amount);
 
   const formatCountdown = useMemo(() => {
-    const totalSeconds = Math.max(0, countdown); // countdown is already in seconds
-    const seconds = totalSeconds % 60;
-    const minutes = Math.floor(totalSeconds / 60) % 60;
-    const hours = Math.floor(totalSeconds / 3600);
+    const total = Math.max(0, countdown);
+    const seconds = Math.floor(total / 1000) % 60;
+    const minutes = Math.floor(total / 1000 / 60) % 60;
+    const hours = Math.floor(total / 1000 / 60 / 60);
     return `${String(hours).padStart(2, "0")}h ${String(minutes).padStart(
       2,
       "0"
@@ -53,7 +53,7 @@ export default function Product() {
   const isFinalSecond = countdown <= 1000 && countdown > 0;
 
   return (
-    <div className="product-bidding-container" key={renderKey}>
+    <div className="product-bidding-container">
       <h1 className="auction-title">{title}</h1>
       <div
         className={`auction-card product-card ${
@@ -84,39 +84,20 @@ export default function Product() {
           )}
           <p className="bid-info">
             Current Bid:{" "}
-            <span>
-              {formatCurrency(
-                (auction?.currentPrice && auction.currentPrice > 0)
-                  ? auction.currentPrice 
-                  : (auction as any)?.startingPrice ?? (auction as any)?.product?.priceStart ?? 0
-              )}
-            </span>
+            <span>{formatCurrency(auction?.currentPrice ?? 0)}</span>
           </p>
-          {(product?.price_start || (auction as any)?.startingPrice) && (
+          {product?.price_start && (
             <p className="starting-bid">
-              Starting Price:{" "}
-              <span>
-                {formatCurrency(
-                  (auction as any)?.startingPrice ?? Number(product.price_start ?? 0)
-                )}
-              </span>
+              Starting Bid:{" "}
+              <span>{formatCurrency(Number(product.price_start))}</span>
             </p>
           )}
           <p className="current-bid-label">
-            Status: {loading ? "Loading..." : auction ? (live ? "Live" : "Offline") : "Connecting..."}
+            Status: {loading ? "Loading..." : live ? "Live" : "Offline"}
           </p>
           <p className="current-bid-amount">
-            {formatCurrency(
-              (auction?.currentPrice && auction.currentPrice > 0)
-                ? auction.currentPrice 
-                : (auction as any)?.startingPrice ?? 0
-            )}
+            {formatCurrency(auction?.currentPrice ?? 0)}
           </p>
-          {!auction && !loading && (
-            <p className="text-yellow-500">
-              ⚠️ No auction data received yet. Check WebSocket connection.
-            </p>
-          )}
           <div className={`countdown-timer ${isFinalSecond ? "pulse" : ""}`}>
             <svg
               xmlns="http://www.w3.org/2000/svg"

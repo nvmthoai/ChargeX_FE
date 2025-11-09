@@ -142,7 +142,7 @@ export default function useAuctionLive(
       // read token if available for auth handshake
       const token = localStorage.getItem("token");
       console.info("Connecting socket.io to:", url, "for auction:", auctionId);
-      const socket = io(url, {
+      const socket = io(`${url}/auctions`, {
         path: "/socket.io",
         transports: ["websocket"],
         auth: token ? { token } : undefined,

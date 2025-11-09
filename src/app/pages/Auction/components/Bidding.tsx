@@ -21,63 +21,51 @@ export default function Bidding() {
     loading,
     live,
     reconnecting,
+    isConnected,
     countdown,
     placeBid,
     pendingBid,
+    resync,
   } = useAuctionLive(auctionId, {
     resyncIntervalSeconds: 8,
-    bidderId: user?.sub || null, // Pass user ID from auth context
   });
 
   const {
-    myWallet,
-    handleDeposit: depositToWallet,
-  } = useWallet();
-
-  // Use myWallet as wallet for compatibility
-  const wallet = myWallet;
+    wallet,
+    loading: walletLoading,
+    deposit,
+    calculateDeposit,
+    checkSufficientBalance,
+    formatCurrency: formatVND,
+    fetchBalance,
+  } = useWallet({ autoFetch: true, refreshIntervalSeconds: 30 });
 
   const [input, setInput] = useState<string>("");
   const [placing, setPlacing] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
 
-  // Helper functions for wallet operations
-  const formatVND = (amount: number) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-    }).format(amount);
-
-  const calculateDeposit = (bidAmount: number, depositPercent: number): number => {
-    return Math.ceil((bidAmount * depositPercent) / 100);
-  };
-
-  const checkSufficientBalance = (bidAmount: number, depositPercent: number) => {
-    const required = calculateDeposit(bidAmount, depositPercent);
-    const available = myWallet?.available ?? 0;
-    return {
-      sufficient: available >= required,
-      required,
-      available,
-    };
-  };
-
-  const fetchBalance = async () => {
-    // Wallet will auto-refresh via useEffect in useWallet hook
-  };
-
-  const deposit = async (amount: number) => {
-    await depositToWallet(amount.toString());
-  };
-
-  // Use startingPrice if currentPrice is 0 (no bids yet)
+  // Use wallet helpers provided by useWallet (formatVND, calculateDeposit, checkSufficientBalance, fetchBalance)
+  // Determine currentPrice with fallback to startingPrice/product.priceStart when no bids yet
   const rawCurrentPrice = auction?.currentPrice ?? 0;
   const startingPrice = (auction as any)?.startingPrice ?? (auction as any)?.product?.priceStart ?? 0;
   const currentPrice = rawCurrentPrice > 0 ? rawCurrentPrice : startingPrice;
-  
-  const minIncrement = auction?.minBidIncrement ?? 0;
+
+  // Prefer minBidIncrement (backend), fallback to minIncrement
+  const minIncrement = (auction as any)?.minBidIncrement ?? auction?.minIncrement ?? 0;
+
   const nextMinBid = currentPrice + minIncrement;
+
+  // Debug log
+  console.log("🔍 [Bidding] Debug data:", {
+    auction,
+    currentPrice,
+    minIncrement,
+    nextMinBid,
+    live,
+    loading,
+    reconnecting,
+    isConnected: (auction as any)?.isConnected || false, // temporary cast
+  });
 
   const canBid = useMemo(() => {
     if (!user) return { ok: false, reason: "Not logged in" };
@@ -283,34 +271,8 @@ export default function Bidding() {
       <div className="auction-card bidding-history">
         <h2 className="card-title">Bidding History</h2>
         <div className="history-list">
-          {auction?.bidHistory && auction.bidHistory.length > 0 ? (
-            <div className="space-y-2">
-              {auction.bidHistory.map((bid) => (
-                <div 
-                  key={bid.bidId} 
-                  className={`p-3 rounded ${bid.isWinning ? 'bg-green-100 border-2 border-green-500' : 'bg-gray-100'}`}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="font-semibold">
-                        {bid.isWinning && '🏆 '}
-                        {bid.userName || 'Anonymous'}
-                      </span>
-                      {bid.userId === user?.sub && (
-                        <span className="ml-2 text-xs text-blue-600 font-bold">(You)</span>
-                      )}
-                    </div>
-                    <span className="font-bold text-lg">{formatCurrency(bid.amount)}</span>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {new Date(bid.timestamp).toLocaleString('vi-VN')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No bids yet. Be the first to bid!</p>
-          )}
+          {/* History should come from auction.participants or separate API — placeholder */}
+          <p>Live updates will appear here.</p>
         </div>
       </div>
     </div>
