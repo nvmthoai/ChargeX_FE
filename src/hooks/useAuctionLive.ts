@@ -1,38 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Socket } from "socket.io-client";
-import { auctionSocket } from "../../api/auction/socket";
-import api from "../config/axios";
+import { io, Socket } from "socket.io-client";
 
-function normalizeSocketUrl(): string {
-  const raw =
-    import.meta.env.VITE_SOCKET_URL ||
-    import.meta.env.VITE_API_URL ||
-    (typeof window !== "undefined" ? window.location.origin : "") ||
-    "http://localhost:3001";
-
-  try {
-    const parsed = new URL(raw, typeof window !== "undefined" ? window.location.origin : undefined);
-    // Map ws/wss schemes to http/https so socket.io-client builds correct HTTP origin
-    let protocol = parsed.protocol;
-    if (protocol === "ws:") protocol = "http:";
-    if (protocol === "wss:") protocol = "https:";
-    // Build origin with normalized protocol
-    return `${protocol}//${parsed.host}`;
-  } catch {
-    return "http://localhost:3001";
-  }
-}
-
-// NOTE: normalized socket url is handled by the singleton socket; not read directly in this hook
-
-interface BidHistoryItem {
-  bidId: string;
-  userId: string;
-  userName?: string;
-  amount: number;
-  timestamp: string;
-  isWinning?: boolean;
-}
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  "http://103.163.24.150:3001";
 
 interface AuctionData {
   auctionId: string;
@@ -41,27 +12,20 @@ interface AuctionData {
   startTime: string;
   endTime: string;
   currentPrice: number;
-  startingPrice?: number;
+  startingPrice: number;
   buyNowPrice?: number;
-  minBidIncrement: number; // ✅ Fixed: Backend returns minBidIncrement, not minIncrement
-  reservePrice?: number;
-  antiSnipingSeconds?: number;
-  leadingBidId?: string | null;
-  bidCount?: number;
-  winnerId?: string | null;
-  bidHistory?: BidHistoryItem[]; // Add bid history
+  minIncrement: number;
+  reserveMet: boolean;
+  bidCount: number;
+  winnerId: string | null;
+  title?: string;
+  description?: string;
+  imageUrls?: string[];
   product?: {
+    id: string;
     title: string;
     description: string;
-    imageUrls: string[];
-    sohPercent?: number;
-    cycleCount?: number;
-    nominalVoltageV?: number;
-    weightKg?: number;
-    conditionGrade?: string;
-    dimension?: string;
-    priceStart?: number;
-    priceBuyNow?: number;
+    images: string[];
   };
 }
 
@@ -70,14 +34,10 @@ interface PriceUpdate {
   endTime: string;
   bidId: string;
   winnerId: string;
-  timestamp: string;
-  userName?: string;
-  userId?: string;
 }
 
 interface UseAuctionLiveOptions {
   resyncIntervalSeconds?: number;
-  bidderId?: string | null; // User ID for placing bids
 }
 
 interface UseAuctionLiveReturn {
@@ -97,63 +57,64 @@ export default function useAuctionLive(
   auctionId: string | null,
   options: UseAuctionLiveOptions = {}
 ): UseAuctionLiveReturn {
-  const { resyncIntervalSeconds = 8, bidderId = null } = options;
+  const { resyncIntervalSeconds = 8 } = options;
 
   const [auction, setAuction] = useState<AuctionData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [reconnecting, setReconnecting] = useState(true);
+  const [reconnecting, setReconnecting] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [pendingBid, setPendingBid] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
-  const resyncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resyncIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
-  const live = auction?.status?.toLowerCase() === "live";
+  const live = auction?.status === "live";
 
   // Fetch auction details from REST API
   const fetchAuctionDetail = useCallback(async () => {
     if (!auctionId) return;
 
     try {
-      const response = await api.get(`/auction/${auctionId}`);
-      
-      // Unwrap NestJS response format: {success, statusCode, data}
-      let auctionData = response.data;
-      if (auctionData && typeof auctionData === 'object') {
-        // Check if response is wrapped
-        if ('data' in auctionData && 'success' in auctionData) {
-          auctionData = auctionData.data;
-        }
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1";
+      const response = await fetch(`${API_URL}/auction/${auctionId}`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      const serverData = await response.json();
+
       if (mountedRef.current) {
-        setAuction(auctionData);
+        // Map server data to expected AuctionData format
+        const data: AuctionData = {
+          auctionId: serverData.auctionId || auctionId || "",
+          productId: serverData.productId || "",
+          status: serverData.status || "live",
+          startTime: serverData.startTime || "",
+          endTime: serverData.endTime || "",
+          currentPrice: serverData.currentPrice || 0,
+          startingPrice: serverData.startingPrice || 0,
+          buyNowPrice: serverData.buyNowPrice,
+          minIncrement: serverData.minBidIncrement || serverData.minIncrement || 1000,
+          reserveMet: serverData.reserveMet || false,
+          bidCount: serverData.bidCount || 0,
+          winnerId: serverData.winnerId || null,
+          title: serverData.title,
+          description: serverData.description,
+          imageUrls: serverData.imageUrls || [],
+        };
+        setAuction(data);
         setError(null);
         setLoading(false);
       }
-    } catch (err: unknown) {
-      console.error("[useAuctionLive] fetchAuctionDetail error:", err);
+    } catch (err: any) {
+      console.error("[useAuctionLive] Fetch error:", err);
       if (mountedRef.current) {
-        // Derive a safe fallback message without using `any` directly
-        let fallbackMessage = "Failed to load auction details";
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const e: any = err;
-          if (e && e.response && e.response.data && e.response.data.message) {
-            fallbackMessage = e.response.data.message;
-          } else if (err instanceof Error) {
-            fallbackMessage = err.message;
-          } else if (typeof err === 'string') {
-            fallbackMessage = err;
-          }
-        } catch (ex) {
-          // ignore
-        }
-        setError(fallbackMessage);
+        setError(err.message || "Failed to fetch auction");
         setLoading(false);
       }
     }
@@ -169,60 +130,118 @@ export default function useAuctionLive(
     if (!auctionId) return;
 
     try {
-      const userId = localStorage.getItem("userId") || undefined;
-      const socket = auctionSocket.connect(userId);
-      socketRef.current = socket;
+      // If an existing socket exists, and is connected, reuse it; otherwise close it before creating a new one
+      if (socketRef.current) {
+        try {
+          socketRef.current.off();
+          socketRef.current.disconnect();
+        } catch {
+          // ignore
+        }
+        socketRef.current = null;
+      }
 
-      socket.on("connect", () => {
-        if (!mountedRef.current) return;
-        setIsConnected(true);
-        setReconnecting(false);
-        console.log("[useAuctionLive] Joining auction room:", auctionId);
-        socket.emit("auction:join", { auctionId });
+      // Get auth token for WebSocket connection
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId") || undefined; // Ensure undefined if absent
+
+      // Build namespace URL explicitly (use http(s) base)
+      const namespaceUrl = `${SOCKET_URL.replace(/\/+$/, "")}/auctions`;
+
+      const socket = io(namespaceUrl, {
+        path: "/socket.io/",
+        transports: ["websocket", "polling"],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 10000,
+        randomizationFactor: 0.5,
+        reconnectionAttempts: Infinity,
+        upgrade: true,
+        forceNew: true, // ensure a fresh connection for this hook
+        timeout: 10000,
+        auth: {
+          userId,
+          token,
+        },
+        query: {
+          userId,
+        },
       });
 
-      socket.on("disconnect", () => {
+      socketRef.current = socket;
+
+      const onConnect = () => {
+        console.log("[useAuctionLive] Socket connected:", socket.id);
+        setIsConnected(true);
+        setReconnecting(false);
+
+        // Join auction room after connection
+        console.log("[useAuctionLive] Joining auction room:", auctionId);
+        socket.emit("auction:join", { auctionId });
+      };
+
+      const onDisconnect = (reason?: string) => {
+        console.log("[useAuctionLive] Socket disconnected", reason);
         if (mountedRef.current) {
           setIsConnected(false);
           setReconnecting(true);
         }
-      });
+      };
 
-      socket.on("connect_error", (err: unknown) => {
-        console.error("[useAuctionLive] Connection error:", err);
+      const onConnectError = (err: unknown) => {
+        // Derive message from unknown
+        let msg = "";
+        if (err instanceof Error) msg = err.message;
+        else if (typeof err === "string") msg = err;
+        else if (typeof err === "object" && err !== null && "message" in err) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          msg = (err as any).message ?? String(err);
+        } else {
+          msg = String(err);
+        }
+
+        console.error("[useAuctionLive] Connection error:", msg);
         if (mountedRef.current) {
           setReconnecting(true);
+          setError(msg || "WebSocket connection error");
         }
-      });
+      };
 
+      socket.on("connect", onConnect);
+      socket.on("disconnect", onDisconnect);
+      socket.on("connect_error", onConnectError);
+
+      // Listen for auction state updates
       socket.on("auction:state", (serverData: unknown) => {
+        console.log("[useAuctionLive] Received auction state:", serverData);
         if (mountedRef.current) {
-          // Safely map unknown to AuctionData shape
+          // Map server data to expected AuctionData format
+          // Use any-to-unknown mapping with safe fallback
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const sd: any = serverData || {};
-          const mapped: AuctionData = {
+          const sd = serverData as any || {};
+          const state: AuctionData = {
             auctionId: sd.auctionId || auctionId || "",
             productId: sd.productId || "",
-            status: sd.status || "scheduled",
+            status: sd.status || "live",
             startTime: sd.startTime || "",
             endTime: sd.endTime || "",
             currentPrice: sd.currentPrice || 0,
-            startingPrice: sd.startingPrice,
+            startingPrice: sd.startingPrice || 0,
             buyNowPrice: sd.buyNowPrice,
-            minBidIncrement: sd.minBidIncrement || sd.minIncrement || 0,
-            reservePrice: sd.reservePrice,
-            antiSnipingSeconds: sd.antiSnipingSeconds,
-            leadingBidId: sd.leadingBidId,
+            minIncrement: sd.minBidIncrement || sd.minIncrement || 1000,
+            reserveMet: sd.reserveMet || false,
             bidCount: sd.bidCount || 0,
             winnerId: sd.winnerId || null,
-            bidHistory: sd.bidHistory || [],
-            product: sd.product || undefined,
+            title: sd.title,
+            description: sd.description,
+            imageUrls: sd.imageUrls || [],
           };
-          setAuction(mapped);
+          setAuction(state);
           setLoading(false);
         }
       });
 
+      // Listen for price updates
       socket.on("auction:price_update", (update: PriceUpdate) => {
         console.log("[useAuctionLive] Price update:", update);
         if (mountedRef.current) {
@@ -236,13 +255,14 @@ export default function useAuctionLive(
               bidCount: (prev.bidCount || 0) + 1,
             };
           });
+          // Clear pending bid on successful update
           setPendingBid(null);
         }
       });
 
       // Listen for auction extended
       socket.on("auction:extended", (data: { endTime: string }) => {
-        
+        console.log("[useAuctionLive] Auction extended:", data);
         if (mountedRef.current) {
           setAuction((prev) => {
             if (!prev) return prev;
@@ -279,31 +299,26 @@ export default function useAuctionLive(
         throw new Error("No auction ID");
       }
 
+      // Client-side validation (as recommended in guide)
+      const currentPrice = auction?.currentPrice || 0;
+      const minIncrement = auction?.minIncrement || 0;
+      const minBidRequired = currentPrice + minIncrement;
+
+      if (amount < minBidRequired) {
+        throw new Error(`Minimum bid required: ${minBidRequired}`);
+      }
+
       // Set pending bid for optimistic UI
       setPendingBid(amount);
       setError(null);
 
-      const clientBidId = `bid-${Date.now()}-${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
+      console.log("[useAuctionLive] Placing bid:", { auctionId, amount });
 
-      // Check if we have bidderId
-      if (!bidderId) {
-        console.error("❌ [useAuctionLive] No bidderId provided!");
-        throw new Error("User not authenticated. Please log in to place a bid.");
-      }
-
- 
-
-      // Emit bid to server
+      // Emit bid to server (following guide structure)
       socketRef.current.emit("auction:place_bid", {
         auctionId,
-        bidderId,
         amount,
-        clientBidId,
       });
-      
-      
 
       // Clear pending after a timeout (in case we don't get response)
       setTimeout(() => {
@@ -312,7 +327,7 @@ export default function useAuctionLive(
         }
       }, 5000);
     },
-    [auctionId, bidderId]
+    [auctionId, auction]
   );
 
   // Update countdown
@@ -324,20 +339,11 @@ export default function useAuctionLive(
 
     const updateCountdown = () => {
       const now = new Date().getTime();
-      
-      // Ensure endTime is properly parsed as ISO string (UTC)
-      let endTimeStr = auction.endTime;
-      // If endTime doesn't have timezone info, assume it's UTC
-      if (!endTimeStr.endsWith('Z') && !endTimeStr.includes('+') && !endTimeStr.includes('-', 10)) {
-        endTimeStr = endTimeStr + 'Z';
-      }
-      
-      const end = new Date(endTimeStr).getTime();
+      const end = new Date(auction.endTime).getTime();
       const distance = Math.max(0, end - now);
-      const seconds = Math.floor(distance / 1000);
 
       if (mountedRef.current) {
-        setCountdown(seconds);
+        setCountdown(Math.floor(distance / 1000)); // seconds
       }
 
       if (distance <= 0 && countdownIntervalRef.current) {
@@ -358,9 +364,6 @@ export default function useAuctionLive(
   // Initial fetch and socket connection
   useEffect(() => {
     if (!auctionId) return;
-
-    // Set mounted state to true on mount
-    mountedRef.current = true;
 
     // Fetch initial data
     fetchAuctionDetail();
@@ -386,14 +389,18 @@ export default function useAuctionLive(
         clearInterval(countdownIntervalRef.current);
       }
 
-      // Disconnect socket
+      // Properly leave room and disconnect socket (as per guide)
       if (socketRef.current) {
-        socketRef.current.emit("auction:leave", { auctionId });
-        socketRef.current.disconnect();
+        try {
+          console.log("[useAuctionLive] Leaving auction room:", auctionId);
+          socketRef.current.emit("auction:leave", { auctionId });
+          socketRef.current.off();
+          socketRef.current.disconnect();
+        } catch {
+          // ignore
+        }
         socketRef.current = null;
       }
-      setIsConnected(false);
-      setReconnecting(false);
     };
   }, [auctionId, connectSocket, fetchAuctionDetail, resyncIntervalSeconds]);
 
