@@ -16,19 +16,18 @@ export default function Product() {
     live,
     countdown,
     auctionId,
-    auctionTitle: (auction as any)?.title,
+    auctionTitle: auction?.product?.title,
     auctionCurrentPrice: auction?.currentPrice,
-    auctionMinIncrement: auction?.minIncrement,
+    auctionMinIncrement: auction?.minBidIncrement,
   });
 
   // Try to read product info from auction snapshot.
   // Server returns product info directly in auction object
-  const auctionWithProduct = auction as any;
   const product = {
-    title: auctionWithProduct?.title,
-    description: auctionWithProduct?.description,
-    imageUrls: auctionWithProduct?.imageUrls || [],
-    price_start: auctionWithProduct?.startingPrice,
+    title: auction?.product?.title,
+    description: auction?.product?.description,
+    imageUrls: auction?.product?.imageUrls || [],
+    price_start: auction?.startingPrice,
   };
   const title = product.title || (auctionId ? `Auction #${auctionId}` : "Live Auction");
 

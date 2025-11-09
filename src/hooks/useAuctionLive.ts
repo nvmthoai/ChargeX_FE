@@ -68,8 +68,8 @@ export default function useAuctionLive(
   const [error, setError] = useState<string | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
-  const resyncIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const resyncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
 
   const live = auction?.status === "live";

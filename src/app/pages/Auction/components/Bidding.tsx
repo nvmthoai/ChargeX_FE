@@ -31,7 +31,6 @@ export default function Bidding() {
 
   const {
     wallet: walletHook,
-    loading: walletLoading,
     deposit,
     calculateDeposit,
     checkSufficientBalance,
@@ -139,8 +138,8 @@ export default function Bidding() {
     if (Number.isNaN(amount)) return;
     const depositRequired = calculateDeposit(amount, depositPercent);
     const shortfall =
-      (wallet?.available ?? 0) < depositRequired
-        ? depositRequired - (wallet?.available ?? 0)
+      (walletFinal?.available ?? 0) < depositRequired
+        ? depositRequired - (walletFinal?.available ?? 0)
         : depositRequired;
 
     try {
