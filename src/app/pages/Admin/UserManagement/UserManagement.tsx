@@ -19,7 +19,7 @@ const DefaultAvatar = '../../../../../public/lightning_thunder.png';
 const UserManagement = () => {
 
     const [USERs, setUSERs] = useState<Record<string, any>>({});
-    const [detailNumber, setDetailNumber] = useState<Record<string, any>>({});
+    const [_detailNumber, setDetailNumber] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [selectedEmailVerified, setSelectedEmailVerified] = useState('');
     const [selectedIsActive, setSelectedIsActive] = useState('');
