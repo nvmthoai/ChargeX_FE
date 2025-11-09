@@ -38,24 +38,41 @@ const useAuction = () => {
     return null;
   };
 
-  const getRequestCreateAuction = async () => {
-    const response = await adminGetRequestCreateAuction();
-    if (response) {
-      return response.data;
+  const getRequestCreateAuction = useCallback(async () => {
+    try {
+      const response = await adminGetRequestCreateAuction();
+      if (response) return response.data;
+      return null;
+    } catch (e) {
+      console.error(e);
+      return null;
     }
-    return null;
-  };
+  }, [adminGetRequestCreateAuction]);
 
-  const handleApproveRequest = async (values: any) => {
-    if (currentUser.role === "admin") {
-      const response = await adminHandleApproveRequest(currentUser.sub, values);
-      if (response) {
-        message.success("Approved successfully!");
-        return response.data;
+  const handleApproveRequest = useCallback(async (values: any) => {
+    if (currentUser.role === 'admin') {
+      setLoading(true);
+      try {
+        const response = await adminHandleApproveRequest(currentUser.sub, values);
+        if (response) {
+          // if server returns created auction id, mark to skip updates
+          const createdAuctionId = response.data?.auctionId || response.data?.id;
+          if (createdAuctionId && typeof window !== 'undefined') {
+            ;(window as any).__skipAuctionUpdates = (window as any).__skipAuctionUpdates || new Set();
+            (window as any).__skipAuctionUpdates.add(createdAuctionId);
+            setTimeout(() => (window as any).__skipAuctionUpdates.delete(createdAuctionId), 5000);
+          }
+          message.success('Approved successfully!');
+          return response.data;
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     }
     return null;
-  };
+  }, [adminHandleApproveRequest, currentUser, message]);
 
   const getAuctions = useCallback(async () => {
     setLoading(true);
@@ -80,6 +97,12 @@ const useAuction = () => {
         const response = await adminCreateLive(auctionId);
         if (response) {
           message.success("Auction is now live!");
+          // mark auction id to skip immediate websocket-triggered refreshes
+          if (typeof window !== 'undefined') {
+            ;(window as any).__skipAuctionUpdates = (window as any).__skipAuctionUpdates || new Set();
+            (window as any).__skipAuctionUpdates.add(auctionId);
+            setTimeout(() => (window as any).__skipAuctionUpdates.delete(auctionId), 5000);
+          }
           return response.data;
         }
         return null;
@@ -102,7 +125,7 @@ const useAuction = () => {
   return {
     handleSendRequest,
     getRequestCreateAuction,
-    handleApproveRequest,
+    handleApproveRequest: handleApproveRequest,
     getAuctions,
     createLive,
     loading,

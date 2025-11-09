@@ -8,10 +8,6 @@ import {
   Space,
   message,
   Spin,
-  Select,
-  Row,
-  Col,
-  Input,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -21,6 +17,7 @@ import {
 import { ApprovePayoutModal } from "./ApprovePayoutModal";
 import { DenyPayoutModal } from "./DenyPayoutModal";
 import "../NavigationBar/NavigationBar.css";
+import "./index.css";
 
 import type {
   PayoutDescription,
@@ -206,40 +203,40 @@ const WithdrawManagement: React.FC = () => {
   return (
     <div className="admin-container">
       {!loadingHandleRequest ? (
-        <div className="p-6 bg-slate-900 min-h-screen">
-          <div className="bg-slate-900 rounded-lg p-6 mb-6">
-            <h1 className="text-2xl font-bold text-white mb-4">
-              Withdraw Management
-            </h1>
-            <Row gutter={16}>
-              <Col xs={24} sm={12} lg={8}>
-                <Input.Search
-                  placeholder="Search by name, email or phone"
-                  allowClear
-                  onChange={(e) => setSearchText(e.target.value)}
-                  className="w-full"
-                />
-              </Col>
-              <Col xs={24} sm={12} lg={8}>
-                <Select
-                  placeholder="Filter by status"
-                  allowClear
-                  onChange={(value) => setStatusFilter(value)}
-                  options={[
-                    { label: "Pending", value: "pending" },
-                    { label: "Approved", value: "approved" },
-                    { label: "Rejected", value: "rejected" },
-                  ]}
-                  className="w-full"
-                />
-              </Col>
-            </Row>
+        <div className="inner-container management-container withdraw-management-container">
+          <header className="main-header">
+            <h1>Withdraw Request Management</h1>
+          </header>
+
+          <div className="controls">
+            <div className="search-bar">
+              <i className="fa-solid fa-magnifying-glass" />
+              <input
+                type="text"
+                placeholder="Find by name, email or phone..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+            </div>
+            <form>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">-- Status --</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </form>
+            <button className="btn btn-secondary" onClick={() => fetchPayouts(1, statusFilter)}>
+              Refresh
+            </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow">
+          <section className="admin-table-container">
             <Spin spinning={loading}>
               <Table
-                className=""
                 columns={columns}
                 dataSource={payouts}
                 rowKey="id"
@@ -252,7 +249,7 @@ const WithdrawManagement: React.FC = () => {
                 scroll={{ x: 1400 }}
               />
             </Spin>
-          </div>
+          </section>
 
           <ApprovePayoutModal
             visible={approveModalVisible}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuction } from "../hooks/useAuction";
+import { userApi } from "../api/user/api";
 
 interface AuctionRoomProps {
   auctionId: string;
@@ -27,35 +28,88 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
 
   const [bidAmount, setBidAmount] = useState<string>("");
   const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [ownerName, setOwnerName] = useState<string>("");
+  const [winnerName, setWinnerName] = useState<string>("");
+
+  // Fetch owner name
+  useEffect(() => {
+    const fetchOwnerName = async () => {
+      if (!auctionDetail) return;
+      
+      const sellerId = auctionDetail.sellerId || auctionDetail.product.sellerId;
+      if (!sellerId) {
+        setOwnerName("Người bán");
+        return;
+      }
+      
+      const user = await userApi.getUserById(sellerId);
+      if (user) {
+        setOwnerName(user.fullName || user.email || "Người bán");
+      } else {
+        // Fallback to showing partial user ID if API fails
+        setOwnerName(`User ${sellerId.substring(0, 8)}`);
+      }
+    };
+    
+    fetchOwnerName();
+  }, [auctionDetail]);
+
+  // Fetch winner name
+  useEffect(() => {
+    const fetchWinnerName = async () => {
+      if (!auctionDetail?.winnerId) {
+        setWinnerName("");
+        return;
+      }
+      
+      const user = await userApi.getUserById(auctionDetail.winnerId);
+      if (user) {
+        setWinnerName(user.fullName || user.email || "Người thắng");
+      } else {
+        // Fallback to showing partial user ID if API fails
+        setWinnerName(`User ${auctionDetail.winnerId.substring(0, 8)}`);
+      }
+    };
+    
+    fetchWinnerName();
+  }, [auctionDetail?.winnerId]);
 
   // Calculate time remaining
   useEffect(() => {
-    if (!auctionDetail?.endTime) return;
+    if (!auctionDetail?.endTime) return
 
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const end = new Date(auctionDetail.endTime).getTime();
-      const distance = end - now;
+    // Compute client-server offset when server provides serverNow (ISO)
+    const serverNowStr = (auctionDetail as any).serverNow
+    const offset = serverNowStr ? Date.parse(serverNowStr) - Date.now() : 0
+
+    const endTs = Date.parse(auctionDetail.endTime)
+
+    const tick = () => {
+      const now = Date.now() + offset
+      const distance = endTs - now
 
       if (distance < 0) {
-        setTimeRemaining("Đã kết thúc");
-        clearInterval(interval);
-        return;
+        setTimeRemaining('Đã kết thúc')
+        return
       }
 
-      const hours = Math.floor(distance / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      const hours = Math.floor(distance / (1000 * 60 * 60))
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000)
 
       setTimeRemaining(
-        `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+        `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
           .toString()
-          .padStart(2, "0")}`
-      );
-    }, 1000);
+          .padStart(2, '0')}`
+      )
+    }
 
-    return () => clearInterval(interval);
-  }, [auctionDetail?.endTime]);
+    // Run immediately and then on interval
+    tick()
+    const interval = setInterval(tick, 1000)
+
+    return () => clearInterval(interval)
+  }, [auctionDetail?.endTime])
 
   const handlePlaceBid = () => {
     const amount = parseFloat(bidAmount);
@@ -94,7 +148,13 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleString("vi-VN");
+    // Ensure input ISO string parsed as UTC then shown in local timezone
+    try {
+      const dt = new Date(date)
+      return dt.toLocaleString('vi-VN', { hour12: false })
+    } catch (e) {
+      return date
+    }
   };
 
   if (isLoading) {
@@ -133,6 +193,11 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
       {/* Product Info */}
       <div className="auction-product-info">
         <h1>{auctionDetail.product.title}</h1>
+        {ownerName && (
+          <div className="owner-info">
+            <strong>Người sở hữu:</strong> {ownerName}
+          </div>
+        )}
         <div className="product-images">
           {auctionDetail.product.images.map((img: string, idx: number) => (
             <img key={idx} src={img} alt={`Product ${idx + 1}`} />
@@ -258,7 +323,7 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
       {hasEnded && auctionDetail.winnerId && (
         <div className="winner-panel">
           <h3>🏆 Người thắng cuộc</h3>
-          <p>User ID: {auctionDetail.winnerId}</p>
+          <p>Người thắng: {winnerName || "Đang tải..."}</p>
           <p>Giá cuối: {formatPrice(currentPrice)}</p>
         </div>
       )}
