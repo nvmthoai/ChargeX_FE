@@ -4,6 +4,7 @@ import Auction from "../pages/Auction/Auction";
 import AuctionList from "../pages/Auction/AuctionListOptimized";
 import AuthPage from "../pages/Auth/auth";
 import Cart from "../pages/Cart/Cart";
+import CheckoutCart from "../pages/Order/CheckoutCart";
 import Home from "../pages/Home/Home";
 import ProductDetail from "../pages/Product/ProductDetail";
 import ProductDetailShop from "../pages/Shop/product/ProductDetailShop";
@@ -45,9 +46,7 @@ import { DisputesManagement } from "../pages/Admin/DisputesManagement";
 export default function MainRoutes() {
   return (
     <BrowserRouter>
-      <div className="sticky top-0 left-0 z-20">
-        <Header />
-      </div>
+      <div className="sticky top-0 left-0 z-20"><Header /></div>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -57,12 +56,18 @@ export default function MainRoutes() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/shop-detail/:id" element={<ShopDetailPage />} />
+        <Route path="/productdetail/:id" element={<ProductDetail />} />
+        <Route path="/auction" element={<AuctionList />} />
+        <Route path="/auction/:id" element={<Auction />} />
+        <Route path="/orders/:id" element={<OrderDetail />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout-cart" element={<CheckoutCart />} />
 
         <Route element={<AuthRoute />}>
           <Route path="/auth" element={<AuthPage />} />
         </Route>
 
-        <Route path="/profile" element={<Profile />}>
+        <Route path="/profile" element={<Profile />} >
           <Route index element={<Navigate to="detail" replace />} />
           <Route path="detail" element={<ProfileDetail />} />
           <Route path="security" element={<ProfileSecurity />} />
@@ -71,45 +76,26 @@ export default function MainRoutes() {
           <Route path="wallet" element={<ProfileWallet />} />
           <Route path="orders" element={<OrderManagement />} />
         </Route>
-        <Route path="/shop" element={<Shop />}>
+
+        <Route path="/shop" element={<Shop />} >
           <Route index element={<Navigate to="products" />} />
           <Route path="products" element={<ProductManager />} />
           <Route path="history" element={<TransactionHistory />} />
           <Route path="auction" element={<AuctionManager />} />
           <Route path="productdetail/:id" element={<ProductDetailShop />} />
         </Route>
-        <Route path="/productdetail/:id" element={<ProductDetail />} />
-        <Route path="/auction" element={<AuctionList />} />
-        <Route path="/auction/:id" element={<Auction />} />
-        <Route path="/orders/:id" element={<OrderDetail />} />
 
-        <Route
-          path="/admin"
-          element={<Navigate to="/admin/user-management" replace />}
-        />
-        <Route path="/admin" element={<NavigationBar />}>
+        <Route path="/admin" element={<NavigationBar />} >
+          <Route index element={<Navigate to="user-management" replace />} />
           <Route path="user-management" element={<UserManagement />} />
-          <Route
-            path="auction-management"
-            element={<AuctionRequestManagement />}
-          />
-          <Route
-            path="auction-live-management"
-            element={<AuctionLiveManagement />}
-          />
+          <Route path="auction-management" element={<AuctionRequestManagement />} />
+          <Route path="auction-live-management" element={<AuctionLiveManagement />} />
           <Route path="kyc-management" element={<KycManagement />} />
-          <Route
-            path="transaction-management"
-            element={<TransactionManagement />}
-          />
+          <Route path="transaction-management" element={<TransactionManagement />} />
           <Route path="revenue-management" element={<RevenueManagement />} />
-          <Route
-            path="withdraw-request-management"
-            element={<WithdrawManagement />}
-          />
+          <Route path="withdraw-request-management" element={<WithdrawManagement />} />
           <Route path="disputes-request-management" element={<DisputesManagement />} />
         </Route>
-        <Route path="/cart" element={<Cart />} />
       </Routes>
       <ChatBox />
     </BrowserRouter>
