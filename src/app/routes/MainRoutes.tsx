@@ -40,6 +40,7 @@ import ShopDetailPage from "../pages/Shop-Detail";
 
 import ChatBox from "../components/ChatBox/ChatBox";
 import OrderManagement from "../pages/Profile/Orders";
+import { DisputesManagement } from "../pages/Admin/DisputesManagement";
 
 export default function MainRoutes() {
   return (
@@ -68,7 +69,7 @@ export default function MainRoutes() {
           <Route path="kyc" element={<KnowYourCus />} />
           <Route path="address" element={<AddressManagement />} />
           <Route path="wallet" element={<ProfileWallet />} />
-           <Route path="orders" element={<OrderManagement />} />
+          <Route path="orders" element={<OrderManagement />} />
         </Route>
         <Route path="/shop" element={<Shop />}>
           <Route index element={<Navigate to="products" />} />
@@ -106,6 +107,7 @@ export default function MainRoutes() {
             path="withdraw-request-management"
             element={<WithdrawManagement />}
           />
+          <Route path="disputes-request-management" element={<DisputesManagement />} />
         </Route>
         <Route path="/cart" element={<Cart />} />
       </Routes>
