@@ -1,0 +1,53 @@
+import { useState } from "react";
+import disputesService from "../services/DisputesService";
+import { App } from "antd";
+import type { Report } from "../models/dispute.model";
+
+const useDisputes = () => {
+    const [disputes, setDisputes] = useState<Report[]>([])
+    const { message } = App.useApp();
+    const { createDisputes, getDisputeDetail, getDisputes, resolveDisputes } = disputesService();
+
+    const handleCreateDisputes = async (orderId: string, values: any) => {
+        const response = await createDisputes(orderId, values);
+        if (response) {
+            message.success('Create disputes successfully!')
+            return response
+        }
+        return null;
+    };
+
+    const fetchDisputes = async () => {
+        const response = await getDisputes();
+        if (response) {
+            setDisputes(response.data.data)
+        }
+    };
+
+    const fetchDisputeDetail = async (id: string) => {
+        const response = await getDisputeDetail(id);
+        if (response) {
+            return response
+        }
+        return null;
+    };
+
+    const handleResolve = async (id: string, values: any) => {
+        const response = await resolveDisputes(id, values);
+        if (response) {
+             message.success('Resolve dispute successfully!')
+            return response
+        }
+        return null;
+    };
+
+    return {
+        handleCreateDisputes,
+        fetchDisputes,
+        fetchDisputeDetail,
+        handleResolve,
+        disputes
+    };
+};
+
+export default useDisputes;

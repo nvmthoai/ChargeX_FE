@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:3001";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "https://chargex.id.vn";
 
 export interface AuctionState {
   auctionId: string;
@@ -39,7 +39,7 @@ export class AuctionSocketService {
 
     this.userId = userId || null;
 
-    this.socket = io(SOCKET_URL, {
+    this.socket = io(`${SOCKET_URL}/auctions`, {
       path: "/socket.io/",
       transports: ["websocket", "polling"],
       auth: {
