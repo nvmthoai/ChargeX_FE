@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import CartItemsList from "./components/CartItemList";
 import OrderSummary from "./components/OrderSummary";
 import { useAuth } from "../../hooks/AuthContext";
-import { fetchData, getQueryString } from "../../../mocks/CallingAPI";
+import { deleteData, fetchData, getQueryString } from "../../../mocks/CallingAPI";
 // import type { CartItem } from "./components/CartItemList";
 // import { initialItems } from "../../../data/initialItems";
 
 
 export default function CartPage() {
+  const token = localStorage.getItem('token') || '';
   const { user } = useAuth();
   const [items, setItems] = useState<Record<string, any>[]>([]);
   const [selectedItems, setSelectedItems] = useState<Record<string, any>[]>([]);
@@ -16,8 +17,8 @@ export default function CartPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('token') || '';
     const fetchDataAPI = async () => {
+      setLoading(false);
       try {
         const ItemsResponse = await fetchData(`/orders${getQueryString({ page: 1, limit: 1000 })}`, token);
         console.log('ItemsResponse', ItemsResponse.data.data);
@@ -40,8 +41,18 @@ export default function CartPage() {
   //   setItems(items.map((i: any) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i)));
   // };
 
-  const removeItem = (id: number) => {
-    setItems(items.filter((i: any) => i.id !== id));
+  const removeItem = async (orderId: number) => {
+    // setItems(items.filter((i: any) => i.id !== id));
+    setLoading(true);
+    try {
+      const RemoveItemsResponse = await deleteData(`/orders/${orderId}`, token);
+      console.log('RemoveItemsResponse', RemoveItemsResponse);
+    } catch (error) {
+      setError('Error');
+    } finally {
+      setLoading(false);
+      setRefresh(p => p + 1);
+    }
   };
 
   const handleCheckboxChange = (id: any) => {
