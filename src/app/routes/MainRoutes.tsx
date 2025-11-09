@@ -4,7 +4,10 @@ import Auction from "../pages/Auction/Auction";
 import AuctionList from "../pages/Auction/AuctionListOptimized";
 import AuthPage from "../pages/Auth/auth";
 import Cart from "../pages/Cart/Cart";
+import Checkout from "../pages/Order/Checkout";
 import CheckoutCart from "../pages/Order/CheckoutCart";
+import Payment from "../pages/Payment/Payment";
+import PaymentCart from "../pages/Payment/PaymentCart";
 import Home from "../pages/Home/Home";
 import ProductDetail from "../pages/Product/ProductDetail";
 import ProductDetailShop from "../pages/Shop/product/ProductDetailShop";
@@ -29,9 +32,7 @@ import UserManagement from "../pages/Admin/UserManagement/UserManagement";
 import KycManagement from "../pages/Admin/KycManagement/KycManagement";
 import TransactionManagement from "../pages/Admin/TransactionManagement/TransactionManagement";
 import RevenueManagement from "../pages/Admin/RevenueManagement/RevenueManagement";
-import Checkout from "../pages/Order/Checkout";
 import Header from "../layouts/Header/Header";
-import Payment from "../pages/Payment/Payment";
 import AuctionRequestManagement from "../pages/Admin/AuctionRequestManagement";
 import AuctionLiveManagement from "../pages/Admin/AuctionLiveManagement";
 
@@ -53,15 +54,16 @@ export default function MainRoutes() {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-error" element={<PaymentError />} />
         <Route path="/verify-otp" element={<VerifyOTPPage />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/checkout-cart" element={<CheckoutCart />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/payment-cart" element={<PaymentCart />} />
         <Route path="/shop-detail/:id" element={<ShopDetailPage />} />
         <Route path="/productdetail/:id" element={<ProductDetail />} />
         <Route path="/auction" element={<AuctionList />} />
         <Route path="/auction/:id" element={<Auction />} />
         <Route path="/orders/:id" element={<OrderDetail />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout-cart" element={<CheckoutCart />} />
 
         <Route element={<AuthRoute />}>
           <Route path="/auth" element={<AuthPage />} />
