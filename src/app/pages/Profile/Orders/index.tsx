@@ -10,6 +10,8 @@ import useReview from "../../../hooks/useReview";
 import ReviewListModal from "./ReviewListModal";
 import { getUserInfo } from "../../../hooks/useAddress";
 import { Link } from "react-router-dom";
+import ReportModal from "./ReportModal";
+import useDisputes from "../../../hooks/useDisputes";
 
 const ORDER_STATUSES = [
   "pending",
@@ -39,7 +41,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function OrderManagement() {
   const { orders } = useOrder();
-
+  const { handleCreateDisputes } = useDisputes();
   const {
     handleCreateReview,
     fetchMyReviewInEachShop,
@@ -75,6 +77,19 @@ export default function OrderManagement() {
     sellerId: "",
     sellerName: "",
   });
+
+  const [reportModal, setReportModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    sellerId: string;
+    sellerName: string;
+  }>({
+    visible: false,
+    orderId: "",
+    sellerId: "",
+    sellerName: "",
+  });
+
   const filteredOrders = useMemo(() => {
     return orders.filter((order: any) => {
       const matchesSearch = order.orderId
@@ -125,6 +140,15 @@ export default function OrderManagement() {
     }
   };
 
+   const handleReportClick = (orderId: string, shopItem: OrderShop) => {
+    setReportModal({
+      visible: true,
+      orderId,
+      sellerId: shopItem.seller.userId,
+      sellerName: shopItem.seller.fullName,
+    })
+  }
+  
   const expandedRowRender = (record: Order) => {
     return (
       <div className="space-y-4">
@@ -134,9 +158,11 @@ export default function OrderManagement() {
             className="bg-slate-50 p-4 rounded-lg border border-slate-200"
           >
             <div className="mb-3">
-              <Link to={`/shop-detail/${shop.seller.userId}`}><h4 className="font-semibold text-slate-900">
-                Shop: {shop.seller.fullName}
-              </h4></Link>
+              <Link to={`/shop-detail/${shop.seller.userId}`}>
+                <h4 className="font-semibold text-slate-900">
+                  Shop: {shop.seller.fullName}
+                </h4>
+              </Link>
               <p className="text-sm text-slate-600">{shop.seller.email}</p>
             </div>
 
@@ -197,14 +223,24 @@ export default function OrderManagement() {
                   View Reviews
                 </Button>
                 {record.status === "completed" && (
-                  <Button
-                    type="primary"
-                    size="small"
-                    icon={<StarOutlined />}
-                    onClick={() => handleReviewClick(record.orderId, shop)}
-                  >
-                    Review Seller
-                  </Button>
+                  <>
+                    <Button
+                      type="primary"
+                      size="small"
+                      icon={<StarOutlined />}
+                      onClick={() => handleReviewClick(record.orderId, shop)}
+                    >
+                      Review Seller
+                    </Button>
+                    <Button
+                      type="default"
+                      size="small"
+                      danger
+                      onClick={() => handleReportClick(record.orderId, shop)}
+                    >
+                      Create Report
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
@@ -275,6 +311,10 @@ export default function OrderManagement() {
     },
   ];
 
+  const handleCloseReport = () => {
+    setReportModal({ ...reportModal, visible: false });
+  };
+
   return (
     <div className="space-y-4 p-4">
       {/* Filters */}
@@ -337,6 +377,16 @@ export default function OrderManagement() {
         )}
         onUpdateReview={handleUpdateReviewSuccess}
         onDeleteReview={handleDeleteReviewSuccess}
+      />
+
+      {/* Report Modal */}
+      <ReportModal
+        visible={reportModal.visible}
+        orderId={reportModal.orderId}
+        sellerId={reportModal.sellerId}
+        sellerName={reportModal.sellerName}
+        onClose={handleCloseReport}
+        onSubmit={handleCreateDisputes || (async () => {})}
       />
     </div>
   );

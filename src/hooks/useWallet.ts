@@ -53,10 +53,9 @@ export default function useWallet(
       const data = await response.json();
       setWallet(data);
       setError(null);
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error("[useWallet] Fetch error:", err);
-      console.warn("[useWallet] Using mock wallet data for development");
-      setError(null); // Don't show error to user, just use mock data
+      setError(err.message || "Failed to fetch wallet");
       // Set mock data for development
       setWallet({
         balance: 1000000,
@@ -119,10 +118,9 @@ export default function useWallet(
         }
 
         await fetchBalance();
-      } catch (err: unknown) {
+      } catch (err: any) {
         console.error("[useWallet] Deposit error:", err);
-        const errorMessage = err instanceof Error ? err.message : "Failed to deposit";
-        throw new Error(errorMessage);
+        throw new Error(err.message || "Failed to deposit");
       }
     },
     [fetchBalance]

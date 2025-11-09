@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auctionApi } from "../../../api/auction";
+import useApiService from "../../hooks/useApi";
 import toast from "react-hot-toast";
 
 interface AuctionItem {
@@ -15,37 +15,112 @@ interface AuctionItem {
   imageUrls?: string[];
 }
 
+interface AuctionListResponse {
+  items: AuctionItem[];
+  meta: {
+    total: number;
+    page: number;
+    pageSize: number;
+  };
+}
+
 export default function AuctionList() {
   const navigate = useNavigate();
+  const { callApi } = useApiService();
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "live" | "scheduled">("all");
 
+  useEffect(() => {
+    fetchAuctions();
+  }, [filter]);
+
   const fetchAuctions = async () => {
     try {
       setLoading(true);
+      const params: any = {
+        page: 1,
+        pageSize: 20,
+      };
       
-      const status = filter !== "all" ? filter : undefined;
-      const response = await auctionApi.getJoinableAuctions(status, 1, 20);
-      
-      if (response && response.items) {
-        setAuctions(response.items);
-      } else {
-        setAuctions([]);
+      if (filter !== "all") {
+        params.status = filter;
       }
+
+      console.log("🚀 [AuctionList] Calling API with params:", params);
+      console.log("🌐 [AuctionList] API URL:", "/auction/joinable");
+      
+      // Try different endpoints to find the correct one
+      let response;
+      try {
+        response = await callApi("get", "/auction/joinable", { params });
+        console.log("✅ [AuctionList] /auction/joinable worked!");
+      } catch (joinableError) {
+        console.warn("⚠️ [AuctionList] /auction/joinable failed, trying /auction");
+        try {
+          response = await callApi("get", "/auction", { params });
+          console.log("✅ [AuctionList] /auction worked!");
+        } catch (auctionError) {
+          console.warn("⚠️ [AuctionList] /auction failed, trying /auctions");
+          response = await callApi("get", "/auctions", { params });
+          console.log("✅ [AuctionList] /auctions worked!");
+        }
+      }
+      
+      console.log("📦 [AuctionList] Raw API response:", response);
+      console.log("📊 [AuctionList] Response type:", typeof response);
+      console.log("📋 [AuctionList] Response keys:", response ? Object.keys(response) : "null");
+      
+      // Handle different response formats
+      let data: AuctionListResponse;
+      
+      if (!response) {
+        console.warn("⚠️ Empty response from API");
+        setAuctions([]);
+        return;
+      }
+      
+      // Check if response is already the expected format
+      if (response.items && Array.isArray(response.items)) {
+        data = response;
+      }
+      // Check if response is wrapped in a data property
+      else if (response.data && response.data.items) {
+        data = response.data;
+      }
+      // Check if response is an array (direct list of auctions)
+      else if (Array.isArray(response)) {
+        data = {
+          items: response,
+          meta: { total: response.length, page: 1, pageSize: response.length }
+        };
+      }
+      // Response doesn't match expected format
+      else {
+        console.error("❌ Unexpected response format:", response);
+        toast.error("Invalid response format from server");
+        setAuctions([]);
+        return;
+      }
+      
+      console.log("✅ Parsed auctions:", data.items);
+      setAuctions(data.items || []);
     } catch (error: any) {
-      console.error("Failed to fetch auctions:", error);
+      console.error("❌ [AuctionList] Failed to fetch auctions:", error);
+      console.error("❌ [AuctionList] Error details:", {
+        message: error?.message,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data,
+        url: error?.config?.url,
+      });
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to load auctions";
+      toast.error(errorMessage);
       setAuctions([]);
     } finally {
       setLoading(false);
     }
   };
-
-  // Fetch auctions on mount and when filter changes
-  useEffect(() => {
-    fetchAuctions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("vi-VN", {

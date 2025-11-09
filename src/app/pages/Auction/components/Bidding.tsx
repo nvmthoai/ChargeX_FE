@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import useAuctionLive from "../../../hooks/useAuctionLive";
 import { useAuth } from "../../../hooks/AuthContext";
-import useWallet from "../../../hooks/useWallet";
+import useWallet from "../../../../hooks/useWallet";
 import toast from "react-hot-toast";
 import {
   mapErrorMessage,
@@ -21,63 +21,50 @@ export default function Bidding() {
     loading,
     live,
     reconnecting,
+    isConnected,
     countdown,
     placeBid,
     pendingBid,
   } = useAuctionLive(auctionId, {
     resyncIntervalSeconds: 8,
-    bidderId: user?.sub || null, // Pass user ID from auth context
   });
 
   const {
-    myWallet,
-    handleDeposit: depositToWallet,
-  } = useWallet();
-
-  // Use myWallet as wallet for compatibility
-  const wallet = myWallet;
+    wallet: walletHook,
+    deposit,
+    calculateDeposit,
+    checkSufficientBalance,
+    formatCurrency: formatVND,
+    fetchBalance,
+  } = useWallet({ autoFetch: true, refreshIntervalSeconds: 30 });
+  const walletFinal = walletHook;
 
   const [input, setInput] = useState<string>("");
   const [placing, setPlacing] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
 
-  // Helper functions for wallet operations
-  const formatVND = (amount: number) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-    }).format(amount);
-
-  const calculateDeposit = (bidAmount: number, depositPercent: number): number => {
-    return Math.ceil((bidAmount * depositPercent) / 100);
-  };
-
-  const checkSufficientBalance = (bidAmount: number, depositPercent: number) => {
-    const required = calculateDeposit(bidAmount, depositPercent);
-    const available = myWallet?.available ?? 0;
-    return {
-      sufficient: available >= required,
-      required,
-      available,
-    };
-  };
-
-  const fetchBalance = async () => {
-    // Wallet will auto-refresh via useEffect in useWallet hook
-  };
-
-  const deposit = async (amount: number) => {
-    await depositToWallet(amount.toString());
-  };
-
-  // Use startingPrice if currentPrice is 0 (no bids yet)
+  // Use wallet helpers provided by useWallet (formatVND, calculateDeposit, checkSufficientBalance, fetchBalance)
+  // Determine currentPrice with fallback to startingPrice/product.priceStart when no bids yet
   const rawCurrentPrice = auction?.currentPrice ?? 0;
-  const startingPrice = (auction as any)?.startingPrice ?? (auction as any)?.product?.priceStart ?? 0;
+  const startingPrice = auction?.startingPrice ?? auction?.product?.priceStart ?? 0;
   const currentPrice = rawCurrentPrice > 0 ? rawCurrentPrice : startingPrice;
-  
-  const minIncrement = auction?.minBidIncrement ?? 0;
+
+  // Prefer minBidIncrement (backend), fallback to legacy minIncrement
+  const minIncrement = (auction as any)?.minBidIncrement ?? (auction as any)?.minIncrement ?? 0;
+
   const nextMinBid = currentPrice + minIncrement;
+
+  // Debug log
+  console.log("🔍 [Bidding] Debug data:", {
+    auction,
+    currentPrice,
+    minIncrement,
+    nextMinBid,
+    live,
+    loading,
+    reconnecting,
+    isConnected,
+  });
 
   const canBid = useMemo(() => {
     if (!user) return { ok: false, reason: "Not logged in" };
@@ -114,7 +101,7 @@ export default function Bidding() {
         `Insufficient funds. You need ${formatVND(
           depositRequired
         )} deposit, but only have ${formatVND(
-          wallet?.available ?? 0
+          walletFinal?.available ?? 0
         )} available.`
       );
       setShowDepositModal(true);
@@ -151,8 +138,8 @@ export default function Bidding() {
     if (Number.isNaN(amount)) return;
     const depositRequired = calculateDeposit(amount, depositPercent);
     const shortfall =
-      (wallet?.available ?? 0) < depositRequired
-        ? depositRequired - (wallet?.available ?? 0)
+      (walletFinal?.available ?? 0) < depositRequired
+        ? depositRequired - (walletFinal?.available ?? 0)
         : depositRequired;
 
     try {
@@ -185,17 +172,17 @@ export default function Bidding() {
           <p>
             Next Min Bid: <strong>{formatCurrency(nextMinBid)}</strong>
           </p>
-          {wallet && (
+          {walletFinal && (
             <p className="mt-2 text-gray-600">
               💰 Your Balance:{" "}
               <strong
                 className={
-                  wallet.available >= nextMinBid * 0.1
+                  (walletFinal as any).available >= nextMinBid * 0.1
                     ? "text-green-600"
                     : "text-red-600"
                 }
               >
-                {formatVND(wallet.available)}
+                {formatVND((walletFinal as any).available)}
               </strong>
             </p>
           )}
@@ -283,34 +270,8 @@ export default function Bidding() {
       <div className="auction-card bidding-history">
         <h2 className="card-title">Bidding History</h2>
         <div className="history-list">
-          {auction?.bidHistory && auction.bidHistory.length > 0 ? (
-            <div className="space-y-2">
-              {auction.bidHistory.map((bid) => (
-                <div 
-                  key={bid.bidId} 
-                  className={`p-3 rounded ${bid.isWinning ? 'bg-green-100 border-2 border-green-500' : 'bg-gray-100'}`}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="font-semibold">
-                        {bid.isWinning && '🏆 '}
-                        {bid.userName || 'Anonymous'}
-                      </span>
-                      {bid.userId === user?.sub && (
-                        <span className="ml-2 text-xs text-blue-600 font-bold">(You)</span>
-                      )}
-                    </div>
-                    <span className="font-bold text-lg">{formatCurrency(bid.amount)}</span>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {new Date(bid.timestamp).toLocaleString('vi-VN')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No bids yet. Be the first to bid!</p>
-          )}
+          {/* History should come from auction.participants or separate API — placeholder */}
+          <p>Live updates will appear here.</p>
         </div>
       </div>
     </div>
