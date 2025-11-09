@@ -3,27 +3,7 @@ import { Socket } from "socket.io-client";
 import { auctionSocket } from "../../api/auction/socket";
 import api from "../config/axios";
 
-function normalizeSocketUrl(): string {
-  const raw =
-    import.meta.env.VITE_SOCKET_URL ||
-    import.meta.env.VITE_API_URL ||
-    (typeof window !== "undefined" ? window.location.origin : "") ||
-    "http://localhost:3001";
-
-  try {
-    const parsed = new URL(raw, typeof window !== "undefined" ? window.location.origin : undefined);
-    // Map ws/wss schemes to http/https so socket.io-client builds correct HTTP origin
-    let protocol = parsed.protocol;
-    if (protocol === "ws:") protocol = "http:";
-    if (protocol === "wss:") protocol = "https:";
-    // Build origin with normalized protocol
-    return `${protocol}//${parsed.host}`;
-  } catch {
-    return "http://localhost:3001";
-  }
-}
-
-// NOTE: normalized socket url is handled by the singleton socket; not read directly in this hook
+// NOTE: normalized socket url is handled by the singleton socket; function removed to avoid unused declaration
 
 interface BidHistoryItem {
   bidId: string;
@@ -150,7 +130,7 @@ export default function useAuctionLive(
           } else if (typeof err === 'string') {
             fallbackMessage = err;
           }
-        } catch (ex) {
+        } catch {
           // ignore
         }
         setError(fallbackMessage);

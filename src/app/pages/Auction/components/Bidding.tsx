@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import useAuctionLive from "../../../hooks/useAuctionLive";
 import { useAuth } from "../../../hooks/AuthContext";
-import useWallet from "../../../hooks/useWallet";
+import useWallet from "../../../../hooks/useWallet";
 import toast from "react-hot-toast";
 import {
   mapErrorMessage,
@@ -25,13 +25,12 @@ export default function Bidding() {
     countdown,
     placeBid,
     pendingBid,
-    resync,
   } = useAuctionLive(auctionId, {
     resyncIntervalSeconds: 8,
   });
 
   const {
-    wallet,
+    wallet: walletHook,
     loading: walletLoading,
     deposit,
     calculateDeposit,
@@ -39,6 +38,7 @@ export default function Bidding() {
     formatCurrency: formatVND,
     fetchBalance,
   } = useWallet({ autoFetch: true, refreshIntervalSeconds: 30 });
+  const walletFinal = walletHook;
 
   const [input, setInput] = useState<string>("");
   const [placing, setPlacing] = useState(false);
@@ -47,11 +47,11 @@ export default function Bidding() {
   // Use wallet helpers provided by useWallet (formatVND, calculateDeposit, checkSufficientBalance, fetchBalance)
   // Determine currentPrice with fallback to startingPrice/product.priceStart when no bids yet
   const rawCurrentPrice = auction?.currentPrice ?? 0;
-  const startingPrice = (auction as any)?.startingPrice ?? (auction as any)?.product?.priceStart ?? 0;
+  const startingPrice = auction?.startingPrice ?? auction?.product?.priceStart ?? 0;
   const currentPrice = rawCurrentPrice > 0 ? rawCurrentPrice : startingPrice;
 
-  // Prefer minBidIncrement (backend), fallback to minIncrement
-  const minIncrement = (auction as any)?.minBidIncrement ?? auction?.minIncrement ?? 0;
+  // Prefer minBidIncrement (backend), fallback to legacy minIncrement
+  const minIncrement = (auction as any)?.minBidIncrement ?? (auction as any)?.minIncrement ?? 0;
 
   const nextMinBid = currentPrice + minIncrement;
 
@@ -64,7 +64,7 @@ export default function Bidding() {
     live,
     loading,
     reconnecting,
-    isConnected: (auction as any)?.isConnected || false, // temporary cast
+    isConnected,
   });
 
   const canBid = useMemo(() => {
@@ -102,7 +102,7 @@ export default function Bidding() {
         `Insufficient funds. You need ${formatVND(
           depositRequired
         )} deposit, but only have ${formatVND(
-          wallet?.available ?? 0
+          walletFinal?.available ?? 0
         )} available.`
       );
       setShowDepositModal(true);
@@ -173,17 +173,17 @@ export default function Bidding() {
           <p>
             Next Min Bid: <strong>{formatCurrency(nextMinBid)}</strong>
           </p>
-          {wallet && (
+          {walletFinal && (
             <p className="mt-2 text-gray-600">
               💰 Your Balance:{" "}
               <strong
                 className={
-                  wallet.available >= nextMinBid * 0.1
+                  (walletFinal as any).available >= nextMinBid * 0.1
                     ? "text-green-600"
                     : "text-red-600"
                 }
               >
-                {formatVND(wallet.available)}
+                {formatVND((walletFinal as any).available)}
               </strong>
             </p>
           )}
