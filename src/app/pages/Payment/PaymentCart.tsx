@@ -3,13 +3,15 @@ import { message, Radio } from "antd";
 import { MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { createPaymentForOrder, getWalletAvailable, payOrderWithWallet } from "../../../api/payment/api";
-import { PaymentProvider, type Payment } from "../../../api/payment/type";
+import { getWalletAvailable } from "../../../api/payment/api";
+import { PaymentProvider } from "../../../api/payment/type";
+import { postData } from "../../../mocks/CallingAPI";
 import useProvinces from "../../hooks/useProvinces";
 
 type WalletInfo = { balance: number; held: number; available: number } | null;
 
 export default function PaymentCart() {
+    const token = localStorage.getItem("token") || "";
     const location = useLocation();
     const OrderState = location.state;
     console.log('OrderState', OrderState);
@@ -24,7 +26,6 @@ export default function PaymentCart() {
     const [pickupLocation, setPickupLocation] = useState("Đang tải...");
 
     const [wallet, setWallet] = useState<WalletInfo>(null);
-    const DEFAULT_SHIPPING_FEE = 22000;
 
     useEffect(() => {
         if (!OrderState) {
@@ -36,7 +37,7 @@ export default function PaymentCart() {
         setOrder(OrderState);
     }, [OrderState]);
 
-    // 🗺️ Map địa chỉ
+    // Map địa chỉ
     useEffect(() => {
         const loadAddressNames = async () => {
             if (order?.length <= 0) return;
@@ -66,89 +67,75 @@ export default function PaymentCart() {
         loadAddressNames();
     }, [order, provinces, fetchDistricts, fetchWards]);
 
-    // 💰 Tính tổng
+    const groupOrdersBySeller = (order: any): any => {
+        const sellerMap = new Map<string, any>();
+        for (const ord of order) {
+            if (!sellerMap.has(ord.orderShops?.[0]?.seller?.userId)) {
+                sellerMap.set(ord.orderShops?.[0]?.seller?.userId, {
+                    userId: ord.orderShops?.[0]?.seller?.userId,
+                    fullName: ord.orderShops?.[0]?.seller?.fullName,
+                    shippingFee: Number(ord.orderShops?.[0]?.shippingFee),
+                    orders: [ord],
+                });
+            } else { sellerMap.get(ord.orderShops?.[0]?.seller?.userId)!.orders.push(ord) }
+        }
+        return Array.from(sellerMap.values());
+    };
+    const sellers = groupOrdersBySeller(order);
+    console.log("sellers", sellers);
 
-    const PriceBuyNow = order?.reduce((sum: any, i: any) => sum + (i.orderShops?.[0]?.orderDetails?.[0]?.price || 0) * i.orderShops?.[0]?.orderDetails?.[0]?.quantity, 0);
-    const uniqueSellerCount = new Set(order?.map((i: any) => i.orderShops?.[0]?.seller?.userId))?.size;
-    const total = PriceBuyNow + DEFAULT_SHIPPING_FEE * uniqueSellerCount;
-    // const product = order.map((ord: any) => ord?.orderShops?.[0]?.orderDetails?.[0]?.product);
-    // console.log("sản phẩm product nè", product);
+    // Tính tổng
+    const PriceBuyNow = order?.reduce((sum: any, i: any) => sum + Number(i.totalPrice || 0) * Number(i.orderShops?.[0]?.orderDetails?.[0]?.quantity), 0);
+    const totalShippingFee = sellers?.reduce((sum: any, i: any) => sum + Number(i.shippingFee || 0), 0);
+    // const uniqueSellerCount = new Set(order?.map((i: any) => i.orderShops?.[0]?.seller?.userId))?.size;
+    const total = PriceBuyNow + totalShippingFee;
+
     console.log("pickupLocation", pickupLocation);
     console.log("deliveryLocation", deliveryLocation);
     const isWalletInsufficient = method === PaymentProvider.WALLET && (wallet?.available ?? 0) < total;
 
-    // 💳 Xử lý thanh toán // FIX==handlePayment
+    // Xử lý thanh toán // FIX==handlePayment
     const handlePayment = async () => {
         if (order?.length <= 0) return message.warning("Không tìm thấy đơn hàng!");
         setProcessing(true);
-
+        const items = order?.map((ord: any) => ({
+            orderId: ord.orderId,
+            amount:
+                Number(ord.totalPrice) +
+                Number(ord.totalShippingFee) /
+                (order?.filter(
+                    (o: any) =>
+                        o.orderShops?.[0]?.seller?.userId ==
+                        ord.orderShops?.[0]?.seller?.userId
+                )?.length || 1),
+        }));
+        console.log("order", order);
+        console.log("items", items);
+        console.log("method", method);
         try {
-            if (method === PaymentProvider.WALLET) {
-                // 🪙 Thanh toán qua ví nội bộ
-                console.log("🪙 payOrderWithWallet →", { orderId: order.orderId, total });
-                const result = await payOrderWithWallet(order.orderId, total);
+            const WalletPaymentCartPayload = {
+                items: items,
+                provider: method == PaymentProvider.PAYOS ? "bank" : (method == PaymentProvider.WALLET ? "internal" : "internal"),
+                method: method == PaymentProvider.PAYOS ? "payos" : (method == PaymentProvider.WALLET ? "wallet" : "wallet"),
+                returnUrl: "",
+                cancelUrl: "",
+                webhookUrl: ""
+            };
+            console.log("WalletPaymentCartPayload", WalletPaymentCartPayload);
 
-                if (result?.success || result?.status === 200 || result?.status === 201) {
-                    message.success("Thanh toán ví nội bộ thành công!");
+            const PaymentCartResponse = await postData('/payment/orders/batch', WalletPaymentCartPayload, token);
+            console.log('PaymentCartResponse', PaymentCartResponse);
 
-                    // 🔗 Ghi lại Payment record để Order có payment hiển thị ở các màn sau
-                    const walletPaymentPayload = {
-                        type: "pay_order" as const,
-                        amount: Number(total),
-                        description: `Thanh toán đơn hàng #${order.orderId}`,
-                        related_order_id: order.orderId,
-                        provider: PaymentProvider.WALLET,
-                        method: "wallet",
-                        returnUrl: `${window.location.origin}/payment-success`,
-                        cancelUrl: `${window.location.origin}/payment-cancel`,
-                        webhookUrl: "https://yoursite.com/webhook/payos",
-                    };
-                    console.log("🧾 createPaymentForOrder (WALLET) payload →", walletPaymentPayload);
-
-                    try {
-                        await createPaymentForOrder(walletPaymentPayload);
-                    } catch (e) {
-                        // Không chặn UX nếu chỉ lỗi ghi log payment; vẫn điều hướng success vì tiền đã trừ
-                        console.warn("⚠️ createPaymentForOrder (WALLET) failed, continue redirect:", e);
-                    }
-
-                    const txId = result?.data?.transactionId || `WALLET-${Date.now()}`;
-                    navigate(`/payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}`);
-                } else {
-                    message.error(result?.message || "Thanh toán ví thất bại!");
-                }
-            } else {
-                // 💳 Thanh toán qua PayOS (tạo Payment + redirect)
-                const payload = {
-                    type: "pay_order" as const,
-                    amount: Number(total),
-                    description: `Thanh toán đơn hàng #${order.orderId}`,
-                    related_order_id: order.orderId,
-                    provider: method,
-                    method: "bank",
-                    returnUrl: `${window.location.origin}/payment-success`,
-                    cancelUrl: `${window.location.origin}/payment-cancel`,
-                    webhookUrl: "https://yoursite.com/webhook/payos",
-                };
-                console.log("🚀 Payment payload (PAYOS):", payload);
-
-                const payment: Payment = await createPaymentForOrder(payload);
-                if (payment?.checkoutUrl) {
-                    message.success("Đang chuyển đến cổng thanh toán...");
-                    window.location.href = payment.checkoutUrl;
-                } else {
-                    message.error("Không nhận được đường dẫn thanh toán!");
-                }
-            }
+            navigate(`/payment-success?orderId=${''}&amount=${total}&transactionId=${''}`);
         } catch (err) {
-            console.error("❌ Error processing payment:", err);
+            console.error("Error processing payment:", err);
             message.error("Không thể xử lý thanh toán!");
         } finally {
             setProcessing(false);
         }
     };
 
-    // 📥 Số dư ví
+    // Số dư ví
     useEffect(() => {
         (async () => {
             try {
@@ -167,26 +154,6 @@ export default function PaymentCart() {
             </div>
         );
     }
-
-    const groupOrdersBySeller = (order: any): any => {
-        const sellerMap = new Map<string, any>();
-
-        for (const ord of order) {
-            if (!sellerMap.has(ord.orderShops?.[0]?.seller?.userId)) {
-                sellerMap.set(ord.orderShops?.[0]?.seller?.userId, {
-                    userId: ord.orderShops?.[0]?.seller?.userId,
-                    fullName: ord.orderShops?.[0]?.seller?.fullName,
-                    orders: [ord],
-                });
-            } else {
-                sellerMap.get(ord.orderShops?.[0]?.seller?.userId)!.orders.push(ord);
-            }
-        }
-
-        return Array.from(sellerMap.values());
-    };
-    const sellers = groupOrdersBySeller(order);
-    console.log(sellers);
 
     return (
         <div className="min-h-screen bg-gray-50 py-10">
@@ -216,7 +183,7 @@ export default function PaymentCart() {
                                     <div className="flex-1">
                                         <p className="font-semibold text-gray-900 text-lg">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</p>
                                         <p className="text-sm text-gray-500 line-clamp-2">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.description || "Không có mô tả"}</p>
-                                        <p className="font-semibold text-[#0F74C7] mt-1">{Number(ord.totalPrice).toLocaleString()} ₫</p>
+                                        <p className="font-semibold text-[#0F74C7] mt-1">{Number(ord.totalPrice).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</p>
                                     </div>
                                 </div>
                             ))}
@@ -270,7 +237,7 @@ export default function PaymentCart() {
                                 )}
                                 <p className="text-gray-700 mt-1">
                                     <span className="font-medium">Phí vận chuyển:</span>{" "}
-                                    {slr?.orders?.[0]?.totalShippingFee ? `${Number(slr?.orders?.[0]?.totalShippingFee).toLocaleString()} ₫` : "0 ₫"}
+                                    {slr?.orders?.[0]?.totalShippingFee ? `${Number(slr?.orders?.[0]?.totalShippingFee).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}` : "$0"}
                                 </p>
                             </div>
                         </div>
@@ -279,7 +246,7 @@ export default function PaymentCart() {
                     {/* 💰 Tổng tiền */}
                     <div className="pt-4 border-t border-gray-200 text-right">
                         <p className="font-semibold text-gray-800 text-lg">Tổng thanh toán:</p>
-                        <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{total.toLocaleString()} ₫</p>
+                        <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</p>
                     </div>
                 </div>
 
@@ -298,8 +265,7 @@ export default function PaymentCart() {
                         <div
                             className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.PAYOS ? "border-2 border-[#0F74C7] bg-[#f0f7ff]" : "border border-gray-200 bg-white"
                                 }`}
-                            onClick={() => { if (order?.length <= 1) { setMethod(PaymentProvider.PAYOS) } }}
-                            title={order?.length > 1 ? 'Không thể thanh toán PAYOS nếu có nhiều hơn 1 sản phẩm' : ''}
+                            onClick={() => setMethod(PaymentProvider.PAYOS)}
                         >
                             <div className="flex items-center gap-3">
                                 <div className="p-3 rounded-full bg-[#0F74C7]/10">
@@ -310,7 +276,7 @@ export default function PaymentCart() {
                                     <p className="text-gray-500 text-sm">Nhanh chóng và an toàn qua ngân hàng liên kết.</p>
                                 </div>
                             </div>
-                            <Radio value={PaymentProvider.PAYOS} disabled={order?.length > 1} />
+                            <Radio value={PaymentProvider.PAYOS} />
                         </div>
 
                         {/* WALLET */}
@@ -331,9 +297,7 @@ export default function PaymentCart() {
                                                 <>
                                                     <p>
                                                         Số dư khả dụng:{" "}
-                                                        <span className="font-semibold text-[#0F74C7]">
-                                                            {wallet.available.toLocaleString()} ₫
-                                                        </span>
+                                                        <span className="font-semibold text-[#0F74C7]">{wallet.available.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                                                     </p>
                                                     {wallet.available < total && (
                                                         <p className="text-red-500 mt-1">⚠️ Số dư không đủ để thanh toán!</p>
@@ -356,8 +320,7 @@ export default function PaymentCart() {
                     <div className="pt-8 space-y-3">
                         <button
                             onClick={handlePayment}
-                            // disabled={processing || isWalletInsufficient}
-                            disabled // Sửa hàm handlePayment trước, rồi mới gỡ chỗ này để bấm được nút
+                            disabled={processing || isWalletInsufficient}
                             className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${processing || isWalletInsufficient ? "bg-gray-400 cursor-not-allowed" : "bg-[#0F74C7] hover:bg-[#3888ca]"
                                 }`}
                         >
