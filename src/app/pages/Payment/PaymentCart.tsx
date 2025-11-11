@@ -183,7 +183,7 @@ export default function PaymentCart() {
                                     <div className="flex-1">
                                         <p className="font-semibold text-gray-900 text-lg">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</p>
                                         <p className="text-sm text-gray-500 line-clamp-2">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.description || "Không có mô tả"}</p>
-                                        <p className="font-semibold text-[#0F74C7] mt-1">{Number(ord.totalPrice).toLocaleString()} ₫</p>
+                                        <p className="font-semibold text-[#0F74C7] mt-1">{Number(ord.totalPrice).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</p>
                                     </div>
                                 </div>
                             ))}
@@ -237,7 +237,7 @@ export default function PaymentCart() {
                                 )}
                                 <p className="text-gray-700 mt-1">
                                     <span className="font-medium">Phí vận chuyển:</span>{" "}
-                                    {slr?.orders?.[0]?.totalShippingFee ? `${Number(slr?.orders?.[0]?.totalShippingFee).toLocaleString()} ₫` : "0 ₫"}
+                                    {slr?.orders?.[0]?.totalShippingFee ? `${Number(slr?.orders?.[0]?.totalShippingFee).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}` : "$0"}
                                 </p>
                             </div>
                         </div>
@@ -246,7 +246,7 @@ export default function PaymentCart() {
                     {/* 💰 Tổng tiền */}
                     <div className="pt-4 border-t border-gray-200 text-right">
                         <p className="font-semibold text-gray-800 text-lg">Tổng thanh toán:</p>
-                        <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{total.toLocaleString()} ₫</p>
+                        <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</p>
                     </div>
                 </div>
 
@@ -297,9 +297,7 @@ export default function PaymentCart() {
                                                 <>
                                                     <p>
                                                         Số dư khả dụng:{" "}
-                                                        <span className="font-semibold text-[#0F74C7]">
-                                                            {wallet.available.toLocaleString()} ₫
-                                                        </span>
+                                                        <span className="font-semibold text-[#0F74C7]">{wallet.available.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                                                     </p>
                                                     {wallet.available < total && (
                                                         <p className="text-red-500 mt-1">⚠️ Số dư không đủ để thanh toán!</p>
