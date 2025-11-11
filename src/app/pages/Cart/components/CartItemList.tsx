@@ -38,7 +38,7 @@ export default function CartItemsList({
               type="checkbox"
               checked={selectedItems.includes(item.orderId)}
               onChange={() => onCheck(item.orderId)}
-              className=""
+              className="cursor-pointer"
             />
             <img
               src={item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || null}
@@ -96,7 +96,7 @@ export default function CartItemsList({
             {/* Remove */}
             <button
               className="text-red-500 hover:text-red-700"
-              onClick={() => onRemove(item.id)}
+              onClick={() => onRemove(item.orderId)}
             >
               <Trash2 strokeWidth={1.5} size="20" />
             </button>

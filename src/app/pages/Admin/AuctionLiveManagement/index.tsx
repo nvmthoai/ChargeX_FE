@@ -1,57 +1,70 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Table, Button, Input, Space, Tag, Spin } from "antd";
 import "./AuctionLiveManagement.css";
 import "../NavigationBar/NavigationBar.css";
 import useAuction from "../../../hooks/useAuction";
+import Pagination from "../../../components/Pagination/Pagination";
+
 export default function AuctionLiveManagement() {
   const { getAuctions, createLive, loading } = useAuction();
-  const [auctions, setAuctions] = useState([]);
-  // const [liveAuctions, setLiveAuctions] = useState<any>([])
+  const [allAuctions, setAllAuctions] = useState<Record<string, any>[]>([]);
+  const [auctions, setAuctions] = useState<Record<string, any>[]>([]);
   const [searchText, setSearchText] = useState("");
-  // const [statusFilter, setStatusFilter] = useState<string | undefined>();
-  // const [modalVisible, setModalVisible] = useState(false)
-  // const [selectedAuctionId, setSelectedAuctionId] = useState<string | null>(null)
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
+
+  // Fetch summaries from backend. Do NOT include pagination in deps to avoid loop.
+  const fetchAuctions = useCallback(async () => {
+    const data = await getAuctions();
+    if (!data || !Array.isArray(data)) return;
+
+    let filtered = data as Array<Record<string, any>>;
+    if (searchText) {
+      filtered = filtered.filter((a) => String(a.title || '').toLowerCase().includes(searchText.toLowerCase()));
+    }
+
+    const withNames = filtered.map((a) => ({ ...a, sellerName: a.sellerName ?? a.sellerId ?? '' }));
+
+    setAllAuctions(withNames);
+
+    // Only update total if it changed to avoid re-render loops
+    setPagination((p) => (p.total === withNames.length ? p : ({ ...p, total: withNames.length })));
+  }, [getAuctions, searchText]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await getAuctions();
-      if (data) {
-        let filtered = data;
+    fetchAuctions();
+  }, [fetchAuctions]);
 
-        if (searchText) {
-          filtered = filtered.filter((a: any) =>
-            a.title.toLowerCase().includes(searchText.toLowerCase())
-          );
-        }
+  // Separate effect: compute current page slice whenever allAuctions or pagination.page/limit change
+  useEffect(() => {
+    const start = (pagination.page - 1) * pagination.limit;
+    const end = start + pagination.limit;
+    setAuctions(allAuctions.slice(start, end));
+  }, [allAuctions, pagination.page, pagination.limit]);
 
-        setAuctions(filtered);
-      }
-    };
+  const handleGoLive = async (auctionId: string) => {
+    const result = await createLive(auctionId);
+    if (result) {
+      // refresh data to reflect new live status
+      await fetchAuctions();
+    }
+  };
 
-    fetchData();
-  }, [ searchText, getAuctions]);
+  // handle page change
+  const onPageChange = (page: number) => {
+    setPagination((p) => ({ ...p, page }));
+  };
 
-  // const handleGoLiveClick = (auctionId: string) => {
-  //   setSelectedAuctionId(auctionId)
-  //   setModalVisible(true)
-  // }
-
-  // const handleGoLiveSubmit = async (data: any) => {
-  //   if (selectedAuctionId) {
-  //     const result = await createLive(selectedAuctionId)
-  //     if (result) {
-  //       setLiveAuctions([...liveAuctions, result])
-  //       setAuctions(auctions.filter((a: any) => a.auctionId !== selectedAuctionId))
-  //       setModalVisible(false)
-  //     }
-  //   }
-  // }
-
-  const auctionColumns: any = [
+  const auctionColumns = [
     {
       title: "Title",
       dataIndex: "title",
       key: "title",
+    },
+    {
+      title: "Seller",
+      dataIndex: "sellerName",
+      key: "sellerName",
+      render: (t: React.ReactNode, r: Record<string, any>) => String(t || (r.sellerId ? String(r.sellerId).slice(0,8) + '...' : '')),
     },
     {
       title: "Status",
@@ -83,10 +96,10 @@ export default function AuctionLiveManagement() {
     {
       title: "Action",
       key: "action",
-      render: (_: any, record: any) => (
+      render: (_: React.ReactNode, record: Record<string, any>) => (
         <Button
           type="primary"
-          onClick={() => createLive(record.auctionId)}
+          onClick={() => handleGoLive(String(record.auctionId))}
           style={{ backgroundColor: "#fb8b24", borderColor: "#fb8b24" }}
         >
           Go Live
@@ -94,43 +107,6 @@ export default function AuctionLiveManagement() {
       ),
     },
   ];
-
-  // const liveColumns = [
-  //   {
-  //     title: "ID",
-  //     dataIndex: "id",
-  //     key: "id",
-  //     width: 200,
-  //   },
-  //   {
-  //     title: "Status",
-  //     dataIndex: "status",
-  //     key: "status",
-  //     render: (status: string) => <Tag color="green">{status.toUpperCase()}</Tag>,
-  //   },
-  //   {
-  //     title: "Start Time",
-  //     dataIndex: "startTime",
-  //     key: "startTime",
-  //     render: (time: string) => new Date(time).toLocaleString(),
-  //   },
-  //   {
-  //     title: "End Time",
-  //     dataIndex: "endTime",
-  //     key: "endTime",
-  //     render: (time: string) => new Date(time).toLocaleString(),
-  //   },
-  //   {
-  //     title: "Reserve Price",
-  //     dataIndex: "reservePrice",
-  //     key: "reservePrice",
-  //   },
-  //   {
-  //     title: "Current Price",
-  //     dataIndex: "currentPrice",
-  //     key: "currentPrice",
-  //   },
-  // ]
 
   return (
     <div className="admin-container">
@@ -143,16 +119,6 @@ export default function AuctionLiveManagement() {
             onChange={(e) => setSearchText(e.target.value)}
             style={{ width: 200 }}
           />
-          {/* <Select
-            placeholder="Filter by status"
-            value={statusFilter}
-            onChange={setStatusFilter}
-            style={{ width: 150 }}
-            allowClear
-          >
-            <Select.Option value="scheduled">Scheduled</Select.Option>
-            <Select.Option value="draft">Draft</Select.Option>
-          </Select> */}
         </Space>
 
         <Spin spinning={loading}>
@@ -160,17 +126,16 @@ export default function AuctionLiveManagement() {
             columns={auctionColumns}
             dataSource={auctions}
             rowKey="auctionId"
-            pagination={{ pageSize: 10 }}
+            pagination={false}
           />
         </Spin>
-      </div>
 
-      {/* <div className="section">
-        <h2>Live Auctions</h2>
-        <Spin spinning={loading}>
-          <Table columns={liveColumns} dataSource={liveAuctions} rowKey="id" pagination={{ pageSize: 10 }} />
-        </Spin>
-      </div> */}
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={Math.max(1, Math.ceil(pagination.total / pagination.limit))}
+          onPageChange={onPageChange}
+        />
+      </div>
     </div>
   );
 }

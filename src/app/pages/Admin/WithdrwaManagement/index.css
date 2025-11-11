@@ -1,0 +1,130 @@
+/* Withdraw Management - Following KYC Management Style */
+
+.withdraw-management-container {
+  background-color: var(--gray-1);
+
+  .admin-table-container {
+    .ant-table {
+      background: transparent;
+      color: var(--text-1);
+
+      .ant-table-thead > tr > th {
+        background-color: transparent;
+        color: var(--text-secondary);
+        border-bottom: 2px solid var(--gray-3);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 12px;
+      }
+
+      .ant-table-tbody > tr {
+        background-color: transparent;
+
+        &:hover > td {
+          background-color: var(--gray-2);
+        }
+
+        > td {
+          border-bottom: 2px solid var(--gray-3);
+          color: var(--text-primary);
+        }
+      }
+
+      .ant-tag {
+        font-weight: 500;
+        padding: 4px 12px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        border: none;
+      }
+
+      .ant-tag-orange {
+        background: #fff7ed;
+        color: #ea580c;
+      }
+
+      .ant-tag-green {
+        background: #28a74560;
+        color: var(--text-primary);
+      }
+
+      .ant-tag-red {
+        background: #dc354560;
+        color: var(--text-primary);
+      }
+
+      .ant-btn {
+        border-radius: 4px;
+        font-weight: 500;
+        border: 2px solid var(--gray-3);
+      }
+
+      .ant-btn-primary {
+        background-color: var(--button-primary-bg);
+        color: var(--button-primary-text);
+        border-color: var(--button-primary-bg);
+
+        &:hover {
+          background-color: #E6EDF3;
+        }
+      }
+
+      .ant-btn-dangerous {
+        background-color: #dc2626;
+        border-color: #dc2626;
+        color: white;
+
+        &:hover {
+          background-color: #b91c1c;
+        }
+      }
+    }
+
+    .ant-spin-nested-loading {
+      .ant-spin-container {
+        background-color: var(--gray-2);
+        border: 2px solid var(--gray-3);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+    }
+
+    .ant-pagination {
+      .ant-pagination-item {
+        background-color: transparent;
+        border: 2px solid var(--gray-3);
+
+        a {
+          color: var(--text-primary);
+        }
+
+        &:hover {
+          border-color: var(--text-primary);
+        }
+      }
+
+      .ant-pagination-item-active {
+        background-color: var(--button-primary-bg);
+        border-color: var(--button-primary-bg);
+
+        a {
+          color: var(--button-primary-text);
+        }
+      }
+
+      .ant-pagination-prev,
+      .ant-pagination-next {
+        .ant-pagination-item-link {
+          background-color: transparent;
+          border: 2px solid var(--gray-3);
+          color: var(--text-primary);
+        }
+
+        &:hover .ant-pagination-item-link {
+          border-color: var(--text-primary);
+        }
+      }
+    }
+  }
+}

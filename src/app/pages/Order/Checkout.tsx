@@ -23,8 +23,7 @@ export default function Checkout() {
   const [editingAddress, setEditingAddress] = useState<any>(null);
 
   const [loadingProduct, setLoadingProduct] = useState(true);
-  const DEFAULT_SHIPPING_FEE = 10000;
-  const [shippingFee] = useState(DEFAULT_SHIPPING_FEE);
+  const DEFAULT_SHIPPING_FEE = 22000;
 
   // 🧾 Fetch sản phẩm
   useEffect(() => {
@@ -242,12 +241,12 @@ export default function Checkout() {
                 </p>
                 <p className="flex justify-between">
                   <span>Shipping Fee</span>
-                  <span>${Number(shippingFee).toLocaleString()}</span>
+                  <span>${Number(DEFAULT_SHIPPING_FEE).toLocaleString()}</span>
                 </p>
                 <p className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
                   <span className="text-[#0F74C7]">
-                    ${(Number(product.price_buy_now) + Number(shippingFee)).toLocaleString()}
+                    ${(Number(product.price_buy_now) + Number(DEFAULT_SHIPPING_FEE)).toLocaleString()}
                   </span>
                 </p>
               </div>
