@@ -38,6 +38,12 @@ export default function Header() {
   } = useWallet();
   const { userDetail } = useUser();
 
+  // Hide header on authentication pages (login / register / verify otp)
+  const isAuthRoute = location.pathname.startsWith("/auth") || location.pathname.startsWith("/verify-otp");
+  if (isAuthRoute) {
+    return null;
+  }
+
   const handleWithdrawalOpen = async () => {
     setWithdrawalModalOpen(true);
     setLoadingBanks(true);
