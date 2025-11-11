@@ -1,6 +1,15 @@
 "use client";
 
-import { Modal, Form, Input, Select, Upload, Button, message } from "antd";
+import {
+  Modal,
+  Form,
+  Input,
+  Select,
+  Upload,
+  Button,
+  message,
+  Radio,
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import type { RcFile } from "antd/es/upload";
@@ -11,8 +20,7 @@ interface ReportModalProps {
   sellerId: string;
   sellerName: string;
   onClose: () => void;
-
-  onSubmit: (ordrId: string, values: any) => Promise<any>;
+  onSubmit: (orderId: string, values: any) => Promise<any>;
 }
 
 export default function ReportModal({
@@ -25,6 +33,7 @@ export default function ReportModal({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<RcFile[]>([]);
+  const [attachmentType, setAttachmentType] = useState<"url" | "file">("file");
 
   const handleUploadChange = ({ fileList: newFileList }: any) => {
     setFileList(newFileList.map((file: any) => file.originFileObj || file));
@@ -33,21 +42,42 @@ export default function ReportModal({
   const handleSubmit = async (values: {
     type: string;
     initialMessage: string;
+    attachmentUrl?: string;
   }) => {
     try {
       setLoading(true);
-      const attachments = fileList
-        .map((file) => URL.createObjectURL(file))
-        .join(",");
-      const valuesSubmit = {
-        type: values.type,
-        initialMessage: values.initialMessage,
-        attachments: attachments || "",
-      };
-      const response = await onSubmit(orderId, valuesSubmit);
+
+      let attachments = "";
+      let fileToSubmit: RcFile | undefined;
+
+      if (attachmentType === "file" && fileList.length > 0) {
+        attachments = fileList
+          .map((file) => URL.createObjectURL(file))
+          .join(",");
+        fileToSubmit = fileList[0];
+      } else if (attachmentType === "url" && values.attachmentUrl) {
+        attachments = values.attachmentUrl;
+      }
+
+      const response = await onSubmit(
+        orderId,
+        fileToSubmit
+          ? {
+              type: values.type,
+              initialMessage: values.initialMessage,
+              file: fileToSubmit,
+            }
+          : {
+              type: values.type,
+              initialMessage: values.initialMessage,
+              attachments: attachments,
+            }
+      );
+
       if (response) {
         form.resetFields();
         setFileList([]);
+        setAttachmentType("file");
         onClose();
       }
     } catch (error) {
@@ -97,22 +127,42 @@ export default function ReportModal({
           />
         </Form.Item>
 
-        <Form.Item label="Attachments (Images)">
-          <Upload
-            multiple
-            fileList={fileList.map((file) => ({
-              uid: file.name,
-              name: file.name,
-              status: "done",
-              originFileObj: file,
-            }))}
-            onChange={handleUploadChange}
-            beforeUpload={() => false}
-            accept="image/*"
+        <Form.Item label="Attachment Method">
+          <Radio.Group
+            value={attachmentType}
+            onChange={(e) => setAttachmentType(e.target.value)}
           >
-            <Button icon={<UploadOutlined />}>Upload Images</Button>
-          </Upload>
+            <Radio value="file">Upload File</Radio>
+            
+          </Radio.Group>
         </Form.Item>
+
+        {attachmentType === "file" ? (
+          <Form.Item label="Upload Image">
+            <Upload
+              fileList={fileList.map((file) => ({
+                uid: file.name,
+                name: file.name,
+                status: "done",
+                originFileObj: file,
+              }))}
+              onChange={handleUploadChange}
+              beforeUpload={() => false}
+              accept="image/*"
+              maxCount={1}
+            >
+              <Button icon={<UploadOutlined />}>Upload Image</Button>
+            </Upload>
+          </Form.Item>
+        ) : (
+          <Form.Item
+            label="Image URL"
+            name="attachmentUrl"
+            rules={[{ required: true, message: "Please enter an image URL" }]}
+          >
+            <Input placeholder="https://example.com/image.jpg" />
+          </Form.Item>
+        )}
 
         <div className="flex gap-2 justify-end">
           <Button onClick={onClose}>Cancel</Button>
