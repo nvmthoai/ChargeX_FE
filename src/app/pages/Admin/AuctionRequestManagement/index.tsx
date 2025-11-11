@@ -1,10 +1,9 @@
-
 import type React from "react"
-import { useState, useEffect } from "react"
-import { Table, Button, Tag, Space, message, Spin, Select, Row, Col } from "antd"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { Table, Button, Tag, Space, message, Spin } from "antd"
 import { CheckCircleOutlined} from "@ant-design/icons"
-
-
+import "./index.css"
+import Pagination from "../../../components/Pagination/Pagination"
 
 import dayjs from "dayjs"
 import useAuction from "../../../hooks/useAuction"
@@ -21,29 +20,62 @@ export const AuctionRequestManagement: React.FC = () => {
 
   const { getRequestCreateAuction } = useAuction()
 
-  const fetchRequests = async (page = 1, status?: string) => {
+  const fetchRequests = useCallback(async (page = 1, status?: string, search?: string) => {
     try {
       setLoading(true)
       const response = await getRequestCreateAuction()
       if (response) {
-        const filteredData = status ? response.filter((req: AuctionRequest) => req.status === status) : response
-        setRequests(filteredData)
-        setPagination({
-          page,
-          limit: pagination.limit,
-          total: filteredData.length,
-        })
+        // Backend should include sellerName; fallback to sellerId if absent
+        const filteredData: AuctionRequest[] = status ? response.filter((req: AuctionRequest) => req.status === status) : response
+        let withNames = filteredData.map((r) => ({ ...r, sellerName: (r as any).sellerName ?? r.sellerId }))
+
+        // Apply search filter if provided
+        if (search && search.trim() !== '') {
+          const s = search.toLowerCase()
+          withNames = withNames.filter((r) =>
+            (r.sellerName && r.sellerName.toLowerCase().includes(s)) ||
+            (r.productId && String(r.productId).toLowerCase().includes(s)) ||
+            (r.note && r.note.toLowerCase().includes(s))
+          )
+        }
+
+        // client-side pagination
+        const total = withNames.length
+        const start = (page - 1) * pagination.limit
+        const end = start + pagination.limit
+        const pageSlice = withNames.slice(start, end)
+
+        setRequests(pageSlice)
+        setPagination({ page, limit: pagination.limit, total })
       }
-    } catch (error) {
+    } catch (_err) {
+      console.error(_err)
       message.error("Failed to fetch auction requests")
     } finally {
       setLoading(false)
     }
-  }
+  }, [getRequestCreateAuction, pagination.limit])
 
+  // search with simple debounce
+  const [searchText, setSearchText] = useState('')
+  // keep a stable ref to fetchRequests so debounce effect doesn't re-run when function identity changes
+  const fetchRequestsRef = useRef(fetchRequests)
+  useEffect(() => { fetchRequestsRef.current = fetchRequests }, [fetchRequests])
+
+  // initial load on mount
   useEffect(() => {
-    fetchRequests(1, statusFilter)
-  }, [statusFilter])
+    fetchRequestsRef.current(1, statusFilter, searchText)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // debounce when search or status changes
+  useEffect(() => {
+    const t = setTimeout(() => {
+      // call the latest fetchRequests via ref
+      fetchRequestsRef.current(1, statusFilter, searchText)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [statusFilter, searchText])
 
   const handleApprove = (requestId: string) => {
     setSelectedRequestId(requestId)
@@ -76,11 +108,16 @@ export const AuctionRequestManagement: React.FC = () => {
       render: (text: string) => <span className="text-sm">{text.slice(0, 8)}...</span>,
     },
     {
-      title: "Seller ID",
-      dataIndex: "sellerId",
-      key: "sellerId",
-      width: 150,
-      render: (text: string) => <span className="text-sm">{text.slice(0, 8)}...</span>,
+      title: "Seller",
+      dataIndex: "sellerName",
+      key: "seller",
+      width: 180,
+      render: (text: string, record: AuctionRequest) => (
+        <div className="text-sm">
+          <div className="font-medium">{text || (record.sellerId ? record.sellerId.slice(0, 8) + '...' : '')}</div>
+          <div className="text-gray-500">{record.sellerId}</div>
+        </div>
+      ),
     },
     {
       title: "Note",
@@ -114,7 +151,7 @@ export const AuctionRequestManagement: React.FC = () => {
       title: "Actions",
       key: "actions",
       width: 200,
-      render: (_: any, record: AuctionRequest) => (
+      render: (_: React.ReactNode, record: AuctionRequest) => (
         <Space size="small">
           {record.status === "pending" && (
             <>
@@ -126,9 +163,6 @@ export const AuctionRequestManagement: React.FC = () => {
               >
                 Approve
               </Button>
-              {/* <Button danger size="small" icon={<CloseCircleOutlined />} onClick={() => handleReject(record.id)}>
-                Reject
-              </Button> */}
             </>
           )}
           {record.status !== "pending" && (
@@ -140,46 +174,57 @@ export const AuctionRequestManagement: React.FC = () => {
   ]
 
   return (
-    <div className="p-6 bg-white rounded-lg container mx-20">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">Auction Request Management</h1>
-        <Row gutter={16}>
-          <Col span={6}>
-            <Select
-              placeholder="Filter by status"
-              allowClear
-              onChange={(value) => setStatusFilter(value)}
-              options={[
-                { label: "Pending", value: "pending" },
-                { label: "Approved", value: "approved" },
-                { label: "Rejected", value: "rejected" },
-              ]}
-              className="w-full"
-            />
-          </Col>
-        </Row>
-      </div>
+    <div className="admin-container">
+      <div className="inner-container management-container auction-request-management-container">
+        <header className="main-header">
+          <h1>Auction Request Management</h1>
+        </header>
 
-      <Spin spinning={loading}>
-        <Table
-          columns={columns}
-          dataSource={requests}
-          rowKey="id"
-          pagination={{
-            current: pagination.page,
-            pageSize: pagination.limit,
-            total: pagination.total,
-            onChange: (page) => fetchRequests(page, statusFilter),
-          }}
-          scroll={{ x: 1200 }}
+        <div className="controls">
+          <div className="search-bar">
+            <i className="fa-solid fa-magnifying-glass" />
+            <input value={searchText} onChange={(e) => setSearchText(e.target.value)} type="text" placeholder="Find by product, seller or note..." />
+          </div>
+          <form>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">-- Status --</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </form>
+          <button className="btn btn-secondary" onClick={() => fetchRequests(pagination.page, statusFilter, searchText)}>
+            Refresh
+          </button>
+        </div>
+
+        <section className="admin-table-container">
+          <Spin spinning={loading}>
+            <Table
+              columns={columns}
+              dataSource={requests}
+              rowKey="id"
+              pagination={false}
+              scroll={{ x: 1200 }}
+            />
+          </Spin>
+        </section>
+
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={Math.ceil(pagination.total / pagination.limit)}
+          onPageChange={(page: number) => fetchRequests(page, statusFilter, searchText)}
         />
-      </Spin>
+      </div>
 
       <ApproveAuctionModal
         visible={approveModalVisible}
         auctionRequestId={selectedRequestId}
         onClose={() => setApproveModalVisible(false)}
-        onSuccess={() => fetchRequests(pagination.page, statusFilter)}
+        onSuccess={() => fetchRequests(pagination.page, statusFilter, searchText)}
       />
     </div>
   )

@@ -1,3 +1,4 @@
+/* Dark theme pagination to match admin tables */
 .pagination {
     display: flex;
     gap: 6px;
@@ -6,14 +7,18 @@
     margin-top: 16px;
 
     button {
-        padding: 4px 8px !important;
-        border: none !important;
+        padding: 6px 10px !important;
+        border: 2px solid transparent !important;
         background: transparent;
+        color: var(--text-secondary);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.15s ease;
+        border-radius: 6px;
 
         &:hover:not(:disabled) {
-            color: var(--text-1);
+            color: var(--text-primary);
+            border-color: var(--gray-3);
+            background: var(--gray-2);
         }
 
         &:disabled {
@@ -22,8 +27,10 @@
         }
 
         &.active {
-            background: var(--gray-3);
-            color: #fff;
+            background: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border-color: var(--button-primary-bg) !important;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
         }
     }
 }

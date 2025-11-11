@@ -18,11 +18,13 @@ export interface AuctionDetail extends AuctionSummary {
   reserveMet: boolean;
   bidCount: number;
   winnerId: string | null;
+  sellerId?: string;
   product: {
     id: string;
     title: string;
     description: string;
     images: string[];
+    sellerId?: string;
   };
 }
 
