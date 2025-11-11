@@ -49,6 +49,7 @@ export default function PaymentPage() {
       try {
         const data = await getOrderById(orderId);
         console.log("🧾 Order detail fetched:", data);
+        console.log("getOrderById", data);
         setOrder(data);
       } catch (err) {
         console.error("❌ Error fetching order:", err);
@@ -79,10 +80,12 @@ export default function PaymentPage() {
 
       if (order.deliveryAddress) {
         const text = await convertAddress(order.deliveryAddress);
+        console.log("text setDeliveryLocation", text);
         setDeliveryLocation(text);
       }
       if (order.pickupAddress) {
         const text = await convertAddress(order.pickupAddress);
+        console.log("text setPickupLocation", text);
         setPickupLocation(text);
       }
     };
@@ -94,7 +97,9 @@ export default function PaymentPage() {
     (Number(order?.totalPrice) || 0) +
     (Number(order?.totalShippingFee) || 0);
   const product = order?.orderShops?.[0]?.orderDetails?.[0]?.product;
-  console.log("sản phẩm nè", product);
+  console.log("sản phẩm product nè", product);
+  console.log("pickupLocation", pickupLocation);
+  console.log("deliveryLocation", deliveryLocation);
   const isWalletInsufficient = method === PaymentProvider.WALLET && (wallet?.available ?? 0) < total;
 
   // 💳 Xử lý thanh toán
