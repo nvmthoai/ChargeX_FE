@@ -21,8 +21,7 @@ export default function ProfileSideBar() {
         { name: "Know your customer", link: "kyc" },
         { name: "Wallet", link: "wallet" },
         { name: "Orders History", link: "orders" },
-
-
+        { name: "My Auctions", link: "auctions" },
     ];
 
     return (

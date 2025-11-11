@@ -46,6 +46,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("token", token);
     setUser(user);
     setToken(token);
+
+    // Initialize notification socket when user logs in
+    (async () => {
+      try {
+        const mod = await import("../../services/notificationSocket");
+        const notificationSocket = mod.notificationSocket;
+        // extract uid in a type-safe way
+        const u = user as unknown as Record<string, unknown> | null;
+        const uid = (u && (typeof u["sub"] === "string"
+          ? (u["sub"] as string)
+          : typeof u["id"] === "string"
+          ? (u["id"] as string)
+          : null)) as string | null;
+        if (uid) {
+          notificationSocket.connectWithToken(uid, token);
+        }
+      } catch (err) {
+        console.warn("Failed to init notification socket on login", err);
+      }
+    })();
   };
 
 
@@ -54,6 +74,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("token");
     setUser(null);
     setToken(null);
+
+    (async () => {
+      try {
+        const mod = await import("../../services/notificationSocket");
+        mod.notificationSocket.disconnect();
+      } catch (err) {
+        console.warn("Failed to disconnect notification socket on logout", err);
+      }
+    })();
   };
 
   return (

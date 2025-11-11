@@ -148,11 +148,20 @@ export function useAuction({
     const handleAuctionState = (state: AuctionState) => {
       if (mountedRef.current) {
         setAuctionState(state);
+        // Update detail with state including serverNow
+        setAuctionDetail((prev) =>
+          prev
+            ? {
+                ...prev,
+                ...state,
+              }
+            : (state as any)
+        );
       }
     };
 
     // Listen for price updates
-    const handlePriceUpdate = (update: PriceUpdate) => {
+    const handlePriceUpdate = (update: PriceUpdate & { serverNow?: string; serverTime?: number }) => {
       if (mountedRef.current) {
         setAuctionState((prev) =>
           prev
@@ -161,11 +170,13 @@ export function useAuction({
                 currentPrice: update.currentPrice,
                 endTime: update.endTime,
                 winnerId: update.winnerId,
+                serverNow: update.serverNow || prev.serverNow,
+                serverTime: update.serverTime || prev.serverTime,
               }
             : null
         );
 
-        // Also update detail
+        // Also update detail with serverNow to trigger timer recalc
         setAuctionDetail((prev) =>
           prev
             ? {
@@ -173,6 +184,8 @@ export function useAuction({
                 currentPrice: update.currentPrice,
                 endTime: update.endTime,
                 winnerId: update.winnerId,
+                serverNow: update.serverNow || prev.serverNow,
+                serverTime: update.serverTime || prev.serverTime,
               }
             : null
         );
@@ -180,13 +193,15 @@ export function useAuction({
     };
 
     // Listen for auction extended
-    const handleAuctionExtended = (data: { endTime: string }) => {
+    const handleAuctionExtended = (data: { endTime: string; serverNow?: string; serverTime?: number }) => {
       if (mountedRef.current) {
         setAuctionState((prev) =>
           prev
             ? {
                 ...prev,
                 endTime: data.endTime,
+                serverNow: data.serverNow || prev.serverNow,
+                serverTime: data.serverTime || prev.serverTime,
               }
             : null
         );
@@ -196,6 +211,8 @@ export function useAuction({
             ? {
                 ...prev,
                 endTime: data.endTime,
+                serverNow: data.serverNow || prev.serverNow,
+                serverTime: data.serverTime || prev.serverTime,
               }
             : null
         );
