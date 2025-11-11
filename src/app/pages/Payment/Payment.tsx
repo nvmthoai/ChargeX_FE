@@ -111,9 +111,11 @@ export default function PaymentPage() {
       if (method === PaymentProvider.WALLET) {
         // 🪙 Thanh toán qua ví nội bộ
         console.log("🪙 payOrderWithWallet →", { orderId: order.orderId, total });
-        const result = await payOrderWithWallet(order.orderId, total);
+        const result = await payOrderWithWallet(order.orderId, total) as any;
 
-        if (result?.success || result?.status === 200 || result?.status === 201) {
+        const ok = Boolean(result && (result.success || result.status === 200 || result.status === 201));
+
+        if (ok) {
           message.success("Thanh toán ví nội bộ thành công!");
 
           // 🔗 Ghi lại Payment record để Order có payment hiển thị ở các màn sau
@@ -137,10 +139,10 @@ export default function PaymentPage() {
             console.warn("⚠️ createPaymentForOrder (WALLET) failed, continue redirect:", e);
           }
 
-          const txId = result?.data?.transactionId || `WALLET-${Date.now()}`;
+          const txId = (result && result.data && result.data.transactionId) || `WALLET-${Date.now()}`;
           navigate(`/payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}`);
         } else {
-          message.error(result?.message || "Thanh toán ví thất bại!");
+          message.error((result && result.message) || "Thanh toán ví thất bại!");
         }
       } else {
         // 💳 Thanh toán qua PayOS (tạo Payment + redirect)

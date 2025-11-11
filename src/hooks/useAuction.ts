@@ -232,10 +232,11 @@ export function useAuction({
     auctionSocket.onError(handleError);
 
     return () => {
-      auctionSocket.off("auction:state", handleAuctionState);
-      auctionSocket.off("auction:price_update", handlePriceUpdate);
-      auctionSocket.off("auction:extended", handleAuctionExtended);
-      auctionSocket.off("auction:error", handleError);
+      // Use the same methods used for attaching listeners on the service
+      auctionSocket.off("auction:state", handleAuctionState as any);
+      auctionSocket.off("auction:price_update", handlePriceUpdate as any);
+      auctionSocket.off("auction:extended", handleAuctionExtended as any);
+      auctionSocket.off("auction:error", handleError as any);
     };
   }, [isConnected, auctionId]);
 
