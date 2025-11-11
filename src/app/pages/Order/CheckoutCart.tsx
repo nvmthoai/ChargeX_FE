@@ -70,6 +70,7 @@ export default function CheckoutCart() {
     };
 
     const groupOrdersBySeller = (order: any): any => {
+        if (!order) return;
         const sellerMap = new Map<string, any>();
         for (const ord of order) {
             if (!sellerMap.has(ord.orderShops?.[0]?.seller?.userId)) {
