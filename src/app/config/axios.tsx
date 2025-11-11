@@ -30,7 +30,6 @@ axiosInstance.interceptors.response.use(
       console.error("axios error:", error?.message ?? error);
 
       const token = localStorage.getItem("token");
-
       if (error?.response) {
         const { status, data, config } = error.response;
         const statusCode = Number(status);
@@ -57,6 +56,7 @@ axiosInstance.interceptors.response.use(
             isTokenExpired = true;
           }
         }
+
 
         if (isTokenExpired && !isRedirecting) {
           isRedirecting = true;

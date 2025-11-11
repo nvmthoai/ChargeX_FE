@@ -226,7 +226,7 @@ export default function PaymentPage() {
               <div className="flex-1">
                 <p className="font-semibold text-gray-900 text-lg">{product.title}</p>
                 <p className="text-sm text-gray-500 line-clamp-2">{product.description || "Không có mô tả"}</p>
-                <p className="font-semibold text-[#0F74C7] mt-1">{Number(order.totalPrice).toLocaleString()} ₫</p>
+                <p className="font-semibold text-[#0F74C7] mt-1">${Number(order.totalPrice).toLocaleString()}</p>
               </div>
             </div>
           )}
@@ -280,14 +280,14 @@ export default function PaymentPage() {
             )}
             <p className="text-gray-700 mt-1">
               <span className="font-medium">Phí vận chuyển:</span>{" "}
-              {order.totalShippingFee ? `${Number(order.totalShippingFee).toLocaleString()} ₫` : "0 ₫"}
+              {order.totalShippingFee ? `$${Number(order.totalShippingFee).toLocaleString()}` : "$0"}
             </p>
           </div>
 
           {/* 💰 Tổng tiền */}
           <div className="pt-4 border-t border-gray-200 text-right">
             <p className="font-semibold text-gray-800 text-lg">Tổng thanh toán:</p>
-            <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{total.toLocaleString()} ₫</p>
+            <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">${total.toLocaleString()}</p>
           </div>
         </div>
 
@@ -339,7 +339,7 @@ export default function PaymentPage() {
                           <p>
                             Số dư khả dụng:{" "}
                             <span className="font-semibold text-[#0F74C7]">
-                              {wallet.available.toLocaleString()} ₫
+                              ${wallet.available.toLocaleString()}
                             </span>
                           </p>
                           {wallet.available < total && (

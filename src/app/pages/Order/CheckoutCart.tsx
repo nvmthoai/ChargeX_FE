@@ -21,7 +21,6 @@ export default function CheckoutCart() {
     const [product, setProduct] = useState<any>(null);
     const [items, setItems] = useState<any>(null);
     const [editingAddress, setEditingAddress] = useState<any>(null);
-    const DEFAULT_SHIPPING_FEE = 22000;
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -70,8 +69,29 @@ export default function CheckoutCart() {
         });
     };
 
-    const PriceBuyNow = items?.reduce((sum: any, i: any) => sum + (i.orderShops?.[0]?.orderDetails?.[0]?.price || 0) * i.orderShops?.[0]?.orderDetails?.[0]?.quantity, 0);
-    const uniqueSellerCount = new Set(items?.map((i: any) => i.orderShops?.[0]?.seller?.userId))?.size;
+    const groupOrdersBySeller = (order: any): any => {
+        if (!order) return;
+        const sellerMap = new Map<string, any>();
+        for (const ord of order) {
+            if (!sellerMap.has(ord.orderShops?.[0]?.seller?.userId)) {
+                sellerMap.set(ord.orderShops?.[0]?.seller?.userId, {
+                    userId: ord.orderShops?.[0]?.seller?.userId,
+                    fullName: ord.orderShops?.[0]?.seller?.fullName,
+                    shippingFee: Number(ord.orderShops?.[0]?.shippingFee),
+                    orders: [ord],
+                });
+            } else { sellerMap.get(ord.orderShops?.[0]?.seller?.userId)!.orders.push(ord) }
+        }
+        return Array.from(sellerMap.values());
+    };
+    const sellers = groupOrdersBySeller(items);
+    console.log("sellers", sellers);
+
+    // Tính tổng
+    const PriceBuyNow = items?.reduce((sum: any, i: any) => sum + Number(i.totalPrice || 0) * Number(i.orderShops?.[0]?.orderDetails?.[0]?.quantity), 0);
+    const totalShippingFee = sellers?.reduce((sum: any, i: any) => sum + Number(i.shippingFee || 0), 0);
+    // const uniqueSellerCount = new Set(order?.map((i: any) => i.orderShops?.[0]?.seller?.userId))?.size;
+    const total = PriceBuyNow + totalShippingFee;
 
     return (
         <div className="min-h-screen bg-gray-50 py-10">
@@ -172,12 +192,12 @@ export default function CheckoutCart() {
                         </div>
                         <p className="flex justify-between">
                             <span className="font-semibold">Shipping Fee</span>
-                            <span>${Number(DEFAULT_SHIPPING_FEE)} × {uniqueSellerCount} (Shop) = ${Number(DEFAULT_SHIPPING_FEE) * uniqueSellerCount}</span>
+                            <span>${totalShippingFee}</span>
                         </p>
                         <p className="flex justify-between font-semibold text-lg">
                             <span>Total</span>
                             <span className="text-[#0F74C7]">
-                                ${Number(DEFAULT_SHIPPING_FEE) * uniqueSellerCount + Number(PriceBuyNow)}
+                                ${total}
                             </span>
                         </p>
                     </div>
