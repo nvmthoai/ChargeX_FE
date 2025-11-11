@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuction } from "../hooks/useAuction";
 import { userApi } from "../api/user/api";
 
@@ -30,6 +30,7 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [ownerName, setOwnerName] = useState<string>("");
   const [winnerName, setWinnerName] = useState<string>("");
+  const offsetRef = useRef<number>(0);
 
   // Fetch owner name
   useEffect(() => {
@@ -74,18 +75,24 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
     fetchWinnerName();
   }, [auctionDetail?.winnerId]);
 
-  // Calculate time remaining
+  // Update offset whenever serverNow changes (from WebSocket events or initial load)
   useEffect(() => {
     if (!auctionDetail?.endTime) return
 
-    // Compute client-server offset when server provides serverNow (ISO)
     const serverNowStr = (auctionDetail as any).serverNow
-    const offset = serverNowStr ? Date.parse(serverNowStr) - Date.now() : 0
+    if (serverNowStr) {
+      offsetRef.current = Date.parse(serverNowStr) - Date.now()
+    }
+  }, [auctionDetail?.serverNow])
+
+  // Calculate time remaining - runs every second
+  useEffect(() => {
+    if (!auctionDetail?.endTime) return
 
     const endTs = Date.parse(auctionDetail.endTime)
 
     const tick = () => {
-      const now = Date.now() + offset
+      const now = Date.now() + offsetRef.current
       const distance = endTs - now
 
       if (distance < 0) {
@@ -192,18 +199,20 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
 
       {/* Product Info */}
       <div className="auction-product-info">
-        <h1>{auctionDetail.product.title}</h1>
-        {ownerName && (
-          <div className="owner-info">
-            <strong>Người sở hữu:</strong> {ownerName}
-          </div>
-        )}
         <div className="product-images">
-          {auctionDetail.product.images.map((img: string, idx: number) => (
+          {(auctionDetail.product.images || auctionDetail.product.imageUrls || []).map((img: string, idx: number) => (
             <img key={idx} src={img} alt={`Product ${idx + 1}`} />
           ))}
         </div>
-        <p>{auctionDetail.product.description}</p>
+        <div>
+          <h1>{auctionDetail.product.title}</h1>
+          {ownerName && (
+            <div className="owner-info">
+              <strong>Người sở hữu:</strong> {ownerName}
+            </div>
+          )}
+          <p>{auctionDetail.product.description}</p>
+        </div>
       </div>
 
       {/* Auction Status */}

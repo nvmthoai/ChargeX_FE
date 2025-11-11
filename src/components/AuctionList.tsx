@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuctionList } from "../hooks/useAuctionList";
 import type { AuctionSummary } from "../api/auction";
 
@@ -95,6 +95,9 @@ interface AuctionCardProps {
 }
 
 const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const offsetRef = useRef<number>(0);
+
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { text: string; color: string }> = {
       live: { text: "Đang diễn ra", color: "#22c55e" },
@@ -117,6 +120,52 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
     return new Date(date).toLocaleString("vi-VN");
   };
 
+  // Update offset when serverNow changes
+  useEffect(() => {
+    const serverNowStr = (auction as any).serverNow;
+    if (serverNowStr) {
+      offsetRef.current = Date.parse(serverNowStr) - Date.now();
+    }
+  }, [(auction as any).serverNow]);
+
+  // Calculate time remaining
+  useEffect(() => {
+    if (auction.status !== "live" && auction.status !== "scheduled") return;
+
+    const endTs = Date.parse(auction.endTime);
+    const startTs = Date.parse(auction.startTime);
+
+    const tick = () => {
+      const now = Date.now() + offsetRef.current;
+
+      if (auction.status === "scheduled" && now < startTs) {
+        const distance = startTs - now;
+        const hours = Math.floor(distance / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setTimeRemaining(
+          `Bắt đầu: ${hours}h ${minutes}m ${seconds}s`
+        );
+      } else if (auction.status === "live") {
+        const distance = endTs - now;
+        if (distance < 0) {
+          setTimeRemaining("Đã kết thúc");
+          return;
+        }
+        const hours = Math.floor(distance / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setTimeRemaining(
+          `${hours}h ${minutes}m ${seconds}s`
+        );
+      }
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [auction.status, auction.startTime, auction.endTime]);
+
   return (
     <div className="auction-card">
       <div className="auction-card-header">
@@ -138,14 +187,26 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
               {formatPrice(auction.minBidIncrement)}
             </span>
           </div>
-          <div className="info-row">
-            <span className="label">Bắt đầu:</span>
-            <span className="value">{formatDate(auction.startTime)}</span>
-          </div>
-          <div className="info-row">
-            <span className="label">Kết thúc:</span>
-            <span className="value">{formatDate(auction.endTime)}</span>
-          </div>
+          {(auction.status === "live" || auction.status === "scheduled") && (
+            <div className="info-row">
+              <span className="label">Thời gian:</span>
+              <span className="value" style={{ color: "#ef4444", fontWeight: "600" }}>
+                {timeRemaining}
+              </span>
+            </div>
+          )}
+          {auction.status === "ended" && (
+            <>
+              <div className="info-row">
+                <span className="label">Bắt đầu:</span>
+                <span className="value">{formatDate(auction.startTime)}</span>
+              </div>
+              <div className="info-row">
+                <span className="label">Kết thúc:</span>
+                <span className="value">{formatDate(auction.endTime)}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

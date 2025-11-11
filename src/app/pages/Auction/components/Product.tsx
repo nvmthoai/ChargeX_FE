@@ -11,15 +11,43 @@ export default function Product() {
 
   // Debug log
   console.log("🎯 [Product] Debug data:", {
-    auction,
-    loading,
-    live,
-    countdown,
     auctionId,
     auctionTitle: auction?.product?.title,
     auctionCurrentPrice: auction?.currentPrice,
     auctionMinIncrement: auction?.minBidIncrement,
+    auctionEndTime: auction?.endTime,
+    auctionStatus: auction?.status,
+    countdown,
+    countdownSeconds: Math.ceil(countdown) + "s",
+    loading,
+    live,
   });
+
+  // More detailed logging for time calculations
+  if (auction?.endTime) {
+    try {
+      const nowClient = Date.now();
+      let endTimeStr = auction.endTime;
+      // If endTime doesn't have timezone info, assume it's UTC
+      if (!endTimeStr.endsWith('Z') && !endTimeStr.includes('+') && !endTimeStr.includes('-', 10)) {
+        endTimeStr = endTimeStr + 'Z';
+      }
+      const endTimeMs = new Date(endTimeStr).getTime();
+      const diff = endTimeMs - nowClient;
+      console.log("⏰ [Product] Time calculation:", {
+        nowClient,
+        endTimeStr,
+        endTimeMs,
+        diff: diff + "ms",
+        countdownFromHook: countdown,
+        expectedSeconds: Math.floor(diff / 1000),
+        actualSeconds: countdown,
+        match: Math.abs(Math.floor(diff / 1000) - countdown) < 2 ? "✅ MATCH" : "❌ MISMATCH"
+      });
+    } catch (e) {
+      console.error("⏰ [Product] Time calculation error:", e);
+    }
+  }
 
   // Try to read product info from auction snapshot.
   // Server returns product info directly in auction object
@@ -39,17 +67,18 @@ export default function Product() {
     }).format(amount);
 
   const formatCountdown = useMemo(() => {
+    // countdown is already in seconds from useAuctionLive hook
     const total = Math.max(0, countdown);
-    const seconds = Math.floor(total / 1000) % 60;
-    const minutes = Math.floor(total / 1000 / 60) % 60;
-    const hours = Math.floor(total / 1000 / 60 / 60);
+    const seconds = Math.floor(total) % 60;
+    const minutes = Math.floor(total / 60) % 60;
+    const hours = Math.floor(total / 60 / 60);
     return `${String(hours).padStart(2, "0")}h ${String(minutes).padStart(
       2,
       "0"
     )}m ${String(seconds).padStart(2, "0")}s`;
   }, [countdown]);
 
-  const isFinalSecond = countdown <= 1000 && countdown > 0;
+  const isFinalSecond = countdown <= 1 && countdown > 0;
 
   return (
     <div className="product-bidding-container">

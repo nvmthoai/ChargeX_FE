@@ -1,6 +1,7 @@
-/* Auction Request Management - Following KYC Management Style */
+/* Disputes Management - Following Withdraw & Auction Management Style */
 
-.auction-request-management-container {
+/* Align with Withdraw Management styles */
+.disputes-management-container {
   background-color: var(--gray-1);
 
   .admin-table-container {
@@ -39,18 +40,23 @@
         border: none;
       }
 
+      .ant-tag-blue {
+        background: #dbeafe;
+        color: #0369a1;
+      }
+
       .ant-tag-orange {
         background: #fff7ed;
         color: #ea580c;
       }
 
-      .ant-tag-green {
-        background: #28a74560;
+      .ant-tag-red {
+        background: #dc354560;
         color: var(--text-primary);
       }
 
-      .ant-tag-red {
-        background: #dc354560;
+      .ant-tag-green {
+        background: #28a74560;
         color: var(--text-primary);
       }
 
