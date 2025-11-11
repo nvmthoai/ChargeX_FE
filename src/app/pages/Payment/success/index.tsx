@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle, Download, Home, Package } from "lucide-react";
+import {
+  CheckCircle, Download, Home,
+  // Package
+} from "lucide-react";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -8,13 +11,13 @@ export default function PaymentSuccess() {
   const [isAnimated, setIsAnimated] = useState(false);
 
   // Get payment details from URL params
-  const orderId =
-    searchParams.get("orderId") ||
-    "ORD-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+  // const orderId =
+  //   searchParams.get("orderId") ||
+  //   "ORD-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+  // const transactionId =
+  //   searchParams.get("transactionId") ||
+  //   "TXN-" + Math.random().toString(36).substr(2, 12).toUpperCase();
   const amount = searchParams.get("amount") || "0";
-  const transactionId =
-    searchParams.get("transactionId") ||
-    "TXN-" + Math.random().toString(36).substr(2, 12).toUpperCase();
 
   useEffect(() => {
     setIsAnimated(true);
@@ -23,9 +26,8 @@ export default function PaymentSuccess() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center p-4">
       <div
-        className={`max-w-md w-full transition-all duration-700 ${
-          isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-        }`}
+        className={`max-w-md w-full transition-all duration-700 ${isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
       >
         {/* Success Icon */}
         <div className="flex justify-center mb-6">
@@ -57,16 +59,16 @@ export default function PaymentSuccess() {
 
           {/* Payment Details */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            {/* <div className="flex justify-between items-center">
               <span className="text-gray-600">Order ID</span>
               <span className="font-semibold text-gray-900">{orderId}</span>
-            </div>
-            <div className="flex justify-between items-center">
+            </div> */}
+            {/* <div className="flex justify-between items-center">
               <span className="text-gray-600">Transaction ID</span>
               <span className="font-mono text-sm text-gray-900">
                 {transactionId}
               </span>
-            </div>
+            </div> */}
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Amount Paid</span>
               <span className="text-2xl font-bold text-green-600">
@@ -86,13 +88,13 @@ export default function PaymentSuccess() {
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <button
+            {/* <button
               onClick={() => navigate("/orders/" + orderId)}
               className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
             >
               <Package className="w-5 h-5" />
               View Order Details
-            </button>
+            </button> */}
 
             <button
               onClick={() => {
