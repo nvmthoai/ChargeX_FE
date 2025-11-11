@@ -38,7 +38,7 @@ export default function OrderSummary({
       </div>
 
       {/* {onCheckout && ( */}
-      <Link to='/checkout-cart' state={selectedItems}>
+      <Link to={`${selectedItems.length > 0 ? '/checkout-cart' : ''}`} state={selectedItems}>
         <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
           Proceed to Checkout
         </button>
