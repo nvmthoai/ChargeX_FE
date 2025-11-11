@@ -25,9 +25,6 @@ axiosInstance.interceptors.response.use(
       const isLoginRequest = config?.url?.includes("/auth");
       const isAuthError = status === 401 || status === 403;
       const token = localStorage.getItem("token");
-
-
-
       // if (data.message === "Tài khoản chưa được xác thực" && data.statusCode === 400) {
       //   window.location.href = AUTH_ROUTES.AUTH + "/" + AUTH_ROUTES.REVERIFY_ACCOUNT;
       //   return error;
