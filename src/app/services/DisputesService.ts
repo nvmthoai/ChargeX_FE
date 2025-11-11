@@ -7,8 +7,12 @@ const disputesService = () => {
 
     const createDisputes = useCallback(
         async (orderId: string, values: any) => {
+            const formData = new FormData();
+            formData.append("type", values.type);
+            formData.append("file", values.file);
+            formData.append("initialMessage", values.initialMessage);
             try {
-                const response = await callApi(HTTP_METHOD.POST, `/disputes/${orderId}`, values);
+                const response = await callApi(HTTP_METHOD.POST, `/disputes/${orderId}`, formData);
                 return response;
             } catch (e: any) {
                 console.log(e?.response?.data);
@@ -44,7 +48,7 @@ const disputesService = () => {
     const resolveDisputes = useCallback(
         async (disputeId: string, values: any) => {
             try {
-                const response = await callApi(HTTP_METHOD.POST, `/disputes/${disputeId}/resolve`, {...values});
+                const response = await callApi(HTTP_METHOD.POST, `/disputes/${disputeId}/resolve`, { ...values });
                 return response;
             } catch (e: any) {
                 console.log(e?.response?.data);
