@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { XCircle, RefreshCw, Home, HelpCircle } from "lucide-react";
+import {
+  XCircle,
+  // RefreshCw,
+  Home, HelpCircle
+} from "lucide-react";
 
 export default function PaymentError() {
   const navigate = useNavigate();
@@ -12,24 +16,23 @@ export default function PaymentError() {
   const errorMessage =
     searchParams.get("message") ||
     "An unexpected error occurred during payment processing";
-  const orderId = searchParams.get("orderId") || "N/A";
+  // const orderId = searchParams.get("orderId") || "N/A";
   const amount = searchParams.get("amount") || "0";
 
   useEffect(() => {
     setIsAnimated(true);
   }, []);
 
-  const handleRetry = () => {
-    // Navigate back to payment page with order details
-    navigate("/checkout?orderId=" + orderId + "&amount=" + amount);
-  };
+  // const handleRetry = () => {
+  //   // Navigate back to payment page with order details
+  //   navigate("/checkout?orderId=" + orderId + "&amount=" + amount);
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 flex items-center justify-center p-4">
       <div
-        className={`max-w-md w-full transition-all duration-700 ${
-          isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-        }`}
+        className={`max-w-md w-full transition-all duration-700 ${isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
       >
         {/* Error Icon */}
         <div className="flex justify-center mb-6">
@@ -76,12 +79,12 @@ export default function PaymentError() {
                   {errorCode}
                 </span>
               </div>
-              {orderId !== "N/A" && (
+              {/* {orderId !== "N/A" && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Order ID</span>
                   <span className="font-semibold text-gray-900">{orderId}</span>
                 </div>
-              )}
+              )} */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Attempted Amount</span>
                 <span className="text-xl font-bold text-gray-900">
@@ -115,13 +118,13 @@ export default function PaymentError() {
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <button
+            {/* <button
               onClick={handleRetry}
               className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
             >
               <RefreshCw className="w-5 h-5" />
               Try Again
-            </button>
+            </button> */}
 
             <button
               onClick={() => navigate("/support")}
