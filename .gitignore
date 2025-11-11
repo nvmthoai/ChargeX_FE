@@ -22,13 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.claude/settings.local.json  # Comment out to track
-.claude/.env*                # Environment variables (do not commit)
-.claude/session-env/         # Session data
-.claude/debug/               # Debug logs
+.claude/
+.claude/.env*
+.claude/session-env/
+.claude/debug/
 
-# .serena config is safe to track
-# .serena/cache/ would be auto-generated
+# Ignore serena tool files
+.serena/
 
 # Optional: Ignore all Claude files except .claude dir
 # .claude/
