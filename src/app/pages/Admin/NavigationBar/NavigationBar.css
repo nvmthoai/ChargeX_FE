@@ -150,4 +150,28 @@
             }
         }
     }
+
+    /* Force admin area text color to white across all admin pages */
+    color: #ffffff !important;
+
+    .inner-container {
+        color: #ffffff !important;
+    }
+
+    * {
+        color: #ffffff !important;
+    }
+
+    /* Ensure placeholders and muted text are also readable */
+    ::placeholder {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    /* Buttons and inputs: keep backgrounds but ensure labels are readable */
+    button,
+    input,
+    select,
+    textarea {
+        color: #ffffff !important;
+    }
 }
