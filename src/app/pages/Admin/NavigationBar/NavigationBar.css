@@ -40,7 +40,8 @@
             border-radius: 8px;
             box-sizing: border-box;
 
-            a {
+            a,
+            .btn-logout {
                 padding: 14px 16px;
                 color: var(--text-1);
                 display: flex;
