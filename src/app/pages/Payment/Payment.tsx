@@ -97,7 +97,8 @@ export default function PaymentPage() {
   const total =
     (Number(order?.totalPrice) || 0) +
     (Number(order?.totalShippingFee) || 0);
-  const product = order?.orderShops?.[0]?.orderDetails?.[0]?.product;
+  // Support both auction orders (order.product) and regular shop orders (order.orderShops[0].orderDetails[0].product)
+  const product = order?.product || order?.orderShops?.[0]?.orderDetails?.[0]?.product;
   console.log("sản phẩm product nè", product);
   console.log("pickupLocation", pickupLocation);
   console.log("deliveryLocation", deliveryLocation);
@@ -207,7 +208,8 @@ export default function PaymentPage() {
         <p>Không tìm thấy đơn hàng.</p>
       </div>
     );
-  const seller = order?.orderShops?.[0]?.seller;
+  // Support both auction orders (order.seller) and regular shop orders (order.orderShops[0].seller)
+  const seller = order?.seller || order?.orderShops?.[0]?.seller;
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
