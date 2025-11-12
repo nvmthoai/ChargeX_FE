@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuction } from "../hooks/useAuction";
 import { userApi } from "../api/user/api";
+import { auctionApi } from "../api/auction";
 
 interface AuctionRoomProps {
   auctionId: string;
@@ -11,6 +13,7 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
   auctionId,
   userId,
 }) => {
+  const navigate = useNavigate();
   const {
     auctionState,
     auctionDetail,
@@ -30,6 +33,7 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [ownerName, setOwnerName] = useState<string>("");
   const [winnerName, setWinnerName] = useState<string>("");
+  const [fetchingOrder, setFetchingOrder] = useState<boolean>(false);
   const offsetRef = useRef<number>(0);
 
   // Fetch owner name
@@ -139,6 +143,35 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
 
     placeBid(amount);
     setBidAmount("");
+  };
+
+  const handlePayment = async () => {
+    if (!auctionDetail?.auctionId) {
+      alert("Không thể tìm thấy thông tin phiên đấu giá");
+      return;
+    }
+
+    setFetchingOrder(true);
+    try {
+      const order = await auctionApi.getOrderByAuctionId(auctionDetail.auctionId);
+      if (order && order.orderId) {
+        // Navigate to payment page with order ID
+        navigate(`/payment/${order.orderId}`, {
+          state: {
+            auctionId: auctionDetail.auctionId,
+            amount: currentPrice,
+            productTitle: auctionDetail.product.title
+          }
+        });
+      } else {
+        alert("Không thể tìm thấy đơn hàng cho phiên đấu giá này. Vui lòng liên hệ hỗ trợ.");
+      }
+    } catch (err: any) {
+      console.error("Error fetching order:", err);
+      alert("Lỗi khi tải thông tin đơn hàng: " + (err.message || "Vui lòng thử lại"));
+    } finally {
+      setFetchingOrder(false);
+    }
   };
 
   const handleBuyNow = async () => {
@@ -334,6 +367,33 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
           <h3>🏆 Người thắng cuộc</h3>
           <p>Người thắng: {winnerName || "Đang tải..."}</p>
           <p>Giá cuối: {formatPrice(currentPrice)}</p>
+
+          {/* Payment button if current user won */}
+          {auctionDetail.winnerId === userId && (
+            <div className="payment-section" style={{ marginTop: '15px' }}>
+              <button
+                onClick={handlePayment}
+                disabled={fetchingOrder}
+                style={{
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: fetchingOrder ? 'not-allowed' : 'pointer',
+                  opacity: fetchingOrder ? 0.6 : 1,
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  width: '100%'
+                }}
+              >
+                {fetchingOrder ? 'Đang tải...' : '💳 Thanh toán ngay'}
+              </button>
+              <p style={{ color: '#666', fontSize: '14px', marginTop: '10px' }}>
+                Vui lòng hoàn tất thanh toán để nhận sản phẩm
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
