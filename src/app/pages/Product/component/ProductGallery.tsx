@@ -24,25 +24,26 @@ export default function ProductGallery({ images, user, product }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   // 🧩 Xác định user có phải chủ sản phẩm không
-const isOwner = !!(user?.sub && product?.seller?.userId && user.sub === product.seller.userId);
-console.log("Is Owner:", isOwner);
+  const isOwner = !!(user?.sub && product?.seller?.userId && user.sub === product.seller.userId);
+  console.log("Is Owner:", isOwner);
 
   return (
     <div>
       {/* Ảnh chính */}
       <div
-        className={`w-full mb-6 rounded-lg  overflow-hidden cursor-zoom-in transition-all duration-200`}
+        className="w-full mb-6 rounded-lg overflow-hidden cursor-zoom-in transition-all duration-200"
+        style={{ aspectRatio: "1 / 1", backgroundColor: "#f5f5f5" }} // ✅ luôn vuông
         onClick={() => setIsOpen(true)}
       >
         <img
           src={safeImages[selected]}
           alt="Selected"
-          className="w-full h-full object-cover select-none"
+          className="w-full h-full object-contain select-none"
           draggable={false}
         />
       </div>
 
-      {/* Danh sách thumbnail */}
+      {/* Thumbnail */}
       <Swiper
         modules={[Navigation]}
         navigation
@@ -53,21 +54,25 @@ console.log("Is Owner:", isOwner);
         {safeImages.map((img, idx) => (
           <SwiperSlide key={idx}>
             <div
-              className={`cursor-pointer rounded-lg overflow-hidden border-2 ${
-                selected === idx ? "border-blue-500" : "border-transparent"
-              }`}
+              className={`cursor-pointer rounded-lg overflow-hidden border-2 ${selected === idx ? "border-blue-500" : "border-transparent"
+                }`}
+              style={{
+                aspectRatio: "1 / 1", // ✅ giữ tỷ lệ vuông cho mỗi thumbnail
+                backgroundColor: "#f5f5f5",
+              }}
               onClick={() => setSelected(idx)}
             >
               <img
                 src={img}
                 alt={`thumb-${idx}`}
-                className={`w-full object-cover select-none rounded-md`}
+                className="w-full h-full object-contain select-none rounded-md"
                 draggable={false}
               />
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
+
 
       {/* Modal zoom ảnh */}
       {isOpen && (

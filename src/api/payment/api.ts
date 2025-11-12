@@ -23,7 +23,7 @@ export const createPaymentForOrder = async (
 
 export const getAllPayments = async (): Promise<Payment[]> => {
   try {
-    const res = await axiosInstance.get("/v1/payment");
+    const res = await axiosInstance.get("/payment");
     console.log("✅ All payments:", res.data);
     return res.data;
   } catch (err) {
@@ -35,7 +35,7 @@ export const getAllPayments = async (): Promise<Payment[]> => {
 
 export const getPaymentById = async (id: string): Promise<Payment> => {
   try {
-    const res = await axiosInstance.get(`/v1/payment/${id}`);
+    const res = await axiosInstance.get(`/payment/${id}`);
     console.log(`✅ Payment ${id}:`, res.data);
     return res.data;
   } catch (err) {
@@ -50,7 +50,7 @@ export const updatePayment = async (
   payload: UpdatePaymentRequest
 ): Promise<Payment> => {
   try {
-    const res = await axiosInstance.patch(`/v1/payment/${id}`, payload);
+    const res = await axiosInstance.patch(`/payment/${id}`, payload);
     console.log(`✅ Updated payment ${id}:`, res.data);
     return res.data;
   } catch (err) {
@@ -62,7 +62,7 @@ export const updatePayment = async (
 
 export const deletePayment = async (id: string): Promise<void> => {
   try {
-    await axiosInstance.delete(`/v1/payment/${id}`);
+    await axiosInstance.delete(`/payment/${id}`);
     console.log(`🗑️ Deleted payment ${id}`);
   } catch (err) {
     console.error(`❌ Error deleting payment ${id}:`, err);
@@ -70,17 +70,18 @@ export const deletePayment = async (id: string): Promise<void> => {
   }
 };
 
+
 export const payOrderWithWallet = async (
   orderId: string,
   amount: number
-): Promise<any> => {
+): Promise<unknown> => {
   try {
     const res = await axiosInstance.post("/wallet/pay-order", {
       orderId,
       amount,
     });
     console.log("✅ Wallet payment result:", res.data);
-    return res.data;
+    return res.data as unknown;
   } catch (err) {
     console.error("❌ Error paying with wallet:", err);
     throw err;

@@ -1,13 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../hooks/AuthContext';
 import { notificationSocket } from '../../../services/notificationSocket';
 import axiosInstance from '../../config/axios';
 import type { Notification } from '../../../types/notification';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import './NotificationBell.css';
 
 export default function NotificationBell() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -48,12 +50,38 @@ export default function NotificationBell() {
       setNotifications((prev) => [notification as unknown as Notification, ...prev]);
       setUnreadCount((prev) => prev + 1);
       
-      // Show toast
-      toast.success(notification.title as string, {
-        duration: 5000,
-        icon: getNotificationIcon(notification.type as string),
-      });
-      
+      // Show toast; for auction_won make the toast content clickable to navigate to payment
+      const nType = notification.type as string;
+      const orderId = (notification as unknown as any)?.data?.orderId;
+      if (nType === 'auction_won' && orderId) {
+        toast((t) => (
+          <div
+            onClick={() => {
+              try {
+                navigate(`/payment?orderId=${orderId}`);
+              } catch (e) {
+                console.warn('Navigation failed for notification click', e);
+              }
+              toast.dismiss(t.id);
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span>{getNotificationIcon(nType)}</span>
+              <div>
+                <div style={{ fontWeight: 600 }}>{String(notification.title)}</div>
+                <div style={{ fontSize: 12, color: '#666' }}>{String((notification as any).message || '')}</div>
+              </div>
+            </div>
+          </div>
+        ), { duration: 7000, icon: getNotificationIcon(nType) });
+      } else {
+        toast.success(notification.title as string, {
+          duration: 5000,
+          icon: getNotificationIcon(nType),
+        });
+      }
+       
       // Play sound (optional)
       playNotificationSound();
     };

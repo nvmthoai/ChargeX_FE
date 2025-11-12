@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import axiosInstance from "../app/config/axios";
 
 interface Wallet {
   balance: number;
@@ -39,30 +40,21 @@ export default function useWallet(
   const fetchBalance = useCallback(async () => {
     setLoading(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1";
-      const response = await fetch(`${API_URL}/wallet/balance`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setWallet(data);
+      const res = await axiosInstance.get("/wallet/available");
+      const data = res.data?.data ?? res.data;
+      // normalize expected shape
+      const walletData = {
+        balance: data?.balance ?? data?.total ?? 0,
+        available: data?.available ?? data?.balance ?? 0,
+        locked: data?.held ?? data?.locked ?? 0,
+        userId: data?.userId ?? data?.user_id ?? null,
+      };
+      setWallet(walletData as Wallet);
       setError(null);
     } catch (err: any) {
       console.error("[useWallet] Fetch error:", err);
       setError(err.message || "Failed to fetch wallet");
-      // Set mock data for development
-      setWallet({
-        balance: 1000000,
-        available: 1000000,
-        locked: 0,
-        userId: "user-123",
-      });
+      // do not set mock wallet here — keep wallet null so UI reflects server state
     } finally {
       setLoading(false);
     }
@@ -103,20 +95,7 @@ export default function useWallet(
   const deposit = useCallback(
     async (amount: number): Promise<void> => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1";
-        const response = await fetch(`${API_URL}/wallet/deposit`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-          },
-          body: JSON.stringify({ amount }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
+        await axiosInstance.post("/wallet/deposit", { amount });
         await fetchBalance();
       } catch (err: any) {
         console.error("[useWallet] Deposit error:", err);
@@ -132,6 +111,18 @@ export default function useWallet(
       fetchBalance();
     }
   }, [autoFetch, fetchBalance]);
+
+  // Re-fetch when user logs in/out elsewhere in the app
+  useEffect(() => {
+    const onAuthLogin = () => fetchBalance();
+    const onAuthLogout = () => setWallet(null);
+    window.addEventListener("auth:login", onAuthLogin);
+    window.addEventListener("auth:logout", onAuthLogout);
+    return () => {
+      window.removeEventListener("auth:login", onAuthLogin);
+      window.removeEventListener("auth:logout", onAuthLogout);
+    };
+  }, [fetchBalance]);
 
   // Setup refresh interval
   useEffect(() => {

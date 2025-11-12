@@ -1,4 +1,4 @@
-import { io, Socket } from "socket.io-client";
+import { io, type Socket } from "socket.io-client";
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "https://chargex.id.vn";
 
@@ -9,6 +9,8 @@ export interface AuctionState {
   endTime: string;
   winnerId: string | null;
   bidCount: number;
+  serverNow?: string;
+  serverTime?: number;
 }
 
 export interface PriceUpdate {
@@ -16,6 +18,8 @@ export interface PriceUpdate {
   endTime: string;
   bidId: string;
   winnerId: string;
+  serverNow?: string;
+  serverTime?: number;
 }
 
 export interface PlaceBidPayload {
@@ -32,23 +36,34 @@ export class AuctionSocketService {
   private socket: Socket | null = null;
   private userId: string | null = null;
 
+  private normalizeUserId(raw?: string | null): string | null {
+    if (!raw) return null;
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed.toLowerCase() === "null" || trimmed.toLowerCase() === "undefined") {
+      return null;
+    }
+    return trimmed;
+  }
+
   connect(userId?: string) {
     if (this.socket?.connected) {
       return this.socket;
     }
 
-    this.userId = userId || null;
+    this.userId = this.normalizeUserId(userId);
 
-    this.socket = io(`${SOCKET_URL}/auctions`, {
+    // Build options and only include auth/query when we have a valid userId
+    const options: Record<string, unknown> = {
       path: "/socket.io/",
       transports: ["websocket", "polling"],
-      auth: {
-        userId: this.userId,
-      },
-      query: {
-        userId: this.userId,
-      },
-    });
+    };
+
+    if (this.userId) {
+      (options as Record<string, unknown>).auth = { userId: this.userId };
+      (options as Record<string, unknown>).query = { userId: this.userId };
+    }
+
+    this.socket = io(`${SOCKET_URL}/auctions`, options);
 
     this.socket.on("connect", () => {
       console.log("[Socket] Connected:", this.socket?.id);
@@ -113,7 +128,7 @@ export class AuctionSocketService {
   }
 
   // Listen for auction extended
-  onAuctionExtended(callback: (data: { endTime: string }) => void) {
+  onAuctionExtended(callback: (data: { endTime: string; serverNow?: string; serverTime?: number }) => void) {
     if (!this.socket) return;
     this.socket.on("auction:extended", callback);
   }
@@ -125,7 +140,7 @@ export class AuctionSocketService {
   }
 
   // Remove listeners
-  off(event: string, callback?: (...args: any[]) => void) {
+  off(event: string, callback?: (...args: unknown[]) => void) {
     if (!this.socket) return;
     this.socket.off(event, callback);
   }

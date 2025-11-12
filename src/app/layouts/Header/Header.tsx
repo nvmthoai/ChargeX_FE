@@ -1,5 +1,3 @@
-"use client";
-
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Info, Gavel, ShoppingBag } from "lucide-react";
 import { useAuth } from "../../hooks/AuthContext";
@@ -10,6 +8,7 @@ import WalletDisplay from "./WalletDisplay";
 import DepositModal from "./DepositModal";
 import WithdrawalModal from "./WithdrawalModal";
 import useWallet from "../../hooks/useWallet";
+import useUser from "../../hooks/useUser";
 
 export interface Bank {
   id: number;
@@ -37,6 +36,7 @@ export default function Header() {
     setWithdrawalModalOpen,
     withdrawalModalOpen,
   } = useWallet();
+  const { userDetail } = useUser();
 
   const handleWithdrawalOpen = async () => {
     setWithdrawalModalOpen(true);
@@ -172,10 +172,10 @@ export default function Header() {
               className="flex items-center gap-3 bg-white rounded-full px-3 py-1.5 shadow-sm hover:bg-gray-50 transition-all"
             >
               <span className="text-sm font-semibold text-gray-700">
-                Hello, {user.fullname || "User"} 👋
+                Hello, {userDetail?.user?.fullName || "User"} 👋
               </span>
               <img
-                src={"https://i.pravatar.cc/40"}
+                src={userDetail?.user?.image || "/default_avatar.png"}
                 alt="avatar"
                 className="w-8 h-8 rounded-full object-cover"
               />
