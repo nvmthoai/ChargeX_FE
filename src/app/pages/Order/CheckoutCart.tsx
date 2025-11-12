@@ -77,7 +77,7 @@ export default function CheckoutCart() {
                 sellerMap.set(ord.orderShops?.[0]?.seller?.userId, {
                     userId: ord.orderShops?.[0]?.seller?.userId,
                     fullName: ord.orderShops?.[0]?.seller?.fullName,
-                    shippingFee: Number(ord.orderShops?.[0]?.shippingFee),
+                    shippingFee: Number(ord.totalShippingFee),
                     orders: [ord],
                 });
             } else { sellerMap.get(ord.orderShops?.[0]?.seller?.userId)!.orders.push(ord) }
@@ -95,88 +95,86 @@ export default function CheckoutCart() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-10">
-            <div className="max-w-6xl mx-auto flex flex-col gap-8">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-8 space-y-6">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-semibold text-gray-900">
-                            <span className="text-[#0F74C7]">1.</span> Delivery Address
-                        </h2>
-                        <button
-                            onClick={() => setShowModal(true)}
-                            className="bg-[#0F74C7] hover:bg-[#3888ca] text-white px-4 py-2 rounded-md shadow-sm transition"
-                        >
-                            + Add New
-                        </button>
-                    </div>
-
-                    <div className="border-t pt-4">
-                        {isLoading ? (
-                            <div className="flex justify-center py-10">
-                                <Spin size="large" />
-                            </div>
-                        ) : (
-                            <AddressList
-                                mode="checkout"
-                                addresses={addresses}
-                                isLoading={isLoading}
-                                onEdit={(addr) => {
-                                    setEditingAddress(addr);
-                                    setShowModal(true);
-                                }}
-                                onSelect={(id) => setSelectedAddressId(id)}
-                                selectedAddressId={selectedAddressId}
-                                onDelete={() => { }}
-                                onSetDefault={() => { }}
-                            />
-
-                        )}
-                    </div>
-                </div>
-
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-8 space-y-6">
-                    <h2 className="text-2xl font-semibold text-gray-900">
-                        <span className="text-[#0F74C7]">2.</span> Order Items
-                    </h2>
-                    {items?.map((item: any) => (
-                        <div
-                            key={item.orderId}
-                            className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4 gap-4"
-                        >
-                            <div className="flex items-center gap-4">
-                                <img
-                                    src={item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || null}
-                                    alt={item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}
-                                    className="w-20 h-20 object-cover rounded-md"
-                                />
-                                <div>
-                                    <h3 className="font-semibold">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</h3>
-                                    <p className="text-sm text-gray-500">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.description}</p>
-                                    <p className="mt-1 font-semibold">${item.orderShops?.[0]?.orderDetails?.[0]?.price}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center justify-center gap-2">
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        value={item.orderShops?.[0]?.orderDetails?.[0]?.quantity}
-                                        className="w-12 h-9 text-center border border-gray-300 rounded-md focus:outline-none text-base font-medium leading-none flex items-center justify-center"
-                                        disabled
-                                    />
-                                </div>
-                            </div>
+                <div className="flex flex-col lg:col-span-2 gap-8">
+                    <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-8 space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-semibold text-gray-900">
+                                <span className="text-[#0F74C7]">1.</span> Delivery Address
+                            </h2>
+                            <button
+                                onClick={() => setShowModal(true)}
+                                className="bg-[#0F74C7] hover:bg-[#3888ca] text-white px-4 py-2 rounded-md shadow-sm transition"
+                            >
+                                + Add New
+                            </button>
                         </div>
-                    ))}
+
+                        <div className="border-t pt-4">
+                            {isLoading ? (
+                                <div className="flex justify-center py-10">
+                                    <Spin size="large" />
+                                </div>
+                            ) : (
+                                <AddressList
+                                    mode="checkout"
+                                    addresses={addresses}
+                                    isLoading={isLoading}
+                                    onEdit={(addr) => {
+                                        setEditingAddress(addr);
+                                        setShowModal(true);
+                                    }}
+                                    onSelect={(id) => setSelectedAddressId(id)}
+                                    selectedAddressId={selectedAddressId}
+                                    onDelete={() => { }}
+                                    onSetDefault={() => { }}
+                                />
+
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-8 space-y-6">
+                        <h2 className="text-2xl font-semibold text-gray-900">
+                            <span className="text-[#0F74C7]">2.</span> Order Items
+                        </h2>
+                        {items?.map((item: any) => (
+                            <div
+                                key={item.orderId}
+                                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4 gap-4"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <img
+                                        src={item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || null}
+                                        alt={item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}
+                                        className="w-20 h-20 object-cover rounded-md"
+                                    />
+                                    <div>
+                                        <h3 className="font-semibold">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</h3>
+                                        <p className="text-sm text-gray-500">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.description}</p>
+                                        <p className="mt-1 font-semibold">{Number(item.totalPrice).toLocaleString()} VND</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            value={item.orderShops?.[0]?.orderDetails?.[0]?.quantity}
+                                            className="w-12 h-9 text-center border border-gray-300 rounded-md focus:outline-none text-base font-medium leading-none flex items-center justify-center"
+                                            disabled
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="ml-auto bg-white rounded-xl shadow-md p-8 space-y-6"
-                    style={{
-                        width: 'fit-content',
-                        minWidth: '500px',
-                    }}>
+                <div className="bg-white rounded-xl shadow-md p-8 space-y-6 sticky top-6 self-start">
                     <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                         <span className="text-[#0F74C7]">3.</span> Sumary
                     </h2>
@@ -186,36 +184,32 @@ export default function CheckoutCart() {
                             {items?.map((item: any, i: any) => (
                                 <p key={i} className="flex justify-between gap-8">
                                     <span>{item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</span>
-                                    <span>${item.orderShops?.[0]?.orderDetails?.[0]?.price}</span>
+                                    <span>{Number(item.totalPrice).toLocaleString()} VND</span>
                                 </p>
                             ))}
                         </div>
                         <p className="flex justify-between">
                             <span className="font-semibold">Shipping Fee</span>
-                            <span>${totalShippingFee}</span>
+                            <span>{Number(totalShippingFee).toLocaleString()} VND</span>
                         </p>
                         <p className="flex justify-between font-semibold text-lg">
                             <span>Total</span>
-                            <span className="text-[#0F74C7]">
-                                ${total}
-                            </span>
+                            <span className="text-[#0F74C7]">{Number(total).toLocaleString()} VND</span>
                         </p>
                     </div>
 
-                    <div className="flex mt-4 gap-8">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="w-full py-3 rounded-lg border text-gray-700 hover:border-[#0F74C7] transition flex items-center justify-center gap-2"
-                        >
-                            <ArrowLeftOutlined /> Quay lại
-                        </button>
-                        <button
-                            onClick={handleConfirmPayment}
-                            className={`w-full py-3 rounded-lg text-white font-medium text-lg transition bg-[#0F74C7] hover:bg-[#3888ca]`}
-                        >
-                            Xác nhận thanh toán
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleConfirmPayment}
+                        className={`w-full py-3 rounded-lg text-white font-medium text-lg transition bg-[#0F74C7] hover:bg-[#3888ca]`}
+                    >
+                        Xác nhận thanh toán
+                    </button>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="w-full py-3 rounded-lg border text-gray-700 hover:border-[#0F74C7] transition flex items-center justify-center gap-2"
+                    >
+                        <ArrowLeftOutlined /> Quay lại
+                    </button>
                 </div>
             </div>
 
