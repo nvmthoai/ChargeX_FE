@@ -5,6 +5,7 @@ import { useAuth } from "../../../hooks/AuthContext";
 import useWallet from "../../../../hooks/useWallet";
 import toast from "react-hot-toast";
 import { userApi } from "../../../../api/user/api";
+import { auctionApi } from "../../../../api/auction";
 import {
   mapErrorMessage,
   extractApiError,
@@ -13,7 +14,6 @@ import {
 } from "../../../utils/errorMapping";
 import { notificationSocket } from '../../../../services/notificationSocket';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../../../config/axios';
 
 export default function Bidding() {
   const { id } = useParams();
@@ -118,10 +118,10 @@ export default function Bidding() {
   const fetchOrderIdForAuction = async (): Promise<string | null> => {
     if (!auctionId) return null;
     try {
-      const res = await axiosInstance.get('/orders', { params: { auctionId } });
-      const data = res.data?.data?.data || res.data?.data || res.data;
-      if (Array.isArray(data) && data.length > 0) {
-        return data[0].orderId || null;
+      const order = await auctionApi.getOrderByAuctionId(auctionId);
+      console.log('✅ [Bidding] Order response:', order);
+      if (order && order.orderId) {
+        return order.orderId;
       }
       return null;
     } catch (e) {

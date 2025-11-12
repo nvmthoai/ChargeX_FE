@@ -232,3 +232,75 @@
       text-decoration: none;
     }
 }
+
+/* Exclude Auction Live page from white-text overrides: restore dark text and readable contrast */
+.admin-container.auction-live,
+.admin-container.auction-live .inner-container,
+.admin-container.auction-live p,
+.admin-container.auction-live span,
+.admin-container.auction-live label,
+.admin-container.auction-live a,
+.admin-container.auction-live h1,
+.admin-container.auction-live h2,
+.admin-container.auction-live h3,
+.admin-container.auction-live h4,
+.admin-container.auction-live h5,
+.admin-container.auction-live h6,
+.admin-container.auction-live th,
+.admin-container.auction-live td,
+.admin-container.auction-live .stat-title,
+.admin-container.auction-live .stat-value,
+.admin-container.auction-live .admin-table,
+.admin-container.auction-live .admin-table-container,
+.admin-container.auction-live .checkbox-item,
+.admin-container.auction-live .customer-name-cell,
+.admin-container.auction-live .avatar img {
+  color: #111827 !important; /* dark text */
+}
+
+.admin-container.auction-live ::placeholder {
+  color: rgba(0,0,0,0.6) !important;
+}
+
+/* Inputs/selects/textareas inside auction-live: dark text */
+.admin-container.auction-live input,
+.admin-container.auction-live select,
+.admin-container.auction-live textarea {
+  color: #111827 !important;
+}
+
+/* Buttons on auction-live: primary buttons often have light bg so keep dark text */
+.admin-container.auction-live .btn-primary {
+  color: var(--button-primary-text, #161B22) !important;
+}
+.admin-container.auction-live .btn-primary svg {
+  color: var(--button-primary-text, #161B22) !important;
+}
+
+/* Secondary buttons: dark bg -> keep white text for contrast where appropriate */
+.admin-container.auction-live .btn-secondary {
+  color: var(--text-primary, #ffffff) !important;
+}
+
+/* Generic button fallback for auction-live: dark text */
+.admin-container.auction-live button:not(.btn-secondary) {
+  color: #111827 !important;
+}
+
+/* Table headers on auction-live: slightly muted dark gray */
+.admin-container.auction-live th {
+  color: #475569 !important;
+}
+
+/* Icons follow parent color */
+.admin-container.auction-live .btn-primary i,
+.admin-container.auction-live .btn-secondary i,
+.admin-container.auction-live a i {
+  color: inherit !important;
+}
+
+/* Ensure links within auction-live are visible dark links */
+.admin-container.auction-live a {
+  color: #0f172a !important;
+  text-decoration: none;
+}
