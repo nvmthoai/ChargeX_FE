@@ -3,9 +3,7 @@ import CartItemsList from "./components/CartItemList";
 import OrderSummary from "./components/OrderSummary";
 import { useAuth } from "../../hooks/AuthContext";
 import { deleteData, fetchData, getQueryString } from "../../../mocks/CallingAPI";
-// import type { CartItem } from "./components/CartItemList";
-// import { initialItems } from "../../../data/initialItems";
-
+import { ShoppingCart, Loader2, AlertCircle } from "lucide-react";
 
 export default function CartPage() {
   const token = localStorage.getItem('token') || '';
@@ -18,37 +16,27 @@ export default function CartPage() {
 
   useEffect(() => {
     const fetchDataAPI = async () => {
-      setLoading(false);
+      setLoading(true);
       try {
         const ItemsResponse = await fetchData(`/orders${getQueryString({ page: 1, limit: 1000 })}`, token);
-        console.log('ItemsResponse', ItemsResponse.data.data);
-        // const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub);
         const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub && i.status == 'PENDING');
-        console.log('FilterItems', FilterItems);
-
         setItems(FilterItems);
       } catch (error) {
-        setError('Error');
+        setError('Error loading cart items');
       } finally {
         setLoading(false);
       }
     };
 
     fetchDataAPI();
-  }, [refresh, user]);
-
-  // const updateQty = (id: number, qty: number) => {
-  //   setItems(items.map((i: any) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i)));
-  // };
+  }, [refresh, user, token]);
 
   const removeItem = async (orderId: number) => {
-    // setItems(items.filter((i: any) => i.id !== id));
     setLoading(true);
     try {
-      const RemoveItemsResponse = await deleteData(`/orders/${orderId}`, token);
-      console.log('RemoveItemsResponse', RemoveItemsResponse);
+      await deleteData(`/orders/${orderId}`, token);
     } catch (error) {
-      setError('Error');
+      setError('Error removing item');
     } finally {
       setLoading(false);
       setRefresh(p => p + 1);
@@ -68,44 +56,94 @@ export default function CartPage() {
   const filteredItems = items.filter(item => selectedItems.includes(item.orderId));
   const subtotal = filteredItems.reduce((sum: any, i: any) => sum + (i.orderShops?.[0]?.orderDetails?.[0]?.price || 0) * i.orderShops?.[0]?.orderDetails?.[0]?.quantity, 0);
   const shipping = filteredItems.reduce((sum: any, i: any) => sum + parseInt(i.orderShops?.[0]?.shippingFee || 0), 0);
-  // const tax = subtotal * 0.08;
   const tax = 0;
   const total = subtotal + shipping + tax;
 
-  if (error) return <div><button onClick={() => setRefresh(p => p + 1)}>Error</button></div>
-  if (loading) return <div><button onClick={() => setLoading(false)}>Loading</button></div>
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-red-200 max-w-md text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-dark-900 mb-2">Error</h2>
+          <p className="text-dark-800 mb-6 font-medium">{error}</p>
+          <button 
+            onClick={() => setRefresh(p => p + 1)}
+            className="px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8">
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 text-ocean-500 animate-spin mx-auto mb-4" />
+          <p className="text-dark-800 text-lg font-medium">Loading your cart...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <h1 className="text-center text-2xl font-bold mb-8">Your Shopping Cart</h1>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {items?.length > 0 ?
-          <section className="lg:col-span-2">
-            <CartItemsList items={items} selectedItems={selectedItems} onRemove={removeItem} onCheck={handleCheckboxChange} />
-          </section>
-          :
-          <section className="lg:col-span-2">
-            <div style={{
-              padding: '4px 8px',
-              color: '#aaa',
-              background: '#eee',
-              border: '1px solid #e4e4e4ff',
-              borderRadius: '200px',
-              textAlign: 'center',
-              fontStyle: 'italic'
-            }}>
-              Không có sản phẩm nào
+    <div className="min-h-screen py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-3 bg-gradient-to-r from-ocean-500 to-energy-500 rounded-xl">
+              <ShoppingCart className="w-6 h-6 text-white" />
             </div>
-          </section>
-        }
+            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+              Your Shopping Cart
+            </h1>
+          </div>
+          <p className="text-dark-800 text-lg font-medium">
+            {items.length > 0 
+              ? `${items.length} item${items.length !== 1 ? 's' : ''} in your cart`
+              : 'Your cart is empty'}
+          </p>
+        </div>
 
-        <OrderSummary
-          selectedItems={selectedItems}
-          subtotal={subtotal}
-          shipping={shipping}
-          tax={tax}
-          total={total}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Cart Items */}
+          <section className="lg:col-span-2">
+            {items?.length > 0 ? (
+              <CartItemsList 
+                items={items} 
+                selectedItems={selectedItems} 
+                onRemove={removeItem} 
+                onCheck={handleCheckboxChange} 
+              />
+            ) : (
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-12 shadow-xl border border-ocean-200/50 text-center">
+                <div className="w-24 h-24 bg-gradient-to-r from-ocean-100 to-energy-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <ShoppingCart className="w-12 h-12 text-ocean-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-dark-900 mb-2">Your cart is empty</h3>
+                <p className="text-dark-800 mb-6 font-medium">Start shopping to add items to your cart</p>
+                <a
+                  href="/"
+                  className="inline-block px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                >
+                  Continue Shopping
+                </a>
+              </div>
+            )}
+          </section>
+
+          {/* Order Summary */}
+          <OrderSummary
+            selectedItems={selectedItems}
+            subtotal={subtotal}
+            shipping={shipping}
+            tax={tax}
+            total={total}
+          />
+        </div>
       </div>
     </div>
   );

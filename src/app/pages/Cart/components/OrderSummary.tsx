@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ShoppingBag, ArrowRight } from "lucide-react";
 
 interface OrderSummaryProps {
   selectedItems: any,
@@ -16,39 +17,65 @@ export default function OrderSummary({
   total,
 }: OrderSummaryProps) {
   return (
-    <aside className="bg-white border border-gray-200 rounded-lg p-6 h-fit sticky top-20 self-start">
-      <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-
-      <div className="flex justify-between mb-2">
-        <span>Subtotal</span>
-        <span>${subtotal.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between mb-2">
-        <span>Shipping</span>
-        <span>${shipping.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between mb-2">
-        <span>Tax (estimated)</span>
-        <span>${tax.toFixed(2)}</span>
+    <aside className="bg-white/90 backdrop-blur-sm rounded-2xl border border-ocean-200/50 p-6 shadow-xl h-fit sticky top-24">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-gradient-to-r from-ocean-500 to-energy-500 rounded-lg">
+          <ShoppingBag className="w-5 h-5 text-white" />
+        </div>
+        <h2 className="text-xl font-bold text-dark-900">Order Summary</h2>
       </div>
 
-      <div className="flex justify-between font-bold text-lg border-t pt-3">
-        <span>Order Total</span>
-        <span>${total.toFixed(2)}</span>
+      <div className="space-y-3 mb-6">
+        <div className="flex justify-between items-center py-2">
+          <span className="text-dark-800 font-medium">Subtotal</span>
+          <span className="font-semibold text-dark-900">${subtotal.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between items-center py-2">
+          <span className="text-dark-600">Shipping</span>
+          <span className="font-semibold text-dark-900">${shipping.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between items-center py-2">
+          <span className="text-dark-600">Tax (estimated)</span>
+          <span className="font-semibold text-dark-900">${tax.toFixed(2)}</span>
+        </div>
       </div>
 
-      {/* {onCheckout && ( */}
-      <Link to={`${selectedItems.length > 0 ? '/checkout-cart' : ''}`} state={selectedItems}>
-        <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-          Proceed to Checkout
-        </button>
-      </Link>
-      {/* )} */}
-      <Link to='/'>
-        <button className="mt-2 w-full border py-2 rounded-lg text-gray-600 hover:bg-gray-50" >
-          Continue Shopping
-        </button>
-      </Link>
+      <div className="border-t border-ocean-200 pt-4 mb-6">
+        <div className="flex justify-between items-center">
+          <span className="text-lg font-bold text-dark-900">Order Total</span>
+          <span className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+            ${total.toFixed(2)}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <Link 
+          to={selectedItems.length > 0 ? '/checkout-cart' : '#'} 
+          state={selectedItems}
+          className="block"
+        >
+          <button 
+            disabled={selectedItems.length === 0}
+            className="w-full py-3 px-4 bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 text-white rounded-xl font-semibold shadow-lg shadow-ocean-500/30 hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+          >
+            Proceed to Checkout
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </Link>
+        
+        <Link to='/' className="block">
+          <button className="w-full py-3 px-4 border-2 border-ocean-200 text-ocean-700 rounded-xl font-semibold hover:bg-ocean-50 hover:border-ocean-300 transition-all">
+            Continue Shopping
+          </button>
+        </Link>
+      </div>
+
+      {selectedItems.length === 0 && (
+        <p className="mt-4 text-sm text-center text-dark-800 font-medium">
+          Select items to proceed
+        </p>
+      )}
     </aside>
   );
 }

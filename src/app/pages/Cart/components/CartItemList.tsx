@@ -1,18 +1,8 @@
 import { Trash2 } from "lucide-react";
 
-// export interface CartItem {
-//   id: number;
-//   title: string;
-//   specs: string;
-//   price: number;
-//   qty: number;
-//   image: string;
-// }
-
 interface CartItemsListProps {
   items: any;
   selectedItems: any;
-  // onUpdateQty: (id: number, qty: number) => void;
   onRemove: (id: number) => void;
   onCheck: (id: any) => void;
 }
@@ -20,86 +10,79 @@ interface CartItemsListProps {
 export default function CartItemsList({
   items,
   selectedItems,
-  // onUpdateQty,
   onRemove,
   onCheck,
 }: CartItemsListProps) {
   return (
     <section className="space-y-4">
-      {items.map((item: any) => (
+      {items.map((item: any, index: number) => (
         <div
           key={item.orderId}
-          className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4 gap-4"
+          className="group bg-white/90 backdrop-blur-sm rounded-2xl border border-ocean-200/50 p-5 shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn"
+          style={{ animationDelay: `${index * 50}ms` }}
         >
-
-          {/* Info */}
-          <div className="flex items-center gap-4">
-            <input
-              type="checkbox"
-              checked={selectedItems.includes(item.orderId)}
-              onChange={() => onCheck(item.orderId)}
-              className="cursor-pointer"
-            />
-            <img
-              src={item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || null}
-              alt={item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}
-              className="w-20 h-20 object-cover rounded-md"
-            />
-            <div>
-              <h3 className="font-semibold">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</h3>
-              <p className="text-sm text-gray-500">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.description}</p>
-              <p className="mt-1 font-semibold">${item.orderShops?.[0]?.orderDetails?.[0]?.price}</p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-4">
-            {/* Quantity Selector */}
-            <div className="flex items-center justify-center gap-2">
-              {/* Nút giảm */}
-              {/* <button
-                disabled={item.qty <= 1}
-                className={`w-9 h-9 flex items-center justify-center border border-gray-300 rounded-md text-lg font-medium 
-                  ${
-                    item.qty <= 1
-                      ? "text-gray-300 cursor-not-allowed bg-gray-50"
-                      : "hover:bg-gray-100 text-gray-700"
-                  } 
-                  focus:outline-none transition-colors duration-150`}
-                onClick={() => onUpdateQty(item.id, item.qty - 1)}
-              >
-                −
-              </button> */}
-
-              {/* Ô số lượng */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            {/* Checkbox & Image */}
+            <div className="flex items-center gap-4 flex-1 w-full sm:w-auto">
               <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={item.orderShops?.[0]?.orderDetails?.[0]?.quantity}
-                // onChange={(e) =>
-                //   onUpdateQty(item.id, parseInt(e.target.value) || 1)
-                // }
-                className="w-12 h-9 text-center border border-gray-300 rounded-md focus:outline-none text-base font-medium leading-none flex items-center justify-center"
-                disabled
+                type="checkbox"
+                checked={selectedItems.includes(item.orderId)}
+                onChange={() => onCheck(item.orderId)}
+                className="w-5 h-5 text-ocean-600 border-ocean-300 rounded focus:ring-ocean-500 focus:ring-2 cursor-pointer"
               />
+              <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-ocean-100 to-energy-100 flex-shrink-0">
+                {item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] ? (
+                  <img
+                    src={item.orderShops[0].orderDetails[0].product.imageUrls[0]}
+                    alt={item.orderShops[0].orderDetails[0].product.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-ocean-300">
+                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
 
-              {/* Nút tăng */}
-              {/* <button
-                className="w-9 h-9 flex items-center justify-center border border-gray-300 rounded-md text-lg font-medium text-gray-700 hover:bg-gray-100 focus:outline-none transition-colors duration-150"
-                onClick={() => onUpdateQty(item.id, item.qty + 1)}
-              >
-                +
-              </button> */}
+              {/* Product Info */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-lg text-dark-900 mb-1 line-clamp-2 group-hover:text-ocean-600 transition-colors">
+                  {item.orderShops?.[0]?.orderDetails?.[0]?.product?.title || 'Product'}
+                </h3>
+                <p className="text-sm text-dark-800 line-clamp-2 mb-2 font-medium">
+                  {item.orderShops?.[0]?.orderDetails?.[0]?.product?.description || 'No description'}
+                </p>
+                <div className="flex items-center gap-4">
+                  <span className="text-lg font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+                    ${(item.orderShops?.[0]?.orderDetails?.[0]?.price || 0).toLocaleString()}
+                  </span>
+                  <span className="text-sm text-dark-800 font-medium">
+                    Qty: {item.orderShops?.[0]?.orderDetails?.[0]?.quantity || 1}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Remove */}
-            <button
-              className="text-red-500 hover:text-red-700"
-              onClick={() => onRemove(item.orderId)}
-            >
-              <Trash2 strokeWidth={1.5} size="20" />
-            </button>
+            {/* Actions */}
+            <div className="flex items-center gap-4 sm:ml-auto">
+              {/* Quantity Display */}
+              <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-ocean-50 to-energy-50 rounded-lg border border-ocean-200">
+                <span className="text-sm font-semibold text-dark-900">
+                  {item.orderShops?.[0]?.orderDetails?.[0]?.quantity || 1}
+                </span>
+              </div>
+
+              {/* Remove Button */}
+              <button
+                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all hover:scale-110"
+                onClick={() => onRemove(item.orderId)}
+                title="Remove item"
+              >
+                <Trash2 strokeWidth={2} size={20} />
+              </button>
+            </div>
           </div>
         </div>
       ))}

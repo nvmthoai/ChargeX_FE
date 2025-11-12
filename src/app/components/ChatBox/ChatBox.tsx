@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { postData } from '../../../mocks/CallingAPI.ts';
-import './ChatBox.css';
 
 export default function ChatBox() {
     const [Messages, setMessages] = useState<string[]>([]);

@@ -3,7 +3,6 @@ import { fetchData } from '../../../../mocks/CallingAPI';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog';
 import Pagination from '../../../components/Pagination/Pagination';
 // import SmallSpinner from '../../../components/SmallSpinner/SmallSpinner';
-import './TransactionManagement.css';
 
 export default function TransactionManagement() {
 

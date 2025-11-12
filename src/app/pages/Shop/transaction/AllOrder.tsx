@@ -70,7 +70,7 @@ const fetchOrders = async () => {
 
   return (
     <div className="p-6 space-y-6 relative">
-      <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
+      <div className="bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 rounded-xl border border-ocean-200/30 overflow-visible">
         {loading ? (
           <div className="p-10 text-center text-gray-400 animate-pulse">
             Đang tải đơn hàng...

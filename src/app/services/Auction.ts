@@ -1,78 +1,78 @@
-import { useCallback } from "react";
-import useApiService from "../hooks/useApi";
-import { HTTP_METHOD } from "../constants/enum";
+import { useState } from "react";
+import { auctionApi, type RequestAuctionDto, type ApproveAuctionDto } from "../../api/auction";
 
 const auctionService = () => {
-  const { callApi, loading, setIsLoading } = useApiService();
+  const [loading, setLoading] = useState(false);
 
-  const sendRequestCreateAuction = useCallback(
-    async (sellerId: string, productId: string, note: string) => {
-      const values = { productId: productId, note: note };
-      try {
-        const response = await callApi(
-          HTTP_METHOD.POST,
-          `/auction/request/${sellerId}`,
-          { ...values }
-        );
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
-
-  const adminGetRequestCreateAuction = useCallback(async () => {
+  const sendRequestCreateAuction = async (sellerId: string, productId: string, note: string) => {
     try {
-      const response = await callApi(HTTP_METHOD.GET, `/auction/requests`);
+      setLoading(true);
+      const data: RequestAuctionDto = { productId, note };
+      const response = await auctionApi.requestAuction(sellerId, data);
       return response;
     } catch (e: any) {
       console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
     }
-  }, [callApi]);
+  };
 
-  const adminHandleApproveRequest = useCallback(
-    async (adminId: string, values: any) => {
-      try {
-        const response = await callApi(
-          HTTP_METHOD.POST,
-          `/auction/approve/${adminId}`,
-          { ...values }
-        );
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
-
-  const adminGetAuctions = useCallback(async () => {
+  const adminGetRequestCreateAuction = async () => {
     try {
-      const response = await callApi(HTTP_METHOD.GET, `/auction/ids`);
+      setLoading(true);
+      const response = await auctionApi.getRequests();
       return response;
     } catch (e: any) {
       console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
     }
-  }, [callApi]);
+  };
 
-  const adminCreateLive = useCallback(
-    async (id: string) => {
-      try {
-        const response = await callApi(HTTP_METHOD.POST, `/auction/${id}/live`);
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-        // Rethrow so callers can access the error details and show useful messages
-        throw e;
-      }
-    },
-    [callApi]
-  );
+  const adminHandleApproveRequest = async (adminId: string, values: ApproveAuctionDto) => {
+    try {
+      setLoading(true);
+      const response = await auctionApi.approveAuction(adminId, values);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const adminGetAuctions = async () => {
+    try {
+      setLoading(true);
+      const response = await auctionApi.getAllAuctionIds();
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const adminCreateLive = async (auctionId: string) => {
+    try {
+      setLoading(true);
+      const response = await auctionApi.goLive(auctionId);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     loading,
-    setIsLoading,
+    setIsLoading: setLoading,
     sendRequestCreateAuction,
     adminGetRequestCreateAuction,
     adminHandleApproveRequest,

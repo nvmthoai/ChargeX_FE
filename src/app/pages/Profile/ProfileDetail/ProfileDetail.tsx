@@ -22,9 +22,12 @@ import {
   HomeOutlined,
   WalletOutlined,
   CameraOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import { useState } from "react";
 import useUser from "../../../hooks/useUser";
+import { User, MapPin, Wallet, Sparkles } from "lucide-react";
 
 export default function ProfileDetail() {
   const [form] = Form.useForm();
@@ -35,9 +38,11 @@ export default function ProfileDetail() {
     console.log('values: ', values)
     setLoading(true);
     try {
-      handleUploadProfile(values); // Gửi object {email, fullName, phone}
+      handleUploadProfile(values);
+      message.success("Profile updated successfully!");
     } catch (error) {
       console.error("Failed to update profile");
+      message.error("Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -50,35 +55,56 @@ export default function ProfileDetail() {
       return false;
     }
     try {
-      handleUploadAvatar({ file: file }); // Upload avatar riêng biệt
+      handleUploadAvatar({ file: file });
+      message.success("Avatar uploaded successfully!");
     } catch (error) {
       console.error("Failed to upload avatar");
+      message.error("Failed to upload avatar");
     }
 
-    return false; // Ngăn upload mặc định
+    return false;
   };
 
   if (!userDetail) {
-    return <Empty description="No profile userDetail available" />;
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Empty description="No profile information available" />
+      </div>
+    );
   }
 
   const tabItems = [
     {
       key: "personal",
-      label: "Personal Information",
+      label: (
+        <span className="flex items-center gap-2">
+          <User className="w-4 h-4" />
+          Personal Information
+        </span>
+      ),
       children: (
-        <div className="bg-slate-50 rounded-lg p-6">
-          <div className="mb-8">
-            <div className="flex items-center gap-6">
-              <div className="flex flex-col items-center">
+        <div className="space-y-6">
+          {/* Avatar Section */}
+          <div className="bg-gradient-to-r from-ocean-50 to-energy-50 rounded-2xl p-6 border border-ocean-200/50">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-ocean-400 to-energy-400 rounded-full blur opacity-30"></div>
                 {userDetail.user.image ? (
-                  <Avatar size={100} src={userDetail.user.image} />
+                  <Avatar 
+                    size={120} 
+                    src={userDetail.user.image}
+                    className="relative border-4 border-white shadow-xl"
+                  />
                 ) : (
-                  <Avatar size={100} icon={<UserOutlined />} />
+                  <Avatar 
+                    size={120} 
+                    icon={<UserOutlined />}
+                    className="relative border-4 border-white shadow-xl bg-gradient-to-r from-ocean-500 to-energy-500"
+                  />
                 )}
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-xl font-bold text-dark-900 mb-2">
                   Profile Picture
                 </h3>
                 <Upload
@@ -87,16 +113,23 @@ export default function ProfileDetail() {
                   accept="image/*"
                   showUploadList={false}
                 >
-                  <Button icon={<CameraOutlined />}>Upload Avatar</Button>
+                  <Button 
+                    icon={<CameraOutlined />}
+                    className="bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 border-0 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                  >
+                    Upload Avatar
+                  </Button>
                 </Upload>
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-sm text-dark-800 font-medium mt-2">
                   JPG, PNG, GIF - Max 5MB
                 </p>
               </div>
             </div>
           </div>
-          <Divider />
 
+          <Divider className="my-6" />
+
+          {/* Form Section */}
           <Form
             form={form}
             layout="vertical"
@@ -106,67 +139,107 @@ export default function ProfileDetail() {
               email: userDetail.user.email,
               phone: userDetail.user.phone,
             }}
+            className="space-y-4"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Form.Item
-                label="Full Name"
+                label={<span className="font-bold text-dark-900">Full Name</span>}
                 name="fullName"
                 rules={[{ required: true, message: "Please enter full name" }]}
               >
                 <Input
-                  prefix={<UserOutlined />}
+                  prefix={<UserOutlined className="text-ocean-500" />}
                   placeholder="Enter full name"
+                  size="large"
+                  className="rounded-xl border-ocean-200 hover:border-ocean-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </Form.Item>
 
               <Form.Item
-                label="Email"
+                label={<span className="font-semibold text-dark-700">Email</span>}
                 name="email"
                 rules={[
                   { required: true, message: "Please enter email" },
                   { type: "email", message: "Invalid email" },
                 ]}
               >
-                <Input prefix={<MailOutlined />} placeholder="Enter email" />
+                <Input 
+                  prefix={<MailOutlined className="text-ocean-500" />} 
+                  placeholder="Enter email"
+                  size="large"
+                  className="rounded-xl border-ocean-200 hover:border-ocean-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                />
               </Form.Item>
 
               <Form.Item
-                label="Phone Number"
+                label={<span className="font-semibold text-dark-700">Phone Number</span>}
                 name="phone"
                 rules={[
                   { required: true, message: "Please enter phone number" },
                 ]}
               >
                 <Input
-                  prefix={<PhoneOutlined />}
+                  prefix={<PhoneOutlined className="text-ocean-500" />}
                   placeholder="Enter phone number"
+                  size="large"
+                  className="rounded-xl border-ocean-200 hover:border-ocean-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </Form.Item>
 
-              <Form.Item label="Role">
-                <Tag color="blue">{userDetail.user.role}</Tag>
-              </Form.Item>
-
-              <Form.Item label="Email Verified">
-                <Tag color={userDetail.user.emailVerified ? "green" : "red"}>
-                  {userDetail.user.emailVerified ? "Verified" : "Not Verified"}
+              <Form.Item label={<span className="font-semibold text-dark-700">Role</span>}>
+                <Tag 
+                  color="blue"
+                  className="px-3 py-1 rounded-full text-sm font-semibold"
+                >
+                  {userDetail.user.role}
                 </Tag>
               </Form.Item>
 
-              <Form.Item label="Account Status">
-                <Tag color={userDetail.user.isActive ? "green" : "orange"}>
+              <Form.Item label={<span className="font-semibold text-dark-700">Email Verified</span>}>
+                <Tag 
+                  color={userDetail.user.emailVerified ? "green" : "red"}
+                  className="px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 w-fit"
+                >
+                  {userDetail.user.emailVerified ? (
+                    <>
+                      <CheckCircleOutlined /> Verified
+                    </>
+                  ) : (
+                    <>
+                      <CloseCircleOutlined /> Not Verified
+                    </>
+                  )}
+                </Tag>
+              </Form.Item>
+
+              <Form.Item label={<span className="font-semibold text-dark-700">Account Status</span>}>
+                <Tag 
+                  color={userDetail.user.isActive ? "green" : "orange"}
+                  className="px-3 py-1 rounded-full text-sm font-semibold"
+                >
                   {userDetail.user.isActive ? "Active" : "Inactive"}
                 </Tag>
               </Form.Item>
             </div>
 
-            <Divider />
+            <Divider className="my-6" />
 
             <div className="flex gap-3">
-              <Button type="primary" htmlType="submit" loading={loading}>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={loading}
+                size="large"
+                className="bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 border-0 rounded-xl font-semibold shadow-lg shadow-ocean-500/30 hover:shadow-xl hover:scale-105 transition-all px-8"
+              >
                 Update Profile
               </Button>
-              <Button>Cancel</Button>
+              <Button 
+                size="large"
+                className="rounded-xl border-ocean-200 text-ocean-700 hover:bg-ocean-50"
+              >
+                Cancel
+              </Button>
             </div>
           </Form>
         </div>
@@ -174,95 +247,143 @@ export default function ProfileDetail() {
     },
     {
       key: "addresses",
-      label: `Addresses (${userDetail.addresses.length})`,
+      label: (
+        <span className="flex items-center gap-2">
+          <MapPin className="w-4 h-4" />
+          Addresses ({userDetail.addresses.length})
+        </span>
+      ),
       children: (
-        <div className="bg-slate-50 rounded-lg p-6">
+        <div className="space-y-4">
           {userDetail.addresses.length > 0 ? (
-            <div className="space-y-4">
-              {userDetail.addresses.map((addr) => (
-                <Card
-                  key={addr.addressId}
-                  className="border-l-4 border-l-blue-500"
-                  hoverable
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                        <HomeOutlined className="text-blue-500" />
-                        <span className="font-semibold text-lg">
-                          {addr.label}
-                        </span>
-                        {addr.isDefault && <Tag color="blue">Default</Tag>}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-slate-500">Name:</span>
-                          <p className="font-medium">{addr.fullName}</p>
-                        </div>
-                        <div>
-                          <span className="text-slate-500">Phone:</span>
-                          <p className="font-medium">{addr.phone}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-3">
-                        <span className="text-slate-500 text-sm">Address:</span>
-                        <p className="font-medium text-slate-700">
-                          {addr.line1}
-                        </p>
-                      </div>
-
-                      {addr.note && (
-                        <div className="mt-2">
-                          <span className="text-slate-500 text-sm">Note:</span>
-                          <p className="text-slate-600 text-sm">{addr.note}</p>
-                        </div>
+            userDetail.addresses.map((addr) => (
+              <Card
+                key={addr.addressId}
+                className="border-l-4 border-l-ocean-500 hover:shadow-lg transition-all rounded-xl"
+                hoverable
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <HomeOutlined className="text-ocean-500 text-lg" />
+                      <span className="font-bold text-lg text-dark-900">
+                        {addr.label}
+                      </span>
+                      {addr.isDefault && (
+                        <Tag color="blue" className="rounded-full">
+                          Default
+                        </Tag>
                       )}
                     </div>
 
-                    <Space>
-                      <Button type="link" size="small">
-                        Edit
-                      </Button>
-                      <Button type="link" danger size="small">
-                        Delete
-                      </Button>
-                    </Space>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
+                      <div>
+                        <span className="text-dark-800 font-medium">Name:</span>
+                        <p className="font-semibold text-dark-900">{addr.fullName}</p>
+                      </div>
+                      <div>
+                        <span className="text-dark-600">Phone:</span>
+                        <p className="font-semibold text-dark-900">{addr.phone}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3">
+                      <span className="text-dark-600 text-sm">Address:</span>
+                      <p className="font-semibold text-dark-900">
+                        {addr.line1}
+                      </p>
+                    </div>
+
+                    {addr.note && (
+                      <div className="mt-2">
+                        <span className="text-dark-600 text-sm">Note:</span>
+                        <p className="text-dark-800 text-sm font-medium">{addr.note}</p>
+                      </div>
+                    )}
                   </div>
-                </Card>
-              ))}
-            </div>
+
+                  <Space>
+                    <Button 
+                      type="link" 
+                      size="small"
+                      className="text-ocean-600 hover:text-ocean-700"
+                    >
+                      Edit
+                    </Button>
+                    <Button 
+                      type="link" 
+                      danger 
+                      size="small"
+                    >
+                      Delete
+                    </Button>
+                  </Space>
+                </div>
+              </Card>
+            ))
           ) : (
-            <Empty description="No addresses saved" />
+            <div className="py-12">
+              <Empty description="No addresses saved" />
+            </div>
           )}
         </div>
       ),
     },
     {
       key: "wallet",
-      label: "Wallet",
+      label: (
+        <span className="flex items-center gap-2">
+          <Wallet className="w-4 h-4" />
+          Wallet
+        </span>
+      ),
       children: (
-        <div className="bg-slate-50 rounded-lg p-6">
-          <Card className="border-l-4 border-l-yellow-500">
+        <div className="space-y-6">
+          <Card className="border-l-4 border-l-energy-500 rounded-xl shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-r from-energy-500 to-energy-600 rounded-xl">
+                <WalletOutlined className="text-white text-xl" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-dark-900">Available Balance</h3>
+                <p className="text-dark-800 font-medium">Your current wallet balance</p>
+              </div>
+            </div>
+            
             <Row gutter={32}>
               <Col xs={24} sm={12} md={8}>
                 <Statistic
-                  title="Available Balance"
+                  title={<span className="text-dark-800 font-medium">Balance</span>}
                   value={Number.parseFloat(userDetail.wallet.balance)}
-                  prefix={<WalletOutlined />}
+                  prefix={<WalletOutlined className="text-energy-600" />}
                   precision={2}
                   suffix="VND"
-                  valueStyle={{ color: "#1f2937" }}
+                  valueStyle={{ 
+                    color: "#1890ff",
+                    fontSize: "28px",
+                    fontWeight: "bold"
+                  }}
                 />
               </Col>
             </Row>
 
-            <Divider />
+            <Divider className="my-6" />
 
             <div className="flex gap-3">
-              <Button type="primary">Deposit</Button>
-              <Button>Withdraw</Button>
+              <Button 
+                type="primary"
+                size="large"
+                className="bg-gradient-to-r from-energy-500 to-energy-600 hover:from-energy-600 hover:to-energy-700 border-0 rounded-xl font-semibold shadow-lg shadow-energy-500/30 hover:shadow-xl hover:scale-105 transition-all"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Deposit
+              </Button>
+              <Button 
+                size="large"
+                className="rounded-xl border-ocean-200 text-ocean-700 hover:bg-ocean-50"
+              >
+                Withdraw
+              </Button>
             </div>
           </Card>
         </div>
@@ -271,33 +392,21 @@ export default function ProfileDetail() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Profile Details
-          </h1>
-          <p className="text-slate-600">
-            Manage your personal information and preferences
-          </p>
-        </div>
-
-        <Tabs
-          items={tabItems}
-          className="bg-white rounded-lg shadow-sm"
-          tabBarStyle={{
-            backgroundColor: "#1e293b",
-            borderRadius: "8px 8px 0 0",
-            margin: 0,
-          }}
-          tabBarExtraContent={
-            <div className="text-xs text-slate-300 mr-4">
-              Last updated:{" "}
-              {new Date(userDetail.user.updatedAt).toLocaleDateString()}
-            </div>
-          }
-        />
+    <div>
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent mb-2">
+          Profile Details
+        </h2>
+        <p className="text-dark-800 font-medium">
+          Manage your personal information and preferences
+        </p>
       </div>
+
+      <Tabs
+        items={tabItems}
+        className="profile-tabs"
+        size="large"
+      />
     </div>
   );
 }

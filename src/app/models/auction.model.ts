@@ -13,6 +13,7 @@ export interface ApproveAuctionPayload {
   auctionRequestId: string
   startTime: string
   endTime: string
+  startingPrice?: number
   reservePrice: number
   minBidIncrement: number
   antiSnipingSeconds: number

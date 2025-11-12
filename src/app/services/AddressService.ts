@@ -1,64 +1,60 @@
-import { useCallback } from "react";
-import useApiService from "../hooks/useApi";
-import { HTTP_METHOD } from "../constants/enum";
+import { useState } from "react";
+import { addressApi, type AddressFormData } from "../../api/address/api";
 
 const addressService = () => {
-  const { callApi, loading, setIsLoading } = useApiService();
+  const [loading, setLoading] = useState(false);
 
-  const getMyAddress = useCallback(
-    async (id: any) => {
-      try {
-        const response = await callApi(HTTP_METHOD.GET, `/address/user/${id}`);
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
+  const getMyAddress = async (userId: string) => {
+    try {
+      setLoading(true);
+      const response = await addressApi.getMyAddress(userId);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const deleteAddress = useCallback(
-    async (id: any) => {
-      try {
-        const response = await callApi(
-          HTTP_METHOD.DELETE,
-          `/address/${id}`
-        );
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
+  const deleteAddress = async (addressId: string) => {
+    try {
+      setLoading(true);
+      const response = await addressApi.deleteAddress(addressId);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const createNewAddress = useCallback(
-    async (values: any) => {
-      try {
-        const response = await callApi(HTTP_METHOD.POST, `/address`, {
-          ...values,
-        });
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
+  const createNewAddress = async (values: AddressFormData) => {
+    try {
+      setLoading(true);
+      const response = await addressApi.createAddress(values);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const updateNewAddress = useCallback(
-    async (addressId: string, values: any) => {
-      try {
-        const response = await callApi(HTTP_METHOD.PATCH, `/address/${addressId}`, {
-          ...values,
-        });
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
+  const updateNewAddress = async (addressId: string, values: AddressFormData) => {
+    try {
+      setLoading(true);
+      const response = await addressApi.updateAddress(addressId, values);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     getMyAddress,
@@ -66,7 +62,7 @@ const addressService = () => {
     createNewAddress,
     updateNewAddress,
     loading,
-    setIsLoading,
+    setIsLoading: setLoading,
   };
 };
 

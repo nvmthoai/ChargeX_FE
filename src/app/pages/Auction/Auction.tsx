@@ -1,4 +1,3 @@
-import "./Auction.css";
 import Bidding from "./components/Bidding.tsx";
 import Product from "./components/Product.tsx";
 

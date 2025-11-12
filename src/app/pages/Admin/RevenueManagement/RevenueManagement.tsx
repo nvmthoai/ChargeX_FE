@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import './RevenueManagement.css';
 import {
     BarChart,
     Bar,

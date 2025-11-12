@@ -1,65 +1,65 @@
-import { useCallback } from "react";
-import useApiService from "../hooks/useApi";
-import { HTTP_METHOD } from "../constants/enum";
+import { useState } from "react";
+import { userApi } from "../../api/user/api";
 
 const userService = () => {
-  const { callApi, loading, setIsLoading } = useApiService();
+  const [loading, setLoading] = useState(false);
 
-  const getUserDetail = useCallback(
-    async () => {
-      try {
-        const response = await callApi(HTTP_METHOD.GET, `/users/me`);
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
+  const getUserDetail = async () => {
+    try {
+      setLoading(true);
+      const response = await userApi.getUserDetail();
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const getShopDetail = useCallback(
-    async (id: string) => {
-      try {
-        const response = await callApi(HTTP_METHOD.GET, `/users/seller/${id}`);
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
+  const getShopDetail = async (sellerId: string) => {
+    try {
+      setLoading(true);
+      const response = await userApi.getShopDetail(sellerId);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const uploadAvatar = useCallback(
-    async (values: any) => {
-      const formData = new FormData();
-      formData.append("file", values.file);
-      try {
-        const response = await callApi(HTTP_METHOD.PATCH, `/users/upload-image`, formData);
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
+  const uploadAvatar = async (values: { file: File }) => {
+    try {
+      setLoading(true);
+      const response = await userApi.uploadAvatar(values.file);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const uploadProfile = useCallback(
-    async (values: any) => {
-
-      try {
-        const response = await callApi(HTTP_METHOD.PATCH, `/users/profile`, values);
-        return response;
-      } catch (e: any) {
-        console.log(e?.response?.data);
-      }
-    },
-    [callApi]
-  );
+  const uploadProfile = async (values: any) => {
+    try {
+      setLoading(true);
+      const response = await userApi.updateProfile(values);
+      return response;
+    } catch (e: any) {
+      console.log(e?.response?.data);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     loading,
     getUserDetail,
-    setIsLoading,
+    setIsLoading: setLoading,
     getShopDetail,
     uploadAvatar,
     uploadProfile

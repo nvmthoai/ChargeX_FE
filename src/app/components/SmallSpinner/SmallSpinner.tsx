@@ -1,5 +1,4 @@
 import React from "react";
-import "./SmallSpinner.css";
 
 const SmallSpinner: React.FC = () => {
     return (

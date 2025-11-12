@@ -118,6 +118,12 @@ export default function Bidding() {
   const fetchOrderIdForAuction = async (): Promise<string | null> => {
     if (!auctionId) return null;
     try {
+      // First, debug endpoint to see what's in the database
+      console.log('🔍 [Bidding] Calling debug endpoint for auction:', auctionId);
+      const debugData = await auctionApi.getAuctionDebug(auctionId);
+      console.log('🔍 [Bidding] Debug data:', debugData);
+
+      // Then try to get the order
       const order = await auctionApi.getOrderByAuctionId(auctionId);
       console.log('✅ [Bidding] Order response:', order);
       if (order && order.orderId) {

@@ -5,7 +5,6 @@ import axiosInstance from '../../config/axios';
 import type { Notification } from '../../../types/notification';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import './NotificationBell.css';
 
 export default function NotificationBell() {
   const { user } = useAuth();

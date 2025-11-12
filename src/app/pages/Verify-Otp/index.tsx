@@ -13,7 +13,7 @@ import authSerivce from "../../services/AuthService";
 export default function VerifyOTPPage() {
   const navigate = useNavigate();
 
-  const email = localStorage.getItem("emailNeedToVerify");
+  const email = localStorage.getItem("emailNeedToVerify") || "";
   const { verifyOtp, resendOtp } = authSerivce();
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,6 +82,10 @@ export default function VerifyOTPPage() {
     setSuccess("");
     try {
       // API call to verify OTP
+      if (!email) {
+        setError("Email không tồn tại. Vui lòng đăng ký lại.");
+        return;
+      }
       const response = await verifyOtp({ email, otp: otpCode });
 
       if (response) {
@@ -106,6 +110,10 @@ export default function VerifyOTPPage() {
 
     try {
       // API call to resend OTP
+      if (!email) {
+        setError("Email không tồn tại. Vui lòng đăng ký lại.");
+        return;
+      }
       const response = await resendOtp({ email });
       if (response) {
         setSuccess("Mã OTP mới đã được gửi đến email của bạn");
@@ -128,7 +136,7 @@ export default function VerifyOTPPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 rounded-2xl shadow-xl border border-ocean-200/30 p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">

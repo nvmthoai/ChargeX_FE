@@ -1,6 +1,9 @@
 "use client";
 
 import type React from "react";
+import { MapPin, Home, Building2, Edit, Trash2, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface Address {
   addressId: string;
@@ -32,71 +35,92 @@ const AddressCard: React.FC<AddressCardProps> = ({
   onDelete,
   onSetDefault,
 }) => {
+  const Icon = address.label === "Office" ? Building2 : Home;
+
   return (
     <div
-      className={`p-6 transition-colors rounded-lg ${
-        mode === "checkout"
-          ? "hover:bg-blue-50 cursor-pointer"
-          : "hover:bg-gray-50"
-      }`}
+      className={cn(
+            "p-6 transition-all rounded-xl border-2",
+            address.isDefault
+              ? "border-ocean-400 bg-ocean-50/40"
+              : "border-ocean-100/50 bg-white hover:border-ocean-200 hover:shadow-md",
+        mode === "checkout" && "cursor-pointer"
+      )}
     >
-      <div className="flex justify-between items-start">
-        {/* 🏠 Thông tin địa chỉ */}
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {address.fullName}
-            </h3>
-            <span className="text-gray-400">|</span>
-            <span className="text-gray-600">{address.phone}</span>
-
+      <div className="flex justify-between items-start gap-4">
+        {/* Address Info */}
+        <div className="flex-1 space-y-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="p-2 bg-ocean-100 dark:bg-ocean-900/30 rounded-lg">
+              <Icon className="w-5 h-5 text-ocean-600 dark:text-ocean-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-ocean-700">
+                {address.fullName}
+              </h3>
+              <p className="text-sm text-muted-foreground">{address.phone}</p>
+            </div>
             {address.isDefault && (
-              <span className="px-3 py-1 bg-red-100 text-red-600 text-sm font-medium rounded border border-red-300">
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-ocean-100 dark:bg-ocean-900/30 text-ocean-700 dark:text-ocean-300 text-xs font-semibold rounded-full border border-ocean-300 dark:border-ocean-700">
+                <Star className="w-3 h-3 fill-current" />
                 Default
               </span>
             )}
-
             {address.label === "Office" && (
-              <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-medium rounded border border-gray-300">
-                Pickup Address
+              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">
+                Office
               </span>
             )}
           </div>
 
-          <p className="text-gray-700 mb-1">{address.line1}</p>
-          {address.note && (
-            <p className="text-gray-500 italic text-sm">{address.note}</p>
-          )}
+          <div className="flex items-start gap-2 text-sm text-ocean-600">
+            <MapPin className="w-4 h-4 mt-0.5 text-ocean-600 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-ocean-700">{address.line1}</p>
+              {address.note && (
+                <p className="text-muted-foreground italic mt-1">
+                  Note: {address.note}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* 🔧 Các nút thao tác */}
-        <div className="flex items-center gap-3 ml-6">
-          {/* Nút Update luôn có */}
-          <button
-            onClick={() => onEdit(address)}
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Update
-          </button>
-
-          {/* Chỉ hiện trong trang Profile */}
-          {mode === "profile" && !address.isDefault && (
-            <>
-              <button
-                onClick={() => onDelete?.(address.addressId)}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => onSetDefault?.(address.addressId)}
-                className="px-4 py-2 border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
-              >
-                Set as Default
-              </button>
-            </>
-          )}
-        </div>
+        {/* Actions */}
+        {mode === "profile" && (
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(address)}
+              className="gap-1"
+            >
+              <Edit className="w-4 h-4" />
+              Edit
+            </Button>
+            {!address.isDefault && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onSetDefault?.(address.addressId)}
+                  className="gap-1"
+                >
+                  <Star className="w-4 h-4" />
+                  Set Default
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onDelete?.(address.addressId)}
+                  className="gap-1"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
