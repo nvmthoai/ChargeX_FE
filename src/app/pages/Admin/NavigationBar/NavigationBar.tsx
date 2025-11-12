@@ -1,30 +1,21 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../hooks/AuthContext";
 import "./NavigationBar.css";
 
 export default function NavigationBar() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   console.log("NavigationBar", location.pathname);
 
   const menuItems = [
     { name: "MEMBER", icon: "user", path: "/admin/user-management" },
     { name: "KYC", icon: "id-card", path: "/admin/kyc-management" },
-    {
-      name: "TRANSACTION",
-      icon: "money-check-dollar",
-      path: "/admin/transaction-management",
-    },
-    {
-      name: "REVENUE",
-      icon: "dollar",
-      path: "/admin/revenue-management",
-    },
-    { name: "POST", icon: "clipboard", path: "/admin/post-management" },
-    {
-      name: "REPORT",
-      icon: "circle-exclamation",
-      path: "/admin/report-management",
-    },
-    { name: "SETTING", icon: "gear", path: "/admin/profile" },
+    // { name: "TRANSACTION", icon: "money-check-dollar", path: "/admin/transaction-management" },
+    // { name: "REVENUE", icon: "dollar", path: "/admin/revenue-management" },
+    // { name: "POST", icon: "clipboard", path: "/admin/post-management" },
+    // { name: "REPORT", icon: "circle-exclamation", path: "/admin/report-management" },
+    // { name: "SETTING", icon: "gear", path: "/admin/profile" },
     { name: "AUCTION", icon: "gear", path: "/admin/auction-management" },
     { name: "AUCTION LIVE", icon: "gear", path: "/admin/auction-live-management" },
     { name: "WITHDRAW REQUEST", icon: "gear", path: "/admin/withdraw-request-management" },
@@ -50,6 +41,12 @@ export default function NavigationBar() {
               </Link>
             </div>
           ))}
+          <button className={`item`} onClick={() => { logout(), navigate('/') }}>
+            <div className="btn-logout">
+              <i className={`fa-solid fa-right-to-bracket`}></i>
+              <span>LOGOUT</span>
+            </div>
+          </button>
         </div>
       </div>
       <Outlet />
