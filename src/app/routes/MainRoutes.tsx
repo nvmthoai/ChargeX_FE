@@ -44,9 +44,11 @@ const Auction = lazy(() => import("../pages/Auction/Auction"));
 const ProductDetail = lazy(() => import("../pages/Product/ProductDetail"));
 
 export default function MainRoutes() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  console.log('user', user);
   return (
     <BrowserRouter>
-      <div className="sticky top-0 left-0 z-20"><Header /></div>
+      {user?.role !== "admin" && <div className="sticky top-0 left-0 z-20"><Header /></div>}
       <Suspense fallback={<div className="p-8 text-center">Loading…</div>}>
         <Routes>
           <Route path="/" element={<Home />} />
