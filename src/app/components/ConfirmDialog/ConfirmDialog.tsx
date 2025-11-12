@@ -1,5 +1,4 @@
 import React from "react";
-import "./ConfirmDialog.css";
 
 interface ConfirmDialogProps {
     title?: string;

@@ -1,5 +1,40 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ocean-50: #e6f4ff;
+  --color-ocean-100: #bae0ff;
+  --color-ocean-200: #91caff;
+  --color-ocean-300: #69b1ff;
+  --color-ocean-400: #40a9ff;
+  --color-ocean-500: #1890ff;
+  --color-ocean-600: #096dd9;
+  --color-ocean-700: #0050b3;
+  --color-ocean-800: #003a8c;
+  --color-ocean-900: #002766;
+
+  --color-energy-50: #fff7e6;
+  --color-energy-100: #ffe7ba;
+  --color-energy-200: #ffd591;
+  --color-energy-300: #ffc069;
+  --color-energy-400: #ffa940;
+  --color-energy-500: #ff8c00;
+  --color-energy-600: #d46b08;
+  --color-energy-700: #ad4e00;
+  --color-energy-800: #873800;
+  --color-energy-900: #612500;
+
+  --color-dark-50: #f9fafb;
+  --color-dark-100: #f3f4f6;
+  --color-dark-200: #e5e7eb;
+  --color-dark-300: #d1d5db;
+  --color-dark-400: #9ca3af;
+  --color-dark-500: #6b7280;
+  --color-dark-600: #4b5563;
+  --color-dark-700: #374151;
+  --color-dark-800: #1f2937;
+  --color-dark-900: #111827;
+}
+
 @keyframes fadeIn {
   from { opacity: 0 }
   to { opacity: 1 }

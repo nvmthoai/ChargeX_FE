@@ -32,4 +32,30 @@ export const userApi = {
       return null;
     }
   },
+
+  // Get current user detail
+  getUserDetail: async () => {
+    const response = await axiosInstance.get(`/users/me`);
+    return response.data;
+  },
+
+  // Get shop detail by seller ID
+  getShopDetail: async (sellerId: string) => {
+    const response = await axiosInstance.get(`/users/seller/${sellerId}`);
+    return response.data;
+  },
+
+  // Upload avatar
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await axiosInstance.patch(`/users/upload-image`, formData);
+    return response.data;
+  },
+
+  // Update profile
+  updateProfile: async (data: any) => {
+    const response = await axiosInstance.patch(`/users/profile`, data);
+    return response.data;
+  },
 };

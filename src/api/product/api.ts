@@ -85,3 +85,9 @@ export const updateProduct = async (
     throw error;
   }
 };
+
+// Get all products
+export const getAllProducts = async () => {
+  const response = await axiosInstance.get(`/product-listing/all`);
+  return response.data;
+};

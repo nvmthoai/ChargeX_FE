@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { fetchData, getQueryString, patchData } from '../../../../mocks/CallingAPI';
-import Pagination from '../../../components/Pagination/Pagination';
 import SmallSpinner from '../../../components/SmallSpinner/SmallSpinner';
-import './KycManagement.css';
+import AdminDataTable, { type Column, type FilterOption } from '../../../layouts/components/AdminDataTable';
+import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
+import { X, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const DefaultAvatar = '../../../../../public/lightning_thunder.png';
+const DefaultAvatar = '/lightning_thunder.png';
 
 const KycManagement = () => {
-
     const [KYCs, setKYCs] = useState<Record<string, any>>({});
     const [selectedDocument, setSelectedDocuments] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
@@ -15,6 +17,7 @@ const KycManagement = () => {
     const [selectedLevel, setSelectedLevel] = useState('');
     const [selectedSortBy, setSelectedSortBy] = useState('');
     const [selectedSortOrder, setSelectedSortOrder] = useState('');
+    const [searchText, setSearchText] = useState('');
     const [refresh, setRefresh] = useState(0);
     const [changeStatusLoading, setChangeStatusLoading] = useState(-1);
     const [loading, setLoading] = useState(true);
@@ -24,9 +27,15 @@ const KycManagement = () => {
         const token = localStorage.getItem('token') || '';
         const fetchDataAPI = async () => {
             try {
-                console.log(`/kyc-profiles${getQueryString({ page: page, limit: 10, status: selectedStatus, level: selectedLevel, sortBy: selectedSortBy, sortOrder: selectedSortOrder })}`);
-                const PageKycsResponse = await fetchData(`/kyc-profiles${getQueryString({ page: page, limit: 10, status: selectedStatus, level: selectedLevel, sortBy: selectedSortBy, sortOrder: selectedSortOrder })}`, token);
-                console.log('PageKycsResponse', PageKycsResponse);
+                const queryParams = {
+                    page: page,
+                    limit: 10,
+                    status: selectedStatus || undefined,
+                    level: selectedLevel || undefined,
+                    sortBy: selectedSortBy || undefined,
+                    sortOrder: selectedSortOrder || undefined,
+                };
+                const PageKycsResponse = await fetchData(`/kyc-profiles${getQueryString(queryParams)}`, token);
                 setKYCs(PageKycsResponse.data);
             } catch (error) {
                 console.error(error);
@@ -39,9 +48,17 @@ const KycManagement = () => {
         fetchDataAPI();
     }, [refresh, page, selectedStatus, selectedLevel, selectedSortBy, selectedSortOrder]);
 
-    const changeStatus = async ({ index, id, value }: any) => {
-        console.log('=F= changeStatus');
+    // Filter by search
+    const filteredData = KYCs?.data?.filter((kyc: any) => {
+        if (!searchText) return true;
+        const search = searchText.toLowerCase();
+        return (
+            kyc.user?.fullName?.toLowerCase().includes(search) ||
+            kyc.user?.email?.toLowerCase().includes(search)
+        );
+    }) || [];
 
+    const changeStatus = async ({ index, id, value }: any) => {
         setChangeStatusLoading(index);
         const token = localStorage.getItem('token') || '';
         const KycData = {
@@ -49,8 +66,7 @@ const KycManagement = () => {
             note: 'You are ' + value
         }
         try {
-            const PatchKycResponse = await patchData(`/kyc-profiles/${id}/status`, KycData, token);
-            console.log('PatchKycResponse', PatchKycResponse);
+            await patchData(`/kyc-profiles/${id}/status`, KycData, token);
         } catch (error) {
             console.error(error);
             setError('Error');
@@ -58,182 +74,214 @@ const KycManagement = () => {
             setChangeStatusLoading(-1);
             setRefresh(p => p + 1);
         }
-        return;
     }
 
-    if (loading) return <div className='admin-container'>Loading</div>
-    if (error) return <div className='admin-container'>Error</div>
-    return (
-        <div className='admin-container'>
-            <div className='inner-container management-container kyc-management-container'>
+    const filters: FilterOption[] = [
+        {
+            key: 'status',
+            label: 'Status',
+            options: [
+                { value: 'pending', label: 'Pending' },
+                { value: 'approved', label: 'Approved' },
+                { value: 'rejected', label: 'Rejected' },
+            ],
+        },
+        {
+            key: 'level',
+            label: 'Level',
+            options: [
+                { value: 'basic', label: 'Basic' },
+                { value: 'advanced', label: 'Advanced' },
+            ],
+        },
+        {
+            key: 'sortBy',
+            label: 'Sort By',
+            options: [
+                { value: 'createdAt', label: 'Created' },
+                { value: 'updatedAt', label: 'Updated' },
+            ],
+        },
+        {
+            key: 'sortOrder',
+            label: 'Sort Order',
+            options: [
+                { value: 'ASC', label: 'ASC' },
+                { value: 'DESC', label: 'DESC' },
+            ],
+        },
+    ];
 
-                <header className='main-header'>
-                    <h1>Kyc Management</h1>
-                </header>
+    const filterValues = {
+        status: selectedStatus,
+        level: selectedLevel,
+        sortBy: selectedSortBy,
+        sortOrder: selectedSortOrder,
+    };
 
-                <div className='controls'>
-                    {/* FIX==search input */}
-                    <div className='search-bar'>
-                        <i className='fa-solid fa-magnifying-glass' />
-                        <input type='text' placeholder='Find by name or email...' />
+    const handleFilterChange = (key: string, value: string) => {
+        switch (key) {
+            case 'status':
+                setSelectedStatus(value);
+                break;
+            case 'level':
+                setSelectedLevel(value);
+                break;
+            case 'sortBy':
+                setSelectedSortBy(value);
+                break;
+            case 'sortOrder':
+                setSelectedSortOrder(value);
+                break;
+        }
+        setPage(1);
+    };
+
+    const getStatusColor = (status: string) => {
+        const colors: Record<string, string> = {
+            pending: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+            approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+            rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+        };
+        return colors[status] || 'bg-gray-100 text-gray-800';
+    };
+
+    const columns: Column<any>[] = [
+        {
+            key: 'index',
+            title: '#',
+            width: '60px',
+            render: (_, index) => index + 1 + (page - 1) * 10,
+        },
+        {
+            key: 'customer',
+            title: 'CUSTOMER',
+            render: (kyc) => (
+                <div className="flex items-center gap-3">
+                    <img
+                        src={kyc.user?.avatar || DefaultAvatar}
+                        alt="avatar"
+                        className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                        <div className="font-medium text-dark-800 dark:text-dark-200">{kyc.user?.fullName}</div>
+                        <div className="text-xs text-muted-foreground">{kyc.user?.role}</div>
                     </div>
-                    <form>
-                        <select id='formsetSelectedStatus' value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
-                            <option value=''>-- Status --</option>
-                            <option value='pending'>Pending</option>
-                            <option value='approved'>Approved</option>
-                            <option value='rejected'>Rejected</option>
-                        </select>
-                        <select id='formSelectedLevel' value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}>
-                            <option value=''>-- Level --</option>
-                            <option value='basic'>Basic</option>
-                            <option value='advanced'>Advanced</option>
-                        </select>
-                        <select id='formsetSelectedSortBy' value={selectedSortBy} onChange={(e) => setSelectedSortBy(e.target.value)}>
-                            <option value=''>-- Sort --</option>
-                            <option value='createdAt'>Created</option>
-                            <option value='updatedAt'>Updated</option>
-                        </select>
-                        <select id='formSelectedSortOrder' value={selectedSortOrder} onChange={(e) => setSelectedSortOrder(e.target.value)}>
-                            <option value=''>-- Sort Order --</option>
-                            <option value='ASC'>ASC</option>
-                            <option value='DESC'>DESC</option>
-                        </select>
-                    </form>
-                    <button className='btn btn-secondary' onClick={() => setRefresh(p => p + 1)}>
-                        Refresh
-                    </button>
                 </div>
+            ),
+        },
+        {
+            key: 'email',
+            title: 'EMAIL',
+            render: (kyc) => (
+                <div className="flex items-center gap-2">
+                    <span>{kyc.user?.email}</span>
+                    {kyc.user?.emailVerified && (
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    )}
+                </div>
+            ),
+        },
+        {
+            key: 'createdAt',
+            title: 'CREATED',
+            render: (kyc) => new Date(kyc.createdAt).toLocaleDateString(),
+        },
+        {
+            key: 'status',
+            title: 'STATUS',
+            render: (kyc, index) => (
+                changeStatusLoading === index ? (
+                    <SmallSpinner />
+                ) : kyc.status === 'pending' ? (
+                    <Select
+                        value={kyc.status}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => changeStatus({ index, id: kyc.kycProfileId, value: e.target.value })}
+                        className="h-8 text-xs"
+                    >
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </Select>
+                ) : (
+                    <span className={cn("px-2 py-1 rounded-md text-xs font-medium", getStatusColor(kyc.status))}>
+                        {kyc.status}
+                    </span>
+                )
+            ),
+        },
+        {
+            key: 'actions',
+            title: 'ACTIONS',
+            render: (kyc) => (
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedDocuments(kyc.documents?.find((doc: any) => doc.type === 'front_id'))}
+                    >
+                        Front ID
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedDocuments(kyc.documents?.find((doc: any) => doc.type === 'back_id'))}
+                    >
+                        Back ID
+                    </Button>
+                </div>
+            ),
+        },
+    ];
 
-                <section className='admin-table-container'>
-                    <table className='admin-table'>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>CUSTOMER</th>
-                                <th>EMAIL</th>
-                                <th>CREATED</th>
-                                {/* <th>IMAGE</th> */}
-                                <th>STATUS</th>
-                                <th>ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {KYCs?.data?.map((kyc: any, index: any) => (
-                                <tr key={kyc.kycProfileId}>
-                                    <td>{index + 1 + (page - 1) * 10}</td>
-                                    <td>
-                                        <div className='customer-name-cell'>
-                                            <div className='avatar'>
-                                                <img src={`${kyc.user?.avatar || DefaultAvatar}`} alt='avatar' />
-                                            </div>
-                                            <div className='customer-info'>
-                                                <span className='name'>{kyc.user?.fullName}</span>
-                                                <span className='role'>{kyc.user?.role}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className='email'>
-                                            <span>{kyc.user?.email}</span>
-                                            {kyc.user?.emailVerified && <i className='fa-solid fa-circle-check' title='Verified' />}
-                                        </div>
-                                    </td>
-                                    <td>{new Date(kyc.createdAt).toLocaleDateString()}</td>
-                                    {/* <td>
-                                        <div className='kyc-img'>
-                                            <img src={`${kyc.user?.img || DefaultAvatar}`} alt='avatar' />
-                                        </div>
-                                    </td> */}
-                                    <td>
-                                        {changeStatusLoading == index ? <SmallSpinner />
-                                            :
-                                            (kyc.status == 'pending' ?
-                                                <form>
-                                                    <select id='formIsActive' value={kyc.status} onChange={(e) => changeStatus({ index: index, id: kyc.kycProfileId, value: e.target.value })}>
-                                                        <option value={'pending'}>Pending</option>
-                                                        <option value={'approved'}>Approved</option>
-                                                        <option value={'rejected'}>Rejected</option>
-                                                    </select>
-                                                </form>
-                                                :
-                                                <div className={`kyc-status ${kyc.status}`}>{kyc.status}</div>
-                                            )
-                                        }
-                                    </td>
-                                    <td>
-                                        <div className='action-buttons'>
-                                            {/* <button onClick={() => setSelectedKyc(kyc)}>
-                                                <span>Detail</span>
-                                                <i className='fa-solid fa-pencil' />
-                                            </button> */}
-                                            <button onClick={() => setSelectedDocuments(kyc.documents?.find((doc: any) => doc.type == 'front_id'))}>
-                                                <span>Front ID</span>
-                                                {/* <i className='fa-solid fa-pencil' /> */}
-                                            </button>
-                                            <button onClick={() => setSelectedDocuments(kyc.documents?.find((doc: any) => doc.type == 'back_id'))}>
-                                                <span>Back ID</span>
-                                                {/* <i className='fa-solid fa-pencil' /> */}
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {page == 2 &&
-                                [...Array(10 - KYCs?.data?.length)]?.map((_, i) => (
-                                    <tr key={i}>
-                                        <td><div className='no-kyc'></div></td>
-                                        <td><div className='no-kyc'></div></td>
-                                        <td><div className='no-kyc'></div></td>
-                                        <td><div className='no-kyc'></div></td>
-                                        <td><div className='no-kyc'></div></td>
-                                        <td><div className='no-kyc'></div></td>
-                                        <td><div className='no-kyc'></div></td>
-                                    </tr>
-                                ))
-                            }
-                        </tbody>
-                    </table>
-                </section>
+    if (loading) return <div className="p-8 text-center">Loading...</div>;
+    if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>;
 
-                <Pagination
-                    currentPage={page}
-                    totalPages={KYCs?.totalPages}
-                    onPageChange={setPage}
-                />
+    return (
+        <div className="p-6">
+            <AdminDataTable
+                title="KYC Management"
+                data={filteredData}
+                columns={columns}
+                loading={loading}
+                searchPlaceholder="Find by name or email..."
+                searchValue={searchText}
+                onSearchChange={setSearchText}
+                filters={filters}
+                filterValues={filterValues}
+                onFilterChange={handleFilterChange}
+                onRefresh={() => setRefresh(p => p + 1)}
+                pagination={{
+                    page,
+                    limit: 10,
+                    total: KYCs?.total || filteredData.length,
+                    onPageChange: setPage,
+                }}
+            />
 
-                {selectedDocument && Object.keys(selectedDocument).length > 0 && (
-                    <div className="popup-container">
-                        <div className="popup-box">
-                            <button className='close-btn' onClick={() => setSelectedDocuments({})}><i className='fa-solid fa-xmark' /></button>
-                            <div className='documents'>
-                                {/* {selectedKyc?.documents?.map((doc: any, index: any) => ( */}
-                                {/* <div key={index}> */}
-                                <div className='doc-img'>
-                                    <img src={`${selectedDocument.fileUrl || DefaultAvatar}`} alt='avatar' />
-                                </div>
-                                {/* </div> */}
-                                {/* ))} */}
-                            </div>
-                            {/* <div className="title">{title}</div>
-                        <div className="message">{message}</div>
-                        <div className="buttons">
-                            {confirm && <button
-                                type="button"
-                                onClick={onConfirm}
-                                style={{ backgroundColor: color }}
-                            >
-                                <div className="text">{confirm}</div>
-                            </button>}
-                            {cancel && <button type="button" onClick={onCancel} className="cancel-btn">
-                                <div className="text">{cancel}</div>
-                            </button>}
-                        </div> */}
+            {/* Document Viewer Modal */}
+            {selectedDocument && Object.keys(selectedDocument).length > 0 && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="relative bg-dark-800 rounded-xl p-6 max-w-4xl max-h-[90vh] overflow-auto border border-ocean-800/30">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-4 right-4"
+                            onClick={() => setSelectedDocuments({})}
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                        <div className="mt-4">
+                            <img
+                                src={selectedDocument.fileUrl || DefaultAvatar}
+                                alt="document"
+                                className="w-full h-auto rounded-lg"
+                            />
                         </div>
                     </div>
-                )}
-            </div >
-        </div >
+                </div>
+            )}
+        </div>
     );
 };
 

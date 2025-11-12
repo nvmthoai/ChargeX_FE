@@ -221,7 +221,7 @@ export default function PaymentPage() {
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10 items-start">
         {/* 🧺 Thông tin đơn hàng */}
-        <div className="bg-white rounded-xl shadow-md p-8 space-y-6 lg:col-span-2">
+        <div className="bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 rounded-xl shadow-md border border-ocean-200/30 p-8 space-y-6 lg:col-span-2">
           <h2 className="text-2xl font-semibold text-gray-900">
             <span className="text-[#0F74C7]">1.</span> Order Summary
           </h2>
@@ -303,7 +303,7 @@ export default function PaymentPage() {
         </div>
 
         {/* 💳 Hình thức thanh toán */}
-        <div className="bg-white rounded-xl shadow-md p-8 space-y-6 sticky top-6 self-start">
+        <div className="bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 rounded-xl shadow-md border border-ocean-200/30 p-8 space-y-6 sticky top-6 self-start">
           <h2 className="text-2xl font-semibold text-gray-900">
             <span className="text-[#0F74C7]">2.</span> Payment Method
           </h2>
@@ -315,7 +315,7 @@ export default function PaymentPage() {
           >
             {/* PAYOS */}
             <div
-              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.PAYOS ? "border-2 border-[#0F74C7] bg-[#f0f7ff]" : "border border-gray-200 bg-white"
+              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.PAYOS ? "border-2 border-[#0F74C7] bg-[#f0f7ff]" : "border border-ocean-200/30 bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20"
                 }`}
               onClick={() => setMethod(PaymentProvider.PAYOS)}
             >
@@ -333,7 +333,7 @@ export default function PaymentPage() {
 
             {/* WALLET */}
             <div
-              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.WALLET ? "border-2 border-[#0F74C7] bg-[#f6fbff]" : "border border-gray-200 bg-white"
+              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.WALLET ? "border-2 border-[#0F74C7] bg-[#f6fbff]" : "border border-ocean-200/30 bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20"
                 }`}
               onClick={() => setMethod(PaymentProvider.WALLET)}
             >

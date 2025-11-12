@@ -121,7 +121,7 @@ export default function ReviewListModal({
                         <span className="font-semibold text-slate-900">{review.reviewer.fullName}</span>
                         <Tag color="blue">{review.rating} ⭐</Tag>
                       </div>
-                      <p className="text-xs text-slate-600">{review.reviewer.email}</p>
+                      <p className="text-xs text-dark-800 font-medium">{review.reviewer.email}</p>
                     </div>
                     <Space size="small">
                       <Button
@@ -142,7 +142,7 @@ export default function ReviewListModal({
                     </Space>
                   </div>
                   <p className="text-sm text-slate-700 mb-2">{review.comment}</p>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-dark-800 font-medium">
                     {new Date(review.createdAt).toLocaleDateString("vi-VN")}
                     {review.updatedAt !== review.createdAt &&
                       ` (edited ${new Date(review.updatedAt).toLocaleDateString("vi-VN")})`}

@@ -38,9 +38,10 @@ export default function Header() {
   } = useWallet();
   const { userDetail } = useUser();
 
-  // Hide header on authentication pages (login / register / verify otp)
+  // Hide header on authentication pages (login / register / verify otp) and admin pages
   const isAuthRoute = location.pathname.startsWith("/auth") || location.pathname.startsWith("/verify-otp");
-  if (isAuthRoute) {
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  if (isAuthRoute || isAdminRoute) {
     return null;
   }
 
@@ -87,42 +88,52 @@ export default function Header() {
   ];
 
   return (
-    <header className="mx-auto bg-[#e8f0f5] px-8 py-3 shadow-sm flex items-center justify-between">
-      {/* Logo */}
-      <Link to="/">
-        <div className="flex items-center">
-          <img
-            src="/chargeX_Logo.png"
-            alt="Logo"
-            className="w-12 h-12 object-contain"
-          />
-        </div>
-      </Link>
+    <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-gradient-to-r from-white via-ocean-50/40 to-energy-50/30 border-b border-ocean-200/20 shadow-md shadow-ocean-500/10">
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-ocean-400 to-energy-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
+              <img
+                src="/chargeX_Logo.png"
+                alt="ChargeX Logo"
+                className="relative w-12 h-12 object-contain transform group-hover:scale-105 transition-transform"
+              />
+            </div>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+                ChargeX
+              </h1>
+              <p className="text-xs text-dark-800 font-medium">EV Marketplace</p>
+            </div>
+          </Link>
 
-      {/* Menu */}
-      <nav className="flex items-center gap-6">
-        {menuItems.map((item) => {
-          const active =
-            location.pathname === item.to ||
-            location.pathname.startsWith(`${item.to}/`);
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${active
-                ? "bg-sky-300/80 text-gray-900 shadow-sm"
-                : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
-                }`}
-            >
-              <item.icon size={16} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+          {/* Menu */}
+          <nav className="hidden md:flex items-center gap-2">
+            {menuItems.map((item) => {
+              const active =
+                location.pathname === item.to ||
+                location.pathname.startsWith(`${item.to}/`);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    active
+                      ? "bg-gradient-to-r from-ocean-400 to-ocean-500 text-white shadow-md shadow-ocean-400/20 font-semibold"
+                      : "text-dark-700 hover:text-ocean-600 hover:bg-ocean-50/60 focus:text-ocean-600"
+                  }`}
+                >
+                  <item.icon size={16} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-      {/* User Section */}
-      <div className="flex items-center gap-4">
+          {/* User Section */}
+          <div className="flex items-center gap-4">
         {user ? (
           <>
             <div className="flex items-center gap-3">
@@ -201,8 +212,9 @@ export default function Header() {
             Login
           </button>
         )}
+          </div>
+        </div>
       </div>
-
       <DepositModal
         open={depositModalOpen}
         onClose={() => setDepositModalOpen(false)}

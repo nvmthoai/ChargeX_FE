@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useAuctions, auctionKeys } from "../../hooks/useAuctionQueries";
 import { useQueryClient } from '@tanstack/react-query'
 import { auctionApi } from '../../../api/auction'
-import "./AuctionList.css"
+import { Gavel, Clock, RefreshCw } from "lucide-react";
 
 interface AuctionItem {
   auctionId: string;
@@ -45,7 +45,6 @@ const AuctionCard = memo(function AuctionCard({ auction, onJoin }: { auction: Au
   // Update offset when serverTime or serverNow changes
   useEffect(() => {
     if (!auction.endTime) return;
-    // Prefer serverTime (number) over serverNow (ISO string) for accuracy
     let serverTimeMs: number;
     if (typeof auction.serverTime === "number" && auction.serverTime > 0) {
       serverTimeMs = auction.serverTime;
@@ -78,49 +77,95 @@ const AuctionCard = memo(function AuctionCard({ auction, onJoin }: { auction: Au
     return () => clearInterval(interval);
   }, [auction.endTime, auction.status]);
 
+  const getStatusBadge = () => {
+    switch (auction.status) {
+      case "live":
+        return (
+          <span className="absolute top-3 right-3 px-3 py-1 bg-gradient-to-r from-energy-500 to-energy-600 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+            <span className="w-2 h-2 bg-white rounded-full"></span>
+            Live
+          </span>
+        );
+      case "scheduled":
+        return (
+          <span className="absolute top-3 right-3 px-3 py-1 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            Scheduled
+          </span>
+        );
+      case "ended":
+        return (
+          <span className="absolute top-3 right-3 px-3 py-1 bg-dark-500 text-white text-xs font-bold rounded-full shadow-lg">
+            ✓ Ended
+          </span>
+        );
+      default:
+        return (
+          <span className="absolute top-3 right-3 px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full shadow-lg">
+            ✗ Cancelled
+          </span>
+        );
+    }
+  };
+
   return (
-    <div className="auction-card">
-      <div className="auction-card-image">
+    <div className="group bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg border border-ocean-200/50 hover:shadow-2xl hover:scale-105 transition-all duration-300">
+      {/* Image */}
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-ocean-100 to-energy-100">
         {auction.imageUrls && auction.imageUrls.length > 0 ? (
           <img
             src={auction.imageUrls[0]}
             alt={auction.title}
             loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         ) : (
-          <div className="auction-card-image-placeholder">📦</div>
+          <div className="w-full h-full flex items-center justify-center">
+            <Gavel className="w-16 h-16 text-ocean-300" />
+          </div>
         )}
-        <div className={`status-badge status-${auction.status}`}>
-          {auction.status === "live" ? "🔴 Live" : auction.status === "scheduled" ? "📅 Scheduled" : auction.status === "ended" ? "✓ Ended" : "✗ Cancelled"}
-        </div>
+        {getStatusBadge()}
       </div>
 
-      <div className="auction-card-content">
-        <h3 className="auction-card-title">{auction.title}</h3>
+      {/* Content */}
+      <div className="p-5">
+        <h3 className="font-bold text-lg text-dark-900 mb-4 line-clamp-2 min-h-[56px] group-hover:text-ocean-600 transition-colors">
+          {auction.title}
+        </h3>
 
-        <div className="auction-card-info">
-          <div className="info-row">
-            <span className="info-label">Current Price:</span>
-            <span className="info-value price">{formatCurrency(auction.currentPrice || 0)}</span>
+        <div className="space-y-3 mb-4">
+          <div className="flex justify-between items-center p-3 bg-gradient-to-r from-ocean-50 to-energy-50 rounded-lg">
+            <span className="text-sm text-dark-600 font-medium">Current Price:</span>
+            <span className="text-lg font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+              {formatCurrency(auction.currentPrice || 0)}
+            </span>
           </div>
 
           {auction.status === "live" || auction.status === "scheduled" ? (
-            <div className="info-row">
-              <span className={`info-label ${auction.status === "live" ? "countdown-label" : ""}`}>
-                {auction.status === "live" ? "⏱️ Time Left:" : "⏰ Starts In:"}
+            <div className={`flex justify-between items-center p-3 rounded-lg ${
+              auction.status === "live" 
+                ? "bg-gradient-to-r from-energy-100 to-energy-200" 
+                : "bg-gradient-to-r from-ocean-50 to-ocean-100"
+            }`}>
+              <span className="text-sm text-dark-700 font-medium flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                {auction.status === "live" ? "Time Left:" : "Starts In:"}
               </span>
-              <span className="info-value countdown">{formatCountdown(countdown)}</span>
+              <span className={`text-sm font-bold ${
+                auction.status === "live" ? "text-energy-700" : "text-ocean-700"
+              }`}>
+                {formatCountdown(countdown)}
+              </span>
             </div>
           ) : (
             <>
-              <div className="info-row">
-                <span className="info-label">Start Time:</span>
-                <span className="info-value">{formatDateTime(auction.startTime)}</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-dark-600">Start Time:</span>
+                <span className="text-dark-800 font-medium">{formatDateTime(auction.startTime)}</span>
               </div>
-
-              <div className="info-row">
-                <span className="info-label">End Time:</span>
-                <span className="info-value">{formatDateTime(auction.endTime)}</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-dark-600">End Time:</span>
+                <span className="text-dark-800 font-medium">{formatDateTime(auction.endTime)}</span>
               </div>
             </>
           )}
@@ -129,12 +174,12 @@ const AuctionCard = memo(function AuctionCard({ auction, onJoin }: { auction: Au
         <button
           onClick={() => onJoin(auction)}
           disabled={auction.status === "ended" || auction.status === "cancelled"}
-          className={`auction-card-action ${
+          className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
             auction.status === "live"
-              ? "action-live"
+              ? "bg-gradient-to-r from-energy-500 to-energy-600 hover:from-energy-600 hover:to-energy-700 text-white shadow-lg shadow-energy-500/30 hover:shadow-xl hover:scale-105"
               : auction.status === "scheduled"
-              ? "action-scheduled"
-              : "action-ended"
+              ? "bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 text-white shadow-lg shadow-ocean-500/30 hover:shadow-xl hover:scale-105"
+              : "bg-dark-200 text-dark-600 cursor-not-allowed"
           }`}
         >
           {auction.status === "live"
@@ -178,71 +223,93 @@ export default function AuctionListOptimized() {
   }, [queryClient]);
 
   return (
-    <div className="auction-list-container">
-      <div className="auction-wrapper">
-        <div className="auction-header">
-          <div className="auction-header-content">
-            <div className="auction-header-text">
-              <h1>Live Auctions</h1>
-              <p>Join live auctions and place your bids!</p>
+    <div className="min-h-screen py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent mb-2">
+                Live Auctions
+              </h1>
+              <p className="text-dark-800 text-lg font-medium">Join live auctions and place your bids!</p>
             </div>
 
-            <div className="header-actions">
-              <button
-                onClick={() => refetch()}
-                disabled={isLoading}
-                className="refresh-btn"
-              >
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Refresh
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="auction-tabs">
-          {["all", "live", "scheduled"].map((tab) => (
             <button
-              key={tab}
-              onClick={() => setFilter(tab as typeof filter)}
-              className={`tab-btn ${filter === tab ? "active" : ""}`}
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-ocean-50 to-energy-50 rounded-xl border border-ocean-200 text-ocean-700 hover:from-ocean-100 hover:to-energy-100 hover:scale-105 transition-all shadow-md disabled:opacity-50"
             >
-              {tab === "all" ? "All Auctions" : tab === "live" ? "🔴 Live Now" : "📅 Scheduled"}
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
             </button>
-          ))}
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-2 bg-gradient-to-r from-ocean-50/90 via-energy-50/80 to-ocean-50/90 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-ocean-200/50">
+            {(["all", "live", "scheduled"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setFilter(tab)}
+                className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all ${
+                  filter === tab
+                    ? "bg-gradient-to-r from-ocean-500 to-ocean-600 text-white shadow-lg"
+                    : "text-dark-900 font-medium hover:bg-ocean-50"
+                }`}
+              >
+                {tab === "all" ? "All Auctions" : tab === "live" ? "🔴 Live Now" : "📅 Scheduled"}
+              </button>
+            ))}
+          </div>
         </div>
 
+        {/* Loading State */}
         {isLoading && (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p className="loading-text">Loading auctions...</p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-16 h-16 border-4 border-ocean-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-dark-800 text-lg font-medium">Loading auctions...</p>
           </div>
         )}
 
+        {/* Empty State */}
         {!isLoading && auctions.length === 0 && (
-          <div className="empty-state-container">
-            <div className="empty-state">
-              <span className="empty-state-icon">📦</span>
-              <h3>No auctions found</h3>
-              <p>Check back later for new auctions!</p>
-              <button onClick={() => refetch()} className="empty-state-btn">Try Again</button>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-24 h-24 bg-gradient-to-r from-ocean-100 to-energy-100 rounded-full flex items-center justify-center mb-6">
+              <Gavel className="w-12 h-12 text-ocean-500" />
             </div>
+            <h3 className="text-2xl font-bold text-dark-900 mb-2">No auctions found</h3>
+            <p className="text-dark-800 mb-6 font-medium">Check back later for new auctions!</p>
+            <button 
+              onClick={() => refetch()} 
+              className="px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+            >
+              Try Again
+            </button>
           </div>
         )}
 
+        {/* Auctions Grid */}
         {!isLoading && auctions.length > 0 && (
           <>
-            <div style={{ marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <p style={{ fontSize: "14px", color: "var(--text-light)" }}>
-                Found {data?.meta.total || 0} auction{(data?.meta.total || 0) !== 1 ? 's' : ''}{filter !== 'all' && ` (${filter})`}
+            <div className="mb-6 flex justify-between items-center">
+              <p className="text-dark-800 font-medium">
+                Found <span className="font-bold text-ocean-600">{data?.meta.total || 0}</span> auction{(data?.meta.total || 0) !== 1 ? 's' : ''}
+                {filter !== 'all' && (
+                  <span className="ml-2 px-2 py-1 bg-ocean-100 text-ocean-700 rounded-full text-sm font-medium">
+                    {filter}
+                  </span>
+                )}
               </p>
             </div>
 
-            <div className="auction-grid">
-              {auctions.map((auction) => (
-                <div key={auction.auctionId} onMouseEnter={() => prefetchAuction(auction.auctionId)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {auctions.map((auction, index) => (
+                <div 
+                  key={auction.auctionId} 
+                  onMouseEnter={() => prefetchAuction(auction.auctionId)}
+                  className="animate-fadeIn"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   <AuctionCard auction={auction as AuctionItem} onJoin={handleJoinAuction} />
                 </div>
               ))}

@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Tag, Spin, Empty, message } from "antd";
-import { EyeOutlined, ShoppingOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import { Gavel, Eye, Clock, Trophy, Search, Calendar } from "lucide-react";
 import { auctionApi } from "../../../../api/auction";
 import { useAuth } from "../../../hooks/AuthContext";
 import axiosInstance from "../../../config/axios";
-import "./MyAuctions.css";
 import dayjs from "dayjs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface AuctionWonItem {
   auctionId: string;
@@ -49,9 +51,9 @@ export default function MyAuctions() {
   const [auctions, setAuctions] = useState<UserAuction[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "won" | "participated" | "ended">("all");
+  const [searchText, setSearchText] = useState("");
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
 
-  // Fetch auctions where user participated or won
   useEffect(() => {
     const fetchMyAuctions = async () => {
       if (!user?.sub) {
@@ -61,9 +63,6 @@ export default function MyAuctions() {
 
       try {
         setLoading(true);
-        console.log("📦 [MyAuctions] Fetching won auctions for user:", user.sub);
-
-        // Use backend endpoint that returns auctions the user won (includes orderId when available)
         const resp = await auctionApi.getUserWonAuctions(user.sub, 1, 100);
         const items = resp?.items || [];
 
@@ -83,8 +82,7 @@ export default function MyAuctions() {
 
         setAuctions(mapped);
       } catch (err: unknown) {
-        console.error("❌ Failed to fetch won auctions:", err);
-        message.error("Failed to load auction list!");
+        console.error("Failed to fetch won auctions:", err);
       } finally {
         setLoading(false);
       }
@@ -93,56 +91,34 @@ export default function MyAuctions() {
     fetchMyAuctions();
   }, [user?.sub]);
 
-  // Fetch orderId for a won auction to proceed to payment
   const fetchOrderIdForAuction = async (auctionId: string): Promise<string | null> => {
     try {
-      console.log("📦 [MyAuctions] Fetching order for auction:", auctionId);
       const res = await axiosInstance.get("/orders", { params: { auctionId } });
       const data = res.data?.data?.data || res.data?.data || res.data;
-
       if (Array.isArray(data) && data.length > 0) {
-        console.log("✅ [MyAuctions] Order found:", data[0].orderId);
         return data[0].orderId || null;
       }
-
-      console.warn("⚠️ [MyAuctions] No order found for auction:", auctionId);
       return null;
     } catch (err: unknown) {
-      console.error("❌ [MyAuctions] Failed to fetch orderId:", err);
-      message.error("Failed to fetch order information. Please try again.");
+      console.error("Failed to fetch orderId:", err);
       return null;
     }
   };
 
-  // Handle payment button click
   const handlePayNow = async (auction: UserAuction) => {
     if (!auction.auctionId) return;
 
     setPaymentLoading(auction.auctionId);
     try {
       let orderId: string | null | undefined = auction.orderId ?? null;
-
-      // If orderId is not cached, fetch it from API
       if (!orderId) {
-        console.log("🔍 [MyAuctions] Fetching orderId for auction:", auction.auctionId);
         orderId = await fetchOrderIdForAuction(auction.auctionId);
       }
-
       if (orderId) {
-        console.log("🔗 [MyAuctions] Navigating to payment with orderId:", orderId);
-        message.success("Proceeding to payment...");
-
-        // Small delay to let user see the success message
-        setTimeout(() => {
-          navigate(`/payment?orderId=${orderId}`);
-        }, 500);
-      } else {
-        console.warn("⚠️ [MyAuctions] Cannot proceed to payment: orderId not found");
-        message.error("Cannot find order. Please contact support.");
+        navigate(`/payment?orderId=${orderId}`);
       }
     } catch (error: unknown) {
-      console.error("❌ [MyAuctions] Error during payment:", error);
-      message.error("An error occurred. Please try again.");
+      console.error("Error during payment:", error);
     } finally {
       setPaymentLoading(null);
     }
@@ -159,51 +135,41 @@ export default function MyAuctions() {
     const end = new Date(endTime).getTime();
     const now = Date.now();
     const distance = Math.max(0, end - now);
-
-    if (distance <= 0) return "Kết thúc";
-
+    if (distance <= 0) return "Ended";
     const seconds = Math.floor((distance / 1000) % 60);
     const minutes = Math.floor((distance / 1000 / 60) % 60);
     const hours = Math.floor(distance / 1000 / 60 / 60);
-
     if (hours > 0) return `${hours}h ${minutes}m`;
     if (minutes > 0) return `${minutes}m ${seconds}s`;
     return `${seconds}s`;
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "live":
-        return "green";
-      case "scheduled":
-        return "blue";
-      case "ended":
-        return "default";
-      case "cancelled":
-        return "red";
-      default:
-        return "default";
-    }
+    const colors: Record<string, string> = {
+      live: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+      scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+      ended: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+      cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    };
+    return colors[status] || "bg-gray-100 text-gray-800";
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "live":
-        return "Live";
-      case "scheduled":
-        return "Upcoming";
-      case "ended":
-        return "Ended";
-      case "cancelled":
-        return "Cancelled";
-      default:
-        return status;
-    }
+    const labels: Record<string, string> = {
+      live: "Live",
+      scheduled: "Upcoming",
+      ended: "Ended",
+      cancelled: "Cancelled",
+    };
+    return labels[status] || status;
   };
 
   const filteredAuctions = auctions.filter((auction) => {
+    const matchesSearch = auction.title.toLowerCase().includes(searchText.toLowerCase());
     const isEnded = auction.status === "ended";
     const isWon = auction.wonByUser;
+
+    if (!matchesSearch) return false;
 
     switch (filter) {
       case "won":
@@ -217,146 +183,191 @@ export default function MyAuctions() {
     }
   });
 
+  const wonCount = auctions.filter((a) => a.wonByUser && a.status === "ended").length;
+  const participatingCount = auctions.filter((a) => a.status !== "ended").length;
+  const endedCount = auctions.filter((a) => a.status === "ended").length;
+
   if (loading) {
     return (
-      <div className="my-auctions-container">
-        <Spin size="large" />
+      <div className="flex items-center justify-center p-12">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-ocean-300 border-t-ocean-600"></div>
+          <p className="mt-4 text-sm text-muted-foreground">Loading auctions...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="my-auctions-container">
-      <div className="auctions-header">
-        <h2>My Auctions</h2>
-        <p className="subtitle">View auctions you participated in or won</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+          My Auctions
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          View auctions you participated in or won
+        </p>
       </div>
 
-      <div className="filter-tabs">
-        <button
-          className={`filter-btn ${filter === "all" ? "active" : ""}`}
-          onClick={() => setFilter("all")}
-        >
-          All ({auctions.length})
-        </button>
-        <button
-          className={`filter-btn ${filter === "won" ? "active" : ""}`}
-          onClick={() => setFilter("won")}
-        >
-          Won ({auctions.filter((a) => a.wonByUser && a.status === "ended").length})
-        </button>
-        <button
-          className={`filter-btn ${filter === "participated" ? "active" : ""}`}
-          onClick={() => setFilter("participated")}
-        >
-          Participating ({auctions.filter((a) => a.status !== "ended").length})
-        </button>
-        <button
-          className={`filter-btn ${filter === "ended" ? "active" : ""}`}
-          onClick={() => setFilter("ended")}
-        >
-          Ended ({auctions.filter((a) => a.status === "ended").length})
-        </button>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search auctions..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant={filter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter("all")}
+          >
+            All ({auctions.length})
+          </Button>
+          <Button
+            variant={filter === "won" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter("won")}
+          >
+            Won ({wonCount})
+          </Button>
+          <Button
+            variant={filter === "participated" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter("participated")}
+          >
+            Participating ({participatingCount})
+          </Button>
+          <Button
+            variant={filter === "ended" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter("ended")}
+          >
+            Ended ({endedCount})
+          </Button>
+        </div>
       </div>
 
+      {/* Auctions Grid */}
       {filteredAuctions.length === 0 ? (
-        <Empty
-          description="No auctions found"
-          style={{ marginTop: "40px" }}
-        />
+        <Card className="border-ocean-200/30">
+          <CardContent className="p-12 text-center">
+            <div className="inline-flex flex-col items-center gap-3 text-muted-foreground">
+              <div className="w-16 h-16 rounded-full bg-ocean-50 dark:bg-ocean-900/30 flex items-center justify-center">
+                <Gavel className="w-8 h-8 text-ocean-400" />
+              </div>
+              <p className="text-base font-medium">No auctions found</p>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="auctions-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAuctions.map((auction) => (
-            <div key={auction.auctionId} className="auction-card-item">
-              {/* Image */}
-              <div className="card-image-wrapper">
+            <Card
+              key={auction.auctionId}
+              className="border-ocean-200/30 shadow-sm hover:shadow-md transition-all overflow-hidden group"
+            >
+              <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
                 {auction.imageUrls && auction.imageUrls[0] ? (
                   <img
                     src={auction.imageUrls[0]}
                     alt={auction.title}
-                    className="card-image"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="card-image-placeholder">
-                    <ShoppingOutlined />
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Gavel className="w-12 h-12 text-gray-400" />
                   </div>
                 )}
-                <div className="status-badge">
-                  <Tag color={getStatusColor(auction.status)}>
+                <div className="absolute top-3 right-3">
+                  <span
+                    className={cn(
+                      "px-2 py-1 rounded-md text-xs font-medium",
+                      getStatusColor(auction.status)
+                    )}
+                  >
                     {getStatusLabel(auction.status)}
-                  </Tag>
+                  </span>
                 </div>
+                {auction.wonByUser && auction.status === "ended" && (
+                  <div className="absolute top-3 left-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-energy-500 text-white rounded-md text-xs font-semibold">
+                      <Trophy className="w-3 h-3" />
+                      You Won!
+                    </span>
+                  </div>
+                )}
               </div>
+              <CardContent className="p-4 space-y-3">
+                <h3 className="font-semibold text-lg text-dark-800 dark:text-dark-200 line-clamp-2">
+                  {auction.title}
+                </h3>
 
-              {/* Info */}
-              <div className="card-info">
-                <h3 className="card-title">{auction.title}</h3>
-
-                {/* Price & Bid */}
-                <div className="card-details">
-                  <div className="detail-item">
-                    <span className="label">Current Price:</span>
-                    <span className="value price">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Current Price:</span>
+                    <span className="font-semibold text-energy-600 dark:text-energy-400">
                       {formatCurrency(auction.currentPrice)}
                     </span>
                   </div>
-                  <div className="detail-item">
-                    <span className="label">Min Increment:</span>
-                    <span className="value">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Min Increment:</span>
+                    <span className="text-sm font-medium">
                       {formatCurrency(auction.minBidIncrement)}
                     </span>
                   </div>
                 </div>
 
-                {/* Time */}
-                <div className="time-info">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t border-ocean-200/30">
                   {auction.status === "ended" ? (
-                    <span className="end-date">
-                      Ended: {dayjs(auction.endTime).format("DD/MM/YYYY HH:mm")}
-                    </span>
+                    <>
+                      <Calendar className="w-4 h-4" />
+                      <span>Ended: {dayjs(auction.endTime).format("DD/MM/YYYY HH:mm")}</span>
+                    </>
                   ) : (
-                    <div className="countdown-box">
-                      <ClockCircleOutlined />
+                    <>
+                      <Clock className="w-4 h-4" />
                       <span>Remaining: {formatCountdown(auction.endTime)}</span>
-                    </div>
+                    </>
                   )}
                 </div>
 
-                {/* Winner Badge */}
-                {auction.wonByUser && auction.status === "ended" && (
-                  <div className="winner-badge">
-                    🏆 You won this auction!
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="card-actions">
+                <div className="flex gap-2 pt-2">
                   <Button
-                    type="primary"
-                    size="small"
-                    icon={<EyeOutlined />}
+                    variant="outline"
+                    size="sm"
                     onClick={() => navigate(`/auction/${auction.auctionId}`)}
-                    className="btn-view"
+                    className="flex-1 gap-1"
                   >
+                    <Eye className="w-4 h-4" />
                     View Details
                   </Button>
-
                   {auction.wonByUser && auction.status === "ended" && (
                     <Button
-                      type="primary"
-                      danger={false}
-                      size="small"
-                      loading={paymentLoading === auction.auctionId}
-                      disabled={paymentLoading !== null}
+                      size="sm"
                       onClick={() => handlePayNow(auction)}
-                      className="btn-pay"
+                      disabled={paymentLoading !== null}
+                      className="flex-1"
                     >
-                      {paymentLoading === auction.auctionId ? "Processing..." : "Pay Now"}
+                      {paymentLoading === auction.auctionId ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Pay Now"
+                      )}
                     </Button>
                   )}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

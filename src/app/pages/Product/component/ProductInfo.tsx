@@ -71,7 +71,7 @@ export default function ProductInfo({ product }: { product: Product }) {
   // ];
 
   return (
-    <div className="max-w-2xl space-y-6 p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-2xl space-y-6 p-6 bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 rounded-lg shadow-md border border-ocean-200/30">
       {/* Product Info */}
       <div className="space-y-3 border-b border-gray-100 pb-6">
         <h1 className="text-4xl font-extrabold text-gray-900">
@@ -79,7 +79,7 @@ export default function ProductInfo({ product }: { product: Product }) {
         </h1>
         <p className="text-lg text-gray-700">{product.description}</p>
 
-        <div className="flex justify-between text-sm text-gray-500 mt-4">
+        <div className="flex justify-between text-sm text-dark-800 font-medium mt-4">
           <span className="flex items-center gap-1">
             <Clock3 className="w-4 h-4 text-[#0F74C7]" />
             {product.createdAt
@@ -104,7 +104,7 @@ export default function ProductInfo({ product }: { product: Product }) {
           </div>
           <div className="p-5 bg-gradient-to-br from-yellow-50 to-white border border-yellow-200 rounded-xl shadow-sm">
             <div className="grid grid-cols-2 gap-y-3 text-sm text-gray-800">
-              <div className="font-medium text-gray-500">Start Price</div>
+              <div className="font-semibold text-dark-800">Start Price</div>
               <div className="font-semibold text-gray-900">
                 ${(product.price_start).toLocaleString()}
               </div>
@@ -133,7 +133,7 @@ export default function ProductInfo({ product }: { product: Product }) {
               </div>
             </div>
 
-            <div className="mt-4 border-t border-yellow-100 pt-3 text-xs text-gray-500 flex items-center gap-1">
+            <div className="mt-4 border-t border-yellow-100 pt-3 text-xs text-dark-800 font-medium flex items-center gap-1">
               <Clock3 size={12} className="text-yellow-600" />
               Bidding is open until the listed end time.
             </div>
@@ -145,7 +145,7 @@ export default function ProductInfo({ product }: { product: Product }) {
       {/* Seller Info (ẩn nếu user là chủ sản phẩm) */}
       {!isOwner && (
         <Link className="" to={`/shop-detail/${product.seller.userId}`}>
-          <div className="bg-white space-y-4 cursor-pointer">
+          <div className="bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 space-y-4 cursor-pointer rounded-lg border border-ocean-200/30 p-4">
             <h2 className="text-2xl font-semibold text-gray-900">
               Seller Information
             </h2>
@@ -162,10 +162,10 @@ export default function ProductInfo({ product }: { product: Product }) {
                 <h3 className="font-semibold text-gray-900 ">
                   {product.seller.fullName}
                 </h3>
-                <p className="text-sm text-gray-500 flex items-center gap-1">
+                <p className="text-sm text-dark-800 font-medium flex items-center gap-1">
                   <MapPin size={14} /> TP. Hồ Chí Minh
                 </p>
-                <p className="text-sm text-gray-500 flex items-center gap-1">
+                <p className="text-sm text-dark-800 font-medium flex items-center gap-1">
                   <Phone size={14} /> 0901 234 567
                 </p>
               </div>
@@ -215,10 +215,10 @@ export default function ProductInfo({ product }: { product: Product }) {
           <table className="w-full border-collapse">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left text-sm font-medium text-gray-500 px-4 py-3 w-1/2">
+                <th className="text-left text-sm font-semibold text-dark-800 px-4 py-3 w-1/2">
                   Attribute
                 </th>
-                <th className="text-left text-sm font-medium text-gray-500 px-4 py-3 w-1/2">
+                <th className="text-left text-sm font-semibold text-dark-800 px-4 py-3 w-1/2">
                   Value
                 </th>
               </tr>
@@ -269,7 +269,7 @@ export default function ProductInfo({ product }: { product: Product }) {
         <div className="flex items-end gap-2">
           <span className="text-3xl font-bold text-blue-600">{avgRating}</span>
           {renderStars(avgRating)}
-          <span className="text-gray-600 text-sm">
+          <span className="text-dark-800 text-sm font-medium">
             ({reviews.length} reviews)
           </span>
         </div>

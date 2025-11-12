@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import useProduct from "../../hooks/useProduct";
 import { useNavigate } from "react-router-dom";
+import { Sparkles, Zap, Battery, TrendingUp } from "lucide-react";
 
 export default function EVMarketplace() {
   const navigate = useNavigate();
   const [sohRange, setSohRange] = useState([0, 100]);
   const [cycleRange, setCycleRange] = useState([0, 10000]);
   const [voltageRange, setVoltageRange] = useState([0, 500]);
-  const [isAuction, setIsAuction] = useState<boolean | null>(null); // null: all, true: auction, false: not auction
-  const [priceType, setPriceType] = useState<string[]>([]); // ['start', 'buy_now', 'now']
+  const [isAuction, setIsAuction] = useState<boolean | null>(null);
+  const [priceType, setPriceType] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
   const { products } = useProduct();
@@ -41,7 +42,7 @@ export default function EVMarketplace() {
       );
     });
     setFilteredProducts(filtered);
-    setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
+    setCurrentPage(1);
   }, [products, sohRange, cycleRange, voltageRange, isAuction, priceType]);
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -49,14 +50,6 @@ export default function EVMarketplace() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  // const handlePriceTypeChange = (type: string, checked: boolean) => {
-  //   if (checked) {
-  //     setPriceType([...priceType, type]);
-  //   } else {
-  //     setPriceType(priceType.filter((t) => t !== type));
-  //   }
-  // };
 
   const handleResetFilters = () => {
     setSohRange([0, 100]);
@@ -83,169 +76,179 @@ export default function EVMarketplace() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="flex gap-6">
-          <div className="w-80 bg-white rounded-lg p-6 h-fit">
-            <div className="flex items-center space-x-2 mb-6">
-              <svg
-                className="h-5 w-5 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+    <div className="min-h-screen bg-gradient-to-br from-ocean-50 via-energy-50/30 to-dark-50">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-ocean-500 via-energy-500 to-ocean-600 text-white">
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}></div>
+        <div className="relative max-w-7xl mx-auto px-6 py-16 sm:py-24">
+          <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 animate-fadeIn">
+              EV Battery Marketplace
+            </h1>
+            <p 
+              className="text-xl sm:text-2xl mb-8 animate-slideUp text-black"
+           
+            >
+              Discover Premium Electric Vehicle Batteries
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <div 
+                className="flex items-center gap-2 backdrop-blur-sm rounded-full px-4 py-2"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.3)',
+                  color: 'white',
+                  fontWeight: '500',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                <Zap className="w-5 h-5" />
+                <span>High Quality</span>
+              </div>
+              <div 
+                className="flex items-center gap-2 backdrop-blur-sm rounded-full px-4 py-2"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.3)',
+                  color: 'white',
+                  fontWeight: '500',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                }}
+              >
+                <Battery className="w-5 h-5" />
+                <span>Certified</span>
+              </div>
+              <div 
+                className="flex items-center gap-2 backdrop-blur-sm rounded-full px-4 py-2"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.3)',
+                  color: 'white',
+                  fontWeight: '500',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                }}
+              >
+                <TrendingUp className="w-5 h-5" />
+                <span>Best Prices</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Filters Sidebar */}
+          <div 
+            className="w-full lg:w-80 rounded-2xl p-6 h-fit shadow-xl sticky top-20"
+            style={{
+              background: 'linear-gradient(to bottom right, #bae7ff, #d9f7be, #bae7ff)',
+              border: '2px solid rgba(24, 144, 255, 0.3)',
+              backdropFilter: 'blur(8px)'
+            }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gradient-to-r from-ocean-500 to-energy-500 rounded-lg">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="font-bold text-lg text-dark-900">Filters</h3>
+            </div>
+
+            <div className="space-y-6">
+              {/* SOH Filter */}
+              <div>
+                <h4 className="font-bold mb-3 text-dark-900 flex items-center gap-2">
+                  <Battery className="w-4 h-4 text-ocean-600" />
+                  SOH Percent
+                </h4>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={sohRange[1]}
+                  onChange={(e) =>
+                    setSohRange([0, Number.parseInt(e.target.value)])
+                  }
+                  className="w-full h-2 bg-gradient-to-r from-ocean-200 to-energy-200 rounded-lg appearance-none cursor-pointer accent-ocean-500"
                 />
-              </svg>
-              <h3 className="font-semibold text-lg">Filters</h3>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="font-medium mb-3">SOH Percent</h4>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={sohRange[1]}
-                onChange={(e) =>
-                  setSohRange([0, Number.parseInt(e.target.value)])
-                }
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>0%</span>
-                <span>{sohRange[1]}%</span>
+                <div className="flex justify-between text-sm text-dark-800 mt-2">
+                  <span>0%</span>
+                  <span className="font-semibold text-ocean-600">{sohRange[1]}%</span>
+                </div>
               </div>
-            </div>
 
-            <div className="mb-6">
-              <h4 className="font-medium mb-3">Cycle Count</h4>
-              <input
-                type="range"
-                min="0"
-                max="10000"
-                value={cycleRange[1]}
-                onChange={(e) =>
-                  setCycleRange([0, Number.parseInt(e.target.value)])
-                }
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>0</span>
-                <span>{cycleRange[1]}</span>
+              {/* Cycle Count Filter */}
+              <div>
+                <h4 className="font-bold mb-3 text-dark-900 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-energy-600" />
+                  Cycle Count
+                </h4>
+                <input
+                  type="range"
+                  min="0"
+                  max="10000"
+                  value={cycleRange[1]}
+                  onChange={(e) =>
+                    setCycleRange([0, Number.parseInt(e.target.value)])
+                  }
+                  className="w-full h-2 bg-gradient-to-r from-ocean-200 to-energy-200 rounded-lg appearance-none cursor-pointer accent-energy-500"
+                />
+                <div className="flex justify-between text-sm text-dark-600 mt-2">
+                  <span>0</span>
+                  <span className="font-semibold text-energy-600">{cycleRange[1]}</span>
+                </div>
               </div>
-            </div>
 
-            <div className="mb-6">
-              <h4 className="font-medium mb-3">Nominal Voltage (V)</h4>
-              <input
-                type="range"
-                min="0"
-                max="500"
-                value={voltageRange[1]}
-                onChange={(e) =>
-                  setVoltageRange([0, Number.parseInt(e.target.value)])
-                }
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>0V</span>
-                <span>{voltageRange[1]}V</span>
+              {/* Voltage Filter */}
+              <div>
+                <h4 className="font-bold mb-3 text-dark-900 flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-ocean-600" />
+                  Nominal Voltage (V)
+                </h4>
+                <input
+                  type="range"
+                  min="0"
+                  max="500"
+                  value={voltageRange[1]}
+                  onChange={(e) =>
+                    setVoltageRange([0, Number.parseInt(e.target.value)])
+                  }
+                  className="w-full h-2 bg-gradient-to-r from-ocean-200 to-energy-200 rounded-lg appearance-none cursor-pointer accent-ocean-500"
+                />
+                <div className="flex justify-between text-sm text-dark-600 mt-2">
+                  <span>0V</span>
+                  <span className="font-semibold text-ocean-600">{voltageRange[1]}V</span>
+                </div>
               </div>
-            </div>
 
-            <div className="mb-6">
-              <h4 className="font-medium mb-3">Auction Type</h4>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="auction"
-                    checked={isAuction === null}
-                    onChange={() => setIsAuction(null)}
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">All</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="auction"
-                    checked={isAuction === true}
-                    onChange={() => setIsAuction(true)}
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Auction</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="auction"
-                    checked={isAuction === false}
-                    onChange={() => setIsAuction(false)}
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Buy Now</span>
-                </label>
+              {/* Auction Type */}
+              <div>
+                <h4 className="font-bold mb-3 text-dark-900">Auction Type</h4>
+                <div className="space-y-2">
+                  {[
+                    { value: null, label: "All" },
+                    { value: true, label: "Auction" },
+                    { value: false, label: "Buy Now" },
+                  ].map((option) => (
+                    <label key={String(option.value)} className="flex items-center cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="auction"
+                        checked={isAuction === option.value}
+                        onChange={() => setIsAuction(option.value)}
+                        className="w-4 h-4 text-ocean-600 border-ocean-300 focus:ring-ocean-500 focus:ring-2"
+                      />
+                      <span className="ml-3 text-sm text-dark-900 font-medium group-hover:text-ocean-600 transition-colors">
+                        {option.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* <div className="mb-6">
-              <h4 className="font-medium mb-3">Price Types</h4>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={priceType.includes("start")}
-                    onChange={(e) =>
-                      handlePriceTypeChange("start", e.target.checked)
-                    }
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">
-                    Start Price
-                  </span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={priceType.includes("buy_now")}
-                    onChange={(e) =>
-                      handlePriceTypeChange("buy_now", e.target.checked)
-                    }
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">
-                    Buy Now Price
-                  </span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={priceType.includes("now")}
-                    onChange={(e) =>
-                      handlePriceTypeChange("now", e.target.checked)
-                    }
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">
-                    Current Price
-                  </span>
-                </label>
-              </div>
-            </div> */}
-
-            <div className="space-y-3">
-              <button className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
-                Apply Filters
-              </button>
+              {/* Reset Button */}
               <button
                 onClick={handleResetFilters}
-                className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300"
+                className="w-full py-2.5 px-4 bg-gradient-to-r from-ocean-200 to-energy-200 hover:from-ocean-300 hover:to-energy-300 text-dark-900 rounded-xl font-semibold transition-all hover:scale-105 shadow-md border-2 border-ocean-400/60 focus:outline-none focus:ring-4 focus:ring-ocean-400/40"
               >
                 Reset Filters
               </button>
@@ -254,83 +257,107 @@ export default function EVMarketplace() {
 
           {/* Main Content */}
           <div className="flex-1">
-            <h1 className="text-2xl font-bold mb-6">Explore EVs & Batteries</h1>
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold text-dark-900 mb-2">
+                Explore Products
+              </h2>
+              <p className="text-dark-800 font-medium">
+                Found {filteredProducts.length} products
+              </p>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch">
-              {displayedProducts.map((product) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {displayedProducts.map((product, index) => (
                 <div
                   key={product.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
+                  className="group bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg border border-ocean-200/50 hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-fadeIn"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  {/* Ảnh sản phẩm */}
-                  {product.imageUrls && (
-                    <img
-                      src={product?.imageUrls[0] || ""}
-                      alt={product?.title}
-                      className="h-48 w-full object-cover"
-                    />
-                  )}
-
-                  {/* Nội dung */}
-                  <div className="flex flex-col flex-1 p-4">
-                    {/* Tiêu đề & nhãn */}
-                    <div className="flex justify-between items-start gap-2 mb-2">
-                      <h3 className="font-semibold text-lg line-clamp-2 flex-1 min-h-[48px]">
-                        {product.title}
-                      </h3>
-                      {product.is_auction && (
-                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded whitespace-nowrap">
+                  {/* Product Image */}
+                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-ocean-100 to-energy-100">
+                    {product.imageUrls && product.imageUrls[0] ? (
+                      <img
+                        src={product.imageUrls[0]}
+                        alt={product.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Battery className="w-16 h-16 text-ocean-300" />
+                      </div>
+                    )}
+                    {product.is_auction && (
+                      <div className="absolute top-3 right-3">
+                        <span className="px-3 py-1 bg-gradient-to-r from-energy-500 to-energy-600 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
                           Auction
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Giá */}
-                    <div className="text-2xl font-bold text-indigo-600 mb-2">
+                  {/* Product Content */}
+                  <div className="p-5">
+                    <h3 className="font-bold text-lg text-dark-900 mb-2 line-clamp-2 min-h-[56px] group-hover:text-ocean-600 transition-colors">
+                      {product.title}
+                    </h3>
+
+                    <div className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent mb-3">
                       {getDisplayPrice(product)}
                     </div>
 
-                    {/* Mô tả */}
-                    <p className="text-gray-600 text-sm line-clamp-3 min-h-[60px] mb-3">
+                    <p className="text-sm text-dark-800 line-clamp-2 mb-4 min-h-[40px]">
                       {product.description || "No description provided."}
                     </p>
 
-                    {/* Thông tin kỹ thuật */}
+                    {/* Technical Info */}
                     {product.soh_percent && (
-                      <div className="text-xs text-gray-600 space-y-1 mb-3 min-h-[60px]">
-                        <div>SOH: {product.soh_percent}%</div>
+                      <div className="grid grid-cols-2 gap-2 mb-4 p-3 bg-gradient-to-r from-ocean-50 to-energy-50 rounded-lg">
+                        <div className="text-xs">
+                          <span className="text-dark-700 font-medium">SOH:</span>
+                          <span className="font-semibold text-ocean-600 ml-1">{product.soh_percent}%</span>
+                        </div>
                         {product.cycle_count && (
-                          <div>Cycles: {product.cycle_count}</div>
+                          <div className="text-xs">
+                            <span className="text-dark-500">Cycles:</span>
+                            <span className="font-semibold text-energy-600 ml-1">{product.cycle_count}</span>
+                          </div>
                         )}
                         {product.nominal_voltage_v && (
-                          <div>Voltage: {product.nominal_voltage_v}V</div>
+                          <div className="text-xs">
+                            <span className="text-dark-500">Voltage:</span>
+                            <span className="font-semibold text-ocean-600 ml-1">{product.nominal_voltage_v}V</span>
+                          </div>
                         )}
                         {product.weight_kg && (
-                          <div>Weight: {product.weight_kg}kg</div>
+                          <div className="text-xs">
+                            <span className="text-dark-500">Weight:</span>
+                            <span className="font-semibold text-energy-600 ml-1">{product.weight_kg}kg</span>
+                          </div>
                         )}
                       </div>
                     )}
 
-                    {/* Trạng thái + Người bán */}
-                    <div className="flex items-center justify-between mt-auto mb-3">
+                    {/* Status & Seller */}
+                    <div className="flex items-center justify-between mb-4">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           getCondition(product) === "Active"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
+                            ? "bg-gradient-to-r from-energy-100 to-energy-200 text-energy-800"
+                            : "bg-dark-100 text-dark-700"
                         }`}
                       >
                         {getCondition(product)}
                       </span>
-                      <div className="text-xs text-gray-500 truncate max-w-[120px] text-right">
+                      <div className="text-xs text-dark-700 truncate max-w-[120px] font-medium">
                         by {product.seller.fullName}
                       </div>
                     </div>
 
-                    {/* Nút */}
+                    {/* View Details Button */}
                     <button
                       onClick={() => navigate(`/productdetail/${product.id}`)}
-                      className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 mt-auto"
+                      className="w-full py-2.5 px-4 bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ocean-500/50"
                     >
                       View Details
                     </button>
@@ -341,11 +368,11 @@ export default function EVMarketplace() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-8">
+              <div className="flex justify-center items-center gap-2 mt-8">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 rounded-xl border-2 border-ocean-300 text-dark-800 hover:bg-ocean-100 hover:border-ocean-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-md focus:outline-none focus:ring-4 focus:ring-ocean-400/40 font-semibold"
                 >
                   Previous
                 </button>
@@ -354,10 +381,10 @@ export default function EVMarketplace() {
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-2 rounded-md ${
+                      className={`px-4 py-2 rounded-xl font-semibold transition-all hover:scale-110 focus:outline-none focus:ring-4 ${
                         page === currentPage
-                          ? "bg-indigo-600 text-white"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                          ? "bg-gradient-to-r from-ocean-500 to-ocean-600 text-white shadow-lg focus:ring-ocean-500/50"
+                          : "bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 border-2 border-ocean-300 text-dark-800 hover:bg-ocean-100 hover:border-ocean-400 shadow-md focus:ring-ocean-400/40"
                       }`}
                     >
                       {page}
@@ -367,7 +394,7 @@ export default function EVMarketplace() {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 rounded-xl border-2 border-ocean-300 text-dark-800 hover:bg-ocean-100 hover:border-ocean-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-md focus:outline-none focus:ring-4 focus:ring-ocean-400/40 font-semibold"
                 >
                   Next
                 </button>
@@ -376,35 +403,6 @@ export default function EVMarketplace() {
           </div>
         </div>
       </div>
-
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-8">
-              <a href="#" className="text-gray-600 hover:text-gray-900">
-                Company
-              </a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">
-                Resources
-              </a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">
-                Legal
-              </a>
-            </div>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-gray-600">
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

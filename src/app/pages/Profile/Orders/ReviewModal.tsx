@@ -1,7 +1,17 @@
 "use client";
 
-import { Modal, Form, Input, Rate, Button, message } from "antd";
+import { Form, Input, Rate, message } from "antd";
 import { useState } from "react";
+import { Star, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface ReviewModalProps {
   visible: boolean;
@@ -52,37 +62,72 @@ export default function ReviewModal({
   };
 
   return (
-    <Modal
-      title={`Review Seller: ${sellerName}`}
-      open={visible}
-      onCancel={onClose}
-      footer={null}
-      centered
-    >
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        <Form.Item
-          label="Rating"
-          name="rating"
-          rules={[{ required: true, message: "Please select a rating" }]}
-        >
-          <Rate />
-        </Form.Item>
+    <Dialog open={visible} onOpenChange={(open) => !open && !loading && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent flex items-center gap-2">
+            <Star className="w-6 h-6 text-ocean-600" />
+            Review Seller: {sellerName}
+          </DialogTitle>
+          <DialogDescription>
+            Share your experience with this seller
+          </DialogDescription>
+        </DialogHeader>
 
-        <Form.Item
-          label="Comment"
-          name="comment"
-          rules={[{ required: true, message: "Please enter your comment" }]}
-        >
-          <Input.TextArea rows={4} placeholder="Share your feedback..." />
-        </Form.Item>
+        <Form form={form} layout="vertical" onFinish={handleSubmit} className="space-y-4">
+          <Form.Item
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Rating</span>}
+            name="rating"
+            rules={[{ required: true, message: "Please select a rating" }]}
+          >
+            <Rate className="text-2xl" />
+          </Form.Item>
 
-        <div className="flex gap-2 justify-end">
-          <Button onClick={onClose}>Cancel</Button>
-          <Button type="primary" htmlType="submit" loading={loading}>
-            Submit Review
-          </Button>
-        </div>
-      </Form>
-    </Modal>
+          <Form.Item
+            label={<span className="font-medium text-dark-800 dark:text-dark-200 flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Comment
+            </span>}
+            name="comment"
+            rules={[{ required: true, message: "Please enter your comment" }]}
+          >
+            <Input.TextArea
+              rows={4}
+              placeholder="Share your feedback..."
+              className="rounded-lg"
+            />
+          </Form.Item>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full sm:w-auto gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Star className="w-4 h-4" />
+                  Submit Review
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }

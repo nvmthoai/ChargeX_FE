@@ -2,12 +2,21 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Modal, Form, Input, InputNumber, DatePicker, Button, Tooltip } from "antd"
+import { Form, Input, InputNumber, DatePicker, Tooltip } from "antd"
 import dayjs from 'dayjs'
-import { CheckCircleOutlined, InfoCircleOutlined } from "@ant-design/icons"
+import { CheckCircle, Info, Clock, DollarSign, Settings } from "lucide-react"
 import type { ApproveAuctionPayload } from "../../../models/auction.model"
 import useAuction from "../../../hooks/useAuction"
-import "./ApproveAuctionModal.css"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface ApproveAuctionModalProps {
   visible: boolean
@@ -26,12 +35,10 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
   const [loading, setLoading] = useState(false)
   const { handleApproveRequest } = useAuction()
   
-  // disable dates before today
   const disabledDate = (current: any) => {
     return current && current.isBefore(dayjs(), 'day')
   }
 
-  // disable times earlier than now when selecting today
   const disabledTime = (current: any) => {
     if (!current) return {}
     if (!current.isSame(dayjs(), 'day')) return {}
@@ -69,182 +76,232 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
   }
 
   return (
-    <Modal
-      title={
-        <div className="flex items-center gap-2 text-xl font-semibold">
-          <span className="text-2xl">✅</span>
-          <span>Approve Auction Request</span>
-        </div>
-      }
-      open={visible}
-      onCancel={onClose}
-      footer={null}
-      width={700}
-      className="approve-auction-modal"
-    >
-      <div className="border-t pt-4 mt-2">
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          {/* Request ID Section */}
-          <div className="bg-transparent p-4 rounded-lg mb-6">
-            <Form.Item
-              label={<span className="text-sm font-medium">Auction Request ID</span>}
-              className="mb-0"
-            >
-              <Input disabled value={auctionRequestId} className="font-mono text-sm" />
-            </Form.Item>
-          </div>
+    <Dialog open={visible} onOpenChange={(open) => !open && !loading && onClose()}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-ocean-400 to-energy-400 bg-clip-text text-transparent flex items-center gap-2">
+            <CheckCircle className="w-6 h-6 text-ocean-400" />
+            Approve Auction Request
+          </DialogTitle>
+          <DialogDescription>
+            Configure auction settings and approve this request
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form form={form} layout="vertical" onFinish={handleSubmit} className="space-y-6">
+          {/* Request ID */}
+          <Card className="border-ocean-800/30 bg-dark-800">
+            <CardContent className="pt-6">
+              <Form.Item
+                label={<span className="font-medium text-dark-200">Auction Request ID</span>}
+                className="mb-0"
+              >
+                <Input disabled value={auctionRequestId} className="font-mono text-sm bg-dark-700 text-dark-200 border-ocean-800" />
+              </Form.Item>
+            </CardContent>
+          </Card>
 
           {/* Time Settings */}
-          <div className="mb-6">
-            <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
-              <span>⏰</span>
-              <span>Auction Time</span>
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <Form.Item
-                label={<span className="text-sm font-medium">Start Time</span>}
-                name="startTime"
-                rules={[{ required: true, message: "Please select a start time" }]}
-              >
-                <DatePicker
-                  showTime
-                  format="DD/MM/YYYY HH:mm:ss"
-                  className="w-full datepicker-white-placeholder"
-                  placeholder="Select start time"
-                  disabledDate={disabledDate}
-                  disabledTime={disabledTime}
-                />
-              </Form.Item>
+          <Card className="border-ocean-800/30 bg-dark-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Clock className="w-5 h-5 text-ocean-400" />
+                Auction Time
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <Form.Item
+                  label={<span className="font-medium text-dark-200">Start Time</span>}
+                  name="startTime"
+                  rules={[{ required: true, message: "Please select a start time" }]}
+                >
+                  <DatePicker
+                    showTime
+                    format="DD/MM/YYYY HH:mm:ss"
+                    className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
+                    placeholder="Select start time"
+                    disabledDate={disabledDate}
+                    disabledTime={disabledTime}
+                  />
+                </Form.Item>
 
-              <Form.Item
-                label={<span className="text-sm font-medium">End Time</span>}
-                name="endTime"
-                rules={[
-                  { required: true, message: "Please select an end time" },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      const start = getFieldValue('startTime')
-                      if (value && start && value.isBefore(start)) {
-                        return Promise.reject(new Error('End time must be after start time'))
+                <Form.Item
+                  label={<span className="font-medium text-dark-200">End Time</span>}
+                  name="endTime"
+                  rules={[
+                    { required: true, message: "Please select an end time" },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        const start = getFieldValue('startTime')
+                        if (value && start && value.isBefore(start)) {
+                          return Promise.reject(new Error('End time must be after start time'))
+                        }
+                        return Promise.resolve()
                       }
-                      return Promise.resolve()
-                    }
-                  })
-                ]}
-              >
-                <DatePicker
-                  showTime
-                  format="DD/MM/YYYY HH:mm:ss"
-                  className="w-full datepicker-white-placeholder"
-                  placeholder="Select end time"
-                  disabledDate={disabledDate}
-                  disabledTime={disabledTime}
-                />
-              </Form.Item>
-            </div>
-          </div>
+                    })
+                  ]}
+                >
+                  <DatePicker
+                    showTime
+                    format="DD/MM/YYYY HH:mm:ss"
+                    className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
+                    placeholder="Select end time"
+                    disabledDate={disabledDate}
+                    disabledTime={disabledTime}
+                  />
+                </Form.Item>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Price Settings */}
-          <div className="mb-6">
-            <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
-              <span>💰</span>
-              <span>Price Settings</span>
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <Form.Item
-                label={<span className="text-sm font-medium">Starting Price (₫) <Tooltip title="Initial bid amount - customers can't bid lower than this"><InfoCircleOutlined style={{ marginLeft: 6, color: 'rgba(255,255,255,0.6)' }} /></Tooltip></span>}
-                name="startingPrice"
-                rules={[{ required: true, message: "Please enter starting price" }]}
-                tooltip="Initial auction bid amount"
-              >
-                <InputNumber
-                  min={0}
-                  placeholder="0"
-                  className="w-full"
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                />
-              </Form.Item>
+          <Card className="border-ocean-800/30 bg-dark-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="w-5 h-5 text-ocean-400" />
+                Price Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <Form.Item
+                  label={
+                    <span className="font-medium text-dark-200 flex items-center gap-1">
+                      Starting Price (₫)
+                      <Tooltip title="Initial bid amount - customers can't bid lower than this">
+                        <Info className="w-4 h-4 text-dark-400" />
+                      </Tooltip>
+                    </span>
+                  }
+                  name="startingPrice"
+                  rules={[{ required: true, message: "Please enter starting price" }]}
+                >
+                  <InputNumber
+                    min={0}
+                    placeholder="0"
+                    className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  />
+                </Form.Item>
 
-              <Form.Item
-                label={<span className="text-sm font-medium">Reserve Price (₫) <Tooltip title="Minimum price required to sell the item if reserve not met auction won't conclude"><InfoCircleOutlined style={{ marginLeft: 6, color: 'rgba(255,255,255,0.6)' }} /></Tooltip></span>}
-                name="reservePrice"
-                rules={[{ required: true, message: "Please enter a reserve price" }]}
-                tooltip="Minimum price required to sell the item"
+                <Form.Item
+                  label={
+                    <span className="font-medium text-dark-200 flex items-center gap-1">
+                      Reserve Price (₫)
+                      <Tooltip title="Minimum price required to sell the item if reserve not met auction won't conclude">
+                        <Info className="w-4 h-4 text-dark-400" />
+                      </Tooltip>
+                    </span>
+                  }
+                  name="reservePrice"
+                  rules={[{ required: true, message: "Please enter a reserve price" }]}
+                >
+                  <InputNumber
+                    min={0}
+                    placeholder="0"
+                    className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  />
+                </Form.Item>
 
-              >
-                <InputNumber
-                  min={0}
-                  placeholder="0"
-                  className="w-full "
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                />
-              </Form.Item>
-
-              <Form.Item
-                label={<span className="text-sm font-medium">Minimum Bid Increment (₫) <Tooltip title="Smallest allowed increase for each new bid"><InfoCircleOutlined style={{ marginLeft: 6, color: 'rgba(255,255,255,0.6)' }} /></Tooltip></span>}
-                name="minBidIncrement"
-                rules={[{ required: true, message: "Please enter minimum bid increment" }]}
-                tooltip="Minimum amount the bid should increase each time"
-              >
-                <InputNumber
-                  min={0}
-                  placeholder="0"
-                  className="w-full"
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                />
-              </Form.Item>
-            </div>
-          </div>
+                <Form.Item
+                  label={
+                    <span className="font-medium text-dark-200 flex items-center gap-1">
+                      Minimum Bid Increment (₫)
+                      <Tooltip title="Smallest allowed increase for each new bid">
+                        <Info className="w-4 h-4 text-dark-400" />
+                      </Tooltip>
+                    </span>
+                  }
+                  name="minBidIncrement"
+                  rules={[{ required: true, message: "Please enter minimum bid increment" }]}
+                >
+                  <InputNumber
+                    min={0}
+                    placeholder="0"
+                    className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  />
+                </Form.Item>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Advanced Settings */}
-          <div className="mb-6">
-            <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
-              <span>⚙️</span>
-              <span>Advanced Settings</span>
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <Form.Item
-                label={<span className="text-sm font-medium">Anti-sniping (seconds) <Tooltip title="If a bid arrives within this many seconds before end, the auction end time will extend"><InfoCircleOutlined style={{ marginLeft: 6, color: 'rgba(255,255,255,0.6)' }} /></Tooltip></span>}
-                name="antiSnipingSeconds"
-                rules={[{ required: true, message: "Please enter anti-sniping time" }]}
-                tooltip="Extend auction end time if a bid is placed in the final seconds"
-                initialValue={30}
-              >
-                <InputNumber min={0} max={300} placeholder="30" className="w-full" />
-              </Form.Item>
+          <Card className="border-ocean-800/30 bg-dark-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Settings className="w-5 h-5 text-ocean-400" />
+                Advanced Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <Form.Item
+                  label={
+                    <span className="font-medium text-dark-200 flex items-center gap-1">
+                      Anti-sniping (seconds)
+                      <Tooltip title="If a bid arrives within this many seconds before end, the auction end time will extend">
+                        <Info className="w-4 h-4 text-dark-400" />
+                      </Tooltip>
+                    </span>
+                  }
+                  name="antiSnipingSeconds"
+                  rules={[{ required: true, message: "Please enter anti-sniping time" }]}
+                  initialValue={30}
+                >
+                  <InputNumber min={0} max={300} placeholder="30" className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100" />
+                </Form.Item>
 
-              <Form.Item
-                label={<span className="text-sm font-medium">Bid Deposit (%) <Tooltip title="Percent of bid held as deposit to ensure seriousness of bidder"><InfoCircleOutlined style={{ marginLeft: 6, color: 'rgba(255,255,255,0.6)' }} /></Tooltip></span>}
-                name="bidDepositPercent"
-                rules={[{ required: true, message: "Please enter deposit percent" }]}
-                tooltip="Percentage of the bid that must be available as deposit to join the auction"
-                initialValue={10}
-              >
-                <InputNumber min={0} max={100} placeholder="10" className="w-full" />
-              </Form.Item>
-            </div>
-          </div>
+                <Form.Item
+                  label={
+                    <span className="font-medium text-dark-200 flex items-center gap-1">
+                      Bid Deposit (%)
+                      <Tooltip title="Percent of bid held as deposit to ensure seriousness of bidder">
+                        <Info className="w-4 h-4 text-dark-400" />
+                      </Tooltip>
+                    </span>
+                  }
+                  name="bidDepositPercent"
+                  rules={[{ required: true, message: "Please enter deposit percent" }]}
+                  initialValue={10}
+                >
+                  <InputNumber min={0} max={100} placeholder="10" className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100" />
+                </Form.Item>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Action Buttons */}
-          <Form.Item className="mb-0 mt-8">
-            <div className="flex gap-3 justify-end border-t pt-4">
-              <Button size="large" onClick={onClose} className="min-w-[120px]">
-                Cancel
-              </Button>
-              <Button
-                type="primary"
-                size="large"
-                htmlType="submit"
-                loading={loading}
-                className="min-w-[120px] bg-green-600 hover:bg-green-700"
-                icon={<CheckCircleOutlined />}
-              >
-                Approve
-              </Button>
-            </div>
-          </Form.Item>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => form.submit()}
+              disabled={loading}
+              className="w-full sm:w-auto gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Approving...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Approve
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </Form>
-      </div>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   )
 }

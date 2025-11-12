@@ -1,8 +1,20 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Table, Input, Select, Tag, Button, Image, Badge } from "antd";
-import { EyeOutlined, StarOutlined } from "@ant-design/icons";
+import { Search, Eye, Star, AlertCircle, Package } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import ReviewModal from "./ReviewModal";
 import type { Order, OrderShop } from "../../../models/order.model";
 import useOrder from "../../../hooks/useOrder";
@@ -12,6 +24,7 @@ import { getUserInfo } from "../../../hooks/useAddress";
 import { Link } from "react-router-dom";
 import ReportModal from "./ReportModal";
 import useDisputes from "../../../hooks/useDisputes";
+import { Badge } from "@/components/ui/badge";
 
 const ORDER_STATUSES = [
   "pending",
@@ -27,16 +40,16 @@ const ORDER_STATUSES = [
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "default",
-  paid: "blue",
-  handed_to_carrier: "cyan",
-  in_transit: "processing",
-  delivered_pending_confirm: "warning",
-  delivered: "orange",
-  refunded: "red",
-  completed: "green",
-  disputed: "red",
-  cancelled: "volcano",
+  pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+  paid: "bg-blue-100 text-blue-800 border-blue-300",
+  handed_to_carrier: "bg-cyan-100 text-cyan-800 border-cyan-300",
+  in_transit: "bg-purple-100 text-purple-800 border-purple-300",
+  delivered_pending_confirm: "bg-orange-100 text-orange-800 border-orange-300",
+  delivered: "bg-indigo-100 text-indigo-800 border-indigo-300",
+  refunded: "bg-red-100 text-red-800 border-red-300",
+  completed: "bg-green-100 text-green-800 border-green-300",
+  disputed: "bg-pink-100 text-pink-800 border-pink-300",
+  cancelled: "bg-gray-100 text-gray-800 border-gray-300",
 };
 
 export default function OrderManagement() {
@@ -52,6 +65,7 @@ export default function OrderManagement() {
 
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const user = getUserInfo();
   const [shopSelected, setShopSelected] = useState<OrderShop | null>(null);
   const [reviewModal, setReviewModal] = useState<{
@@ -110,9 +124,11 @@ export default function OrderManagement() {
       sellerName: shopItem.seller.fullName,
     });
   };
+
   const handleCloseReviewList = () => {
     setReviewListModal({ ...reviewListModal, visible: false });
   };
+
   const handleReviewClick = (orderId: string, shopItem: OrderShop) => {
     setReviewModal({
       visible: true,
@@ -146,58 +162,77 @@ export default function OrderManagement() {
       orderId,
       sellerId: shopItem.seller.userId,
       sellerName: shopItem.seller.fullName,
-    })
-  }
-  
-  const expandedRowRender = (record: Order) => {
-    return (
-      <div className="space-y-4">
-        {record.orderShops.map((shop) => (
-          <div
-            key={shop.orderShopId}
-            className="bg-slate-50 p-4 rounded-lg border border-slate-200"
-          >
-            <div className="mb-3">
-              <Link to={`/shop-detail/${shop.seller.userId}`}>
-                <h4 className="font-semibold text-slate-900">
-                  Shop: {shop.seller.fullName}
-                </h4>
-              </Link>
-              <p className="text-sm text-slate-600">{shop.seller.email}</p>
-            </div>
+    });
+  };
 
+  const toggleRow = (orderId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const renderExpandedContent = (record: Order) => {
+    return (
+      <div className="space-y-4 p-4 bg-ocean-50/40 rounded-lg">
+        {record.orderShops.map((shop) => (
+          <Card
+            key={shop.orderShopId}
+            className="border-ocean-200/30 shadow-sm bg-white"
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center justify-between text-ocean-700">
+                <Link
+                  to={`/shop-detail/${shop.seller.userId}`}
+                  className="hover:text-ocean-600 transition-colors text-ocean-700"
+                >
+                  Shop: {shop.seller.fullName}
+                </Link>
+                <span
+                  className={cn(
+                    "px-2 py-1 rounded-md text-xs font-semibold border",
+                    STATUS_COLORS[shop.status] || STATUS_COLORS.pending
+                  )}
+                >
+                  {shop.status.replace(/_/g, " ")}
+                </span>
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">{shop.seller.email}</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
             {/* Order Items */}
-            <div className="mb-3 space-y-2">
+              <div className="space-y-2">
               {shop.orderDetails.map((detail) => (
                 <div
                   key={detail.orderDetailId}
-                  className="flex gap-3 bg-white p-2 rounded border border-slate-200"
+                    className="flex gap-3 p-3 bg-gradient-to-br from-white via-ocean-50/30 to-energy-50/20 rounded-lg border border-ocean-200/30"
                 >
                   {detail.product.imageUrls?.[0] && (
-                    <Image
-                      src={detail.product.imageUrls[0] || "/placeholder.svg"}
-                      width={60}
-                      height={60}
+                      <img
+                        src={detail.product.imageUrls[0]}
                       alt={detail.product.title}
-                      className="object-cover rounded"
+                        className="w-16 h-16 object-cover rounded-lg"
                     />
                   )}
                   <div className="flex-1">
-                    <p className="font-medium text-sm">
-                      {detail.product.title}
-                    </p>
-                    <p className="text-xs text-slate-600">
+                      <p className="font-medium text-sm text-ocean-700">
+                        {detail.product.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
                       Qty: {detail.quantity} × ₫
                       {Number.parseFloat(detail.price).toLocaleString()}
                     </p>
                     {detail.product.condition_grade && (
-                      <p className="text-xs text-slate-600">
+                        <p className="text-xs text-muted-foreground">
                         Condition: {detail.product.condition_grade}
                       </p>
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">
+                      <p className="font-semibold text-energy-600 dark:text-energy-400">
                       ₫{Number.parseFloat(detail.subtotal).toLocaleString()}
                     </p>
                   </div>
@@ -205,156 +240,193 @@ export default function OrderManagement() {
               ))}
             </div>
 
-            {/* Shop Order Status and Actions */}
-            <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-              <div className="flex gap-2">
-                <span className="text-sm text-slate-600">Status:</span>
-                <Tag color={STATUS_COLORS[shop.status] || "default"}>
-                  {shop.status}
-                </Tag>
-              </div>
-              <div className="flex gap-2">
+              {/* Actions */}
+              <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-ocean-200/30">
                 <Button
-                  type="default"
-                  size="small"
-                  icon={<EyeOutlined />}
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleViewReviewsClick(record.orderId, shop)}
+                  className="gap-1"
                 >
+                  <Eye className="w-4 h-4" />
                   View Reviews
                 </Button>
                 {record.status === "completed" && (
                   <>
                     <Button
-                      type="primary"
-                      size="small"
-                      icon={<StarOutlined />}
+                      size="sm"
                       onClick={() => handleReviewClick(record.orderId, shop)}
+                      className="gap-1"
                     >
+                      <Star className="w-4 h-4" />
                       Review Seller
                     </Button>
                     <Button
-                      type="default"
-                      size="small"
-                      danger
+                      variant="destructive"
+                      size="sm"
                       onClick={() => handleReportClick(record.orderId, shop)}
+                      className="gap-1"
                     >
+                      <AlertCircle className="w-4 h-4" />
                       Create Report
                     </Button>
                   </>
                 )}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     );
   };
 
-  const columns = [
-    {
-      title: "Order ID",
-      dataIndex: "orderId",
-      key: "orderId",
-      width: 150,
-      render: (text: string) => (
-        <span className="text-sm font-mono text-slate-700">
-          {text.slice(0, 12)}...
-        </span>
-      ),
-    },
-    {
-      title: "Buyer",
-      dataIndex: ["buyer", "fullName"],
-      key: "buyer",
-      width: 150,
-    },
-    {
-      title: "Shops",
-      key: "shops",
-      width: 100,
-      render: (record: Order) => (
-        <Badge
-          count={record.orderShops.length}
-          style={{ backgroundColor: "#fb8b24" }}
-        />
-      ),
-    },
-    {
-      title: "Total Amount",
-      key: "grandTotal",
-      width: 120,
-      render: (record: Order) => (
-        <span className="font-semibold">
-          ₫{Number.parseFloat(record.grandTotal).toLocaleString()}
-        </span>
-      ),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      width: 140,
-      render: (status: string) => (
-        <Tag color={STATUS_COLORS[status] || "default"}>{status}</Tag>
-      ),
-    },
-    {
-      title: "Created",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      width: 140,
-      render: (date: string) => (
-        <span className="text-sm">
-          {new Date(date).toLocaleDateString("vi-VN")}
-        </span>
-      ),
-    },
-  ];
-
-  const handleCloseReport = () => {
-    setReportModal({ ...reportModal, visible: false });
-  };
-
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-ocean-500 to-energy-500 bg-clip-text text-transparent">
+          Order History
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          View and manage your order history
+        </p>
+      </div>
+
       {/* Filters */}
-      <div className="flex gap-3 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-        <Input.Search
+      <Card className="border-ocean-200/30 shadow-sm bg-white">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
           placeholder="Search Order ID..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          style={{ width: 250 }}
-        />
-        <Select
-          placeholder="Filter by Status"
-          value={statusFilter}
-          onChange={setStatusFilter}
-          style={{ width: 200 }}
-          allowClear
-          options={ORDER_STATUSES.map((status) => ({
-            label: status.replace(/_/g, " "),
-            value: status,
-          }))}
+                className="pl-10"
         />
       </div>
+            <Select
+              value={statusFilter || ""}
+              onChange={(e) => setStatusFilter(e.target.value || undefined)}
+              className="min-w-[200px]"
+            >
+              <option value="">All Status</option>
+              {ORDER_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status.replace(/_/g, " ")}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Table */}
-      <Table
-        dataSource={filteredOrders}
-        columns={columns}
-        rowKey="orderId"
-        expandable={{
-          expandedRowRender,
-        }}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          pageSizeOptions: ["10", "20", "50"],
-        }}
-        className="bg-white rounded-lg shadow-sm"
-      />
+      {/* Orders Table */}
+      <Card className="border-ocean-200/30 shadow-sm bg-white">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-ocean-700">
+            <Package className="w-5 h-5 text-ocean-600" />
+            Orders ({filteredOrders.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {filteredOrders.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="inline-flex flex-col items-center gap-3 text-muted-foreground">
+                <div className="w-16 h-16 rounded-full bg-ocean-100 flex items-center justify-center">
+                  <Package className="w-8 h-8 text-ocean-500" />
+                </div>
+                <p className="text-base font-medium">No orders found</p>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-ocean-100/60 to-energy-100/40">
+                    <TableHead className="font-semibold text-ocean-800">Order ID</TableHead>
+                    <TableHead className="font-semibold text-ocean-800">Buyer</TableHead>
+                    <TableHead className="font-semibold text-ocean-800">Shops</TableHead>
+                    <TableHead className="font-semibold text-ocean-800">Total Amount</TableHead>
+                    <TableHead className="font-semibold text-ocean-800">Status</TableHead>
+                    <TableHead className="font-semibold text-ocean-800">Created</TableHead>
+                    <TableHead className="font-semibold text-ocean-800">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredOrders.map((order: Order) => (
+                    <>
+                      <TableRow
+                        key={order.orderId}
+                        className="hover:bg-ocean-50/50 transition-colors cursor-pointer"
+                        onClick={() => toggleRow(order.orderId)}
+                      >
+                        <TableCell>
+                          <span className="text-sm font-mono text-muted-foreground">
+                            {order.orderId.slice(0, 12)}...
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium text-ocean-700">
+                            {order.buyer.fullName}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="bg-energy-500 text-white border-0">
+                            {order.orderShops.length} {order.orderShops.length === 1 ? 'shop' : 'shops'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-semibold text-energy-600">
+                            ₫{Number.parseFloat(order.grandTotal).toLocaleString()}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={cn(
+                              "px-2 py-1 rounded-md text-xs font-semibold border",
+                              STATUS_COLORS[order.status] || STATUS_COLORS.pending
+                            )}
+                          >
+                            {order.status.replace(/_/g, " ")}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRow(order.orderId);
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      {expandedRows.has(order.orderId) && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="p-0">
+                            {renderExpandedContent(order)}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Review Modal */}
+      {/* Modals */}
       <ReviewModal
         visible={reviewModal.visible}
         orderId={reviewModal.orderId}
@@ -379,13 +451,12 @@ export default function OrderManagement() {
         onDeleteReview={handleDeleteReviewSuccess}
       />
 
-      {/* Report Modal */}
       <ReportModal
         visible={reportModal.visible}
         orderId={reportModal.orderId}
         sellerId={reportModal.sellerId}
         sellerName={reportModal.sellerName}
-        onClose={handleCloseReport}
+        onClose={() => setReportModal({ ...reportModal, visible: false })}
         onSubmit={handleCreateDisputes || (async () => {})}
       />
     </div>
