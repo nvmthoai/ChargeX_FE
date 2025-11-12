@@ -22,4 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.claude/
+.claude/.env*
+.claude/session-env/
+.claude/debug/
+
+# Ignore serena tool files
+.serena/
+
+# Optional: Ignore all Claude files except .claude dir
+# .claude/
 

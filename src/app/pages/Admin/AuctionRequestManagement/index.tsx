@@ -97,21 +97,21 @@ export const AuctionRequestManagement: React.FC = () => {
       title: "Request ID",
       dataIndex: "id",
       key: "id",
-      width: 150,
+      width: "13%",
       render: (text: string) => <span className="text-sm">{text.slice(0, 8)}...</span>,
     },
     {
       title: "Product ID",
       dataIndex: "productId",
       key: "productId",
-      width: 150,
+      width: "13%",
       render: (text: string) => <span className="text-sm">{text.slice(0, 8)}...</span>,
     },
     {
       title: "Seller",
       dataIndex: "sellerName",
       key: "seller",
-      width: 180,
+      width: "17%",
       render: (text: string, record: AuctionRequest) => (
         <div className="text-sm">
           <div className="font-medium">{text || (record.sellerId ? record.sellerId.slice(0, 8) + '...' : '')}</div>
@@ -123,14 +123,14 @@ export const AuctionRequestManagement: React.FC = () => {
       title: "Note",
       dataIndex: "note",
       key: "note",
-      width: 200,
+      width: "20%",
       render: (text: string) => <span className="text-sm truncate max-w-xs">{text}</span>,
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      width: 100,
+      width: "12%",
       render: (status: string) => {
         const colors: Record<string, string> = {
           pending: "orange",
@@ -144,13 +144,13 @@ export const AuctionRequestManagement: React.FC = () => {
       title: "Requested At",
       dataIndex: "requestedAt",
       key: "requestedAt",
-      width: 180,
+      width: "15%",
       render: (date: string) => <span className="text-sm">{dayjs(date).format("YYYY-MM-DD HH:mm")}</span>,
     },
     {
       title: "Actions",
       key: "actions",
-      width: 200,
+      width: "10%",
       render: (_: React.ReactNode, record: AuctionRequest) => (
         <Space size="small">
           {record.status === "pending" && (
@@ -201,17 +201,18 @@ export const AuctionRequestManagement: React.FC = () => {
           </button>
         </div>
 
-        <section className="admin-table-container">
-          <Spin spinning={loading}>
-            <Table
-              columns={columns}
-              dataSource={requests}
-              rowKey="id"
-              pagination={false}
-              scroll={{ x: 1200 }}
-            />
-          </Spin>
-        </section>
+        <div style={{ width: '100%', overflow: 'hidden' }}>
+          <section className="admin-table-container">
+            <Spin spinning={loading}>
+              <Table
+                columns={columns}
+                dataSource={requests}
+                rowKey="id"
+                pagination={false}
+              />
+            </Spin>
+          </section>
+        </div>
 
         <Pagination
           currentPage={pagination.page}

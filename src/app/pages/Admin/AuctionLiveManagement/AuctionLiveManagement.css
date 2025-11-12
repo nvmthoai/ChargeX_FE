@@ -64,3 +64,52 @@ body{
   background-color: #ff9d3d;
   border-color: #ff9d3d;
 }
+
+/* Ensure admin-container.auction-live uses the intended dark theme with readable white text */
+.admin-container.auction-live .section {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+/* Force table header and body text to be light for auction-live page */
+.admin-container.auction-live .section .ant-table,
+.admin-container.auction-live .section .ant-table-thead > tr > th,
+.admin-container.auction-live .section .ant-table-tbody > tr > td {
+  color: #d1d5db !important;
+}
+
+/* Table header background and borders */
+.admin-container.auction-live .section .ant-table-thead > tr > th {
+  background-color: #111827 !important;
+  border-color: #374151 !important;
+}
+
+/* Row hover */
+.admin-container.auction-live .section .ant-table-tbody > tr:hover > td {
+  background-color: #374151 !important;
+}
+
+/* Inputs/selects inside auction-live admin should be readable */
+.admin-container.auction-live .section .ant-input,
+.admin-container.auction-live .section .ant-select-selector {
+  background-color: #374151 !important;
+  border-color: #374151 !important;
+  color: #d1d5db !important;
+}
+
+/* Placeholder color */
+.admin-container.auction-live .section .ant-input::placeholder {
+  color: #7d8590 !important;
+}
+
+/* Buttons on auction-live: keep primary style but ensure text contrast */
+.admin-container.auction-live .section .ant-btn-primary {
+  background-color: #fb8b24 !important;
+  border-color: #fb8b24 !important;
+  color: #161b22 !important; /* dark text on light btn */
+}
+
+/* Tag colors for status badges ensure visibility */
+.admin-container.auction-live .section .ant-tag {
+  color: #ffffff !important;
+}

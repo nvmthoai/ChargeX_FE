@@ -6,6 +6,12 @@ class NotificationSocket {
   private userId: string | null = null;
 
   connect(userId: string) {
+    // backward compatible: read token and call connectWithToken
+    const token = localStorage.getItem('token');
+    return this.connectWithToken(userId, token || null);
+  }
+
+  connectWithToken(userId: string, token: string | null) {
     if (this.socket?.connected && this.userId === userId) {
       console.log('✅ Already connected to notification socket');
       return this.socket;
@@ -17,9 +23,13 @@ class NotificationSocket {
     }
 
     this.userId = userId;
-    this.socket = io(`${ENV.BASE_URL}/notifications`, {
-      query: { userId },
+    // Connect to notifications namespace at SOCKET_URL (origin) to avoid mixing API path
+    this.socket = io(`${ENV.SOCKET_URL}/notifications`, {
+      path: '/socket.io',
       transports: ['websocket', 'polling'],
+      query: { userId },
+      auth: token ? { token } : undefined,
+      autoConnect: true,
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionAttempts: 5,

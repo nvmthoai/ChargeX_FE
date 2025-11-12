@@ -10,6 +10,8 @@ export interface AuctionSummary {
   currentPrice: number;
   minBidIncrement: number;
   imageUrls?: string[];
+  serverNow?: string;
+  serverTime?: number;
 }
 
 export interface AuctionDetail extends AuctionSummary {
@@ -19,18 +21,31 @@ export interface AuctionDetail extends AuctionSummary {
   bidCount: number;
   winnerId: string | null;
   sellerId?: string;
+  serverNow?: string;
+  serverTime?: number;
   product: {
     id: string;
     title: string;
     description: string;
-    images: string[];
+    images?: string[];
+    imageUrls?: string[];
     sellerId?: string;
   };
+  bidHistory?: Array<{
+    bidId: string;
+    userId: string;
+    userName: string;
+    amount: number;
+    timestamp: string;
+    isWinning: boolean;
+  }>;
 }
 
 export interface RequestAuctionDto {
   productId: string;
   note?: string;
+  // Optional auctionId support to match backend DTO (some clients may include it)
+  auctionId?: string;
 }
 
 export interface ApproveAuctionDto {
@@ -342,6 +357,52 @@ export const auctionApi = {
         }
       }
       
+      throw error;
+    }
+  },
+
+  // Get auctions the user won
+  getUserWonAuctions: async (userId: string, page: number = 1, pageSize: number = 20) => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('pageSize', pageSize.toString());
+    const response = await axiosInstance.get(`/auction/user/${userId}/won-auctions?${params.toString()}`);
+    return response.data;
+  },
+
+  // Get auctions the user is participating in (live or scheduled)
+  getUserParticipatingAuctions: async (userId: string, page: number = 1, pageSize: number = 20) => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('pageSize', pageSize.toString());
+    const response = await axiosInstance.get(`/auction/user/${userId}/participating-auctions?${params.toString()}`);
+    return response.data;
+  },
+
+  // Get auctions won by user with payment information
+  getWonAuctionsWithPayments: async (userId: string, page: number = 1, pageSize: number = 20) => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('pageSize', pageSize.toString());
+    const response = await axiosInstance.get(`/auction/user/${userId}/won-auctions-with-payments?${params.toString()}`);
+    return response.data;
+  },
+
+  // Get order created for ended auction
+  getOrderByAuctionId: async (auctionId: string) => {
+    try {
+      const response = await axiosInstance.get(`/auction/${auctionId}/order`);
+      console.log('📦 [API] getOrderByAuctionId response:', response.data);
+
+      // Handle NestJS response format
+      let data = response.data;
+      if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
+        data = data.data;
+      }
+
+      return data;
+    } catch (error: unknown) {
+      console.error('❌ [API] getOrderByAuctionId failed:', error);
       throw error;
     }
   },

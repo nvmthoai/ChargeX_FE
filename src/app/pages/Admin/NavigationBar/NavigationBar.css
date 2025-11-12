@@ -40,7 +40,8 @@
             border-radius: 8px;
             box-sizing: border-box;
 
-            a {
+            a,
+            .btn-logout {
                 padding: 14px 16px;
                 color: var(--text-1);
                 display: flex;
@@ -150,4 +151,157 @@
             }
         }
     }
+
+    /* Refined admin text color overrides (avoid breaking button contrast) */
+    /* Apply white to most textual elements in admin area */
+    .admin-container,
+    .admin-container .inner-container,
+    .admin-container p,
+    .admin-container span,
+    .admin-container label,
+    .admin-container a,
+    .admin-container h1,
+    .admin-container h2,
+    .admin-container h3,
+    .admin-container h4,
+    .admin-container h5,
+    .admin-container h6,
+    .admin-container th,
+    .admin-container td,
+    .admin-container .stat-title,
+    .admin-container .stat-value,
+    .admin-container .admin-table,
+    .admin-container .admin-table-container,
+    .admin-container .checkbox-item,
+    .admin-container .customer-name-cell,
+    .admin-container .avatar img {
+      color: #ffffff !important;
+    }
+
+    /* Placeholders */
+    .admin-container ::placeholder {
+      color: rgba(255,255,255,0.8) !important;
+    }
+
+    /* Inputs/selects/textareas: keep text white but preserve background styling */
+    .admin-container input,
+    .admin-container select,
+    .admin-container textarea {
+      color: #ffffff !important;
+    }
+
+    /* Buttons: restore expected contrast for primary/secondary buttons */
+    /* Primary buttons often have a light background and dark text -- prefer using CSS variables when present */
+    .admin-container .btn-primary {
+      color: var(--button-primary-text, #161B22) !important;
+    }
+    .admin-container .btn-primary svg {
+      color: var(--button-primary-text, #161B22) !important;
+    }
+
+    /* Secondary buttons: usually dark background, keep white text */
+    .admin-container .btn-secondary {
+      color: var(--text-primary, #ffffff) !important;
+    }
+
+    /* Generic button fallback: ensure readable contrast */
+    .admin-container button:not(.btn-primary):not(.btn-secondary) {
+      color: #ffffff !important;
+    }
+
+    /* Table headers use muted secondary text for hierarchy */
+    .admin-container th {
+      color: var(--text-secondary, rgba(255,255,255,0.8)) !important;
+    }
+
+    /* Keep small meta text slightly muted but readable */
+    .admin-container .muted,
+    .admin-container small {
+      color: rgba(255,255,255,0.75) !important;
+    }
+
+    /* Icons inside actionable controls should follow parent color when appropriate */
+    .admin-container .btn-primary i,
+    .admin-container .btn-secondary i,
+    .admin-container a i {
+      color: inherit !important;
+    }
+
+    /* Ensure links remain visible */
+    .admin-container a {
+      color: #ffffff !important;
+      text-decoration: none;
+    }
+}
+
+/* Exclude Auction Live page from white-text overrides: restore dark text and readable contrast */
+.admin-container.auction-live,
+.admin-container.auction-live .inner-container,
+.admin-container.auction-live p,
+.admin-container.auction-live span,
+.admin-container.auction-live label,
+.admin-container.auction-live a,
+.admin-container.auction-live h1,
+.admin-container.auction-live h2,
+.admin-container.auction-live h3,
+.admin-container.auction-live h4,
+.admin-container.auction-live h5,
+.admin-container.auction-live h6,
+.admin-container.auction-live th,
+.admin-container.auction-live td,
+.admin-container.auction-live .stat-title,
+.admin-container.auction-live .stat-value,
+.admin-container.auction-live .admin-table,
+.admin-container.auction-live .admin-table-container,
+.admin-container.auction-live .checkbox-item,
+.admin-container.auction-live .customer-name-cell,
+.admin-container.auction-live .avatar img {
+  color: #111827 !important; /* dark text */
+}
+
+.admin-container.auction-live ::placeholder {
+  color: rgba(0,0,0,0.6) !important;
+}
+
+/* Inputs/selects/textareas inside auction-live: dark text */
+.admin-container.auction-live input,
+.admin-container.auction-live select,
+.admin-container.auction-live textarea {
+  color: #111827 !important;
+}
+
+/* Buttons on auction-live: primary buttons often have light bg so keep dark text */
+.admin-container.auction-live .btn-primary {
+  color: var(--button-primary-text, #161B22) !important;
+}
+.admin-container.auction-live .btn-primary svg {
+  color: var(--button-primary-text, #161B22) !important;
+}
+
+/* Secondary buttons: dark bg -> keep white text for contrast where appropriate */
+.admin-container.auction-live .btn-secondary {
+  color: var(--text-primary, #ffffff) !important;
+}
+
+/* Generic button fallback for auction-live: dark text */
+.admin-container.auction-live button:not(.btn-secondary) {
+  color: #111827 !important;
+}
+
+/* Table headers on auction-live: slightly muted dark gray */
+.admin-container.auction-live th {
+  color: #475569 !important;
+}
+
+/* Icons follow parent color */
+.admin-container.auction-live .btn-primary i,
+.admin-container.auction-live .btn-secondary i,
+.admin-container.auction-live a i {
+  color: inherit !important;
+}
+
+/* Ensure links within auction-live are visible dark links */
+.admin-container.auction-live a {
+  color: #0f172a !important;
+  text-decoration: none;
 }

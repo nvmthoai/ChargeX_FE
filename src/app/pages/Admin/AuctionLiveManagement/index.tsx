@@ -109,7 +109,7 @@ export default function AuctionLiveManagement() {
   ];
 
   return (
-    <div className="admin-container">
+    <div className="admin-container auction-live">
       <div className="section">
         <h2>Auctions</h2>
         <Space style={{ marginBottom: 16 }}>

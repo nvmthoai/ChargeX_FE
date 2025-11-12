@@ -51,6 +51,7 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
         auctionRequestId,
         startTime: values.startTime.toISOString(),
         endTime: values.endTime.toISOString(),
+        startingPrice: values.startingPrice,
         reservePrice: values.reservePrice,
         minBidIncrement: values.minBidIncrement,
         antiSnipingSeconds: values.antiSnipingSeconds,
@@ -151,11 +152,25 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <Form.Item
+                label={<span className="text-sm font-medium">Starting Price (₫) <Tooltip title="Initial bid amount - customers can't bid lower than this"><InfoCircleOutlined style={{ marginLeft: 6, color: 'rgba(255,255,255,0.6)' }} /></Tooltip></span>}
+                name="startingPrice"
+                rules={[{ required: true, message: "Please enter starting price" }]}
+                tooltip="Initial auction bid amount"
+              >
+                <InputNumber
+                  min={0}
+                  placeholder="0"
+                  className="w-full"
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                />
+              </Form.Item>
+
+              <Form.Item
                 label={<span className="text-sm font-medium">Reserve Price (₫) <Tooltip title="Minimum price required to sell the item if reserve not met auction won't conclude"><InfoCircleOutlined style={{ marginLeft: 6, color: 'rgba(255,255,255,0.6)' }} /></Tooltip></span>}
                 name="reservePrice"
                 rules={[{ required: true, message: "Please enter a reserve price" }]}
                 tooltip="Minimum price required to sell the item"
-                
+
               >
                 <InputNumber
                   min={0}

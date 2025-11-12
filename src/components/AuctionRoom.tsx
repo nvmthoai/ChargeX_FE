@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuction } from "../hooks/useAuction";
 import { userApi } from "../api/user/api";
+import { auctionApi } from "../api/auction";
 
 interface AuctionRoomProps {
   auctionId: string;
@@ -11,6 +13,7 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
   auctionId,
   userId,
 }) => {
+  const navigate = useNavigate();
   const {
     auctionState,
     auctionDetail,
@@ -30,6 +33,8 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [ownerName, setOwnerName] = useState<string>("");
   const [winnerName, setWinnerName] = useState<string>("");
+  const [fetchingOrder, setFetchingOrder] = useState<boolean>(false);
+  const offsetRef = useRef<number>(0);
 
   // Fetch owner name
   useEffect(() => {
@@ -74,18 +79,24 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
     fetchWinnerName();
   }, [auctionDetail?.winnerId]);
 
-  // Calculate time remaining
+  // Update offset whenever serverNow changes (from WebSocket events or initial load)
   useEffect(() => {
     if (!auctionDetail?.endTime) return
 
-    // Compute client-server offset when server provides serverNow (ISO)
     const serverNowStr = (auctionDetail as any).serverNow
-    const offset = serverNowStr ? Date.parse(serverNowStr) - Date.now() : 0
+    if (serverNowStr) {
+      offsetRef.current = Date.parse(serverNowStr) - Date.now()
+    }
+  }, [auctionDetail?.serverNow])
+
+  // Calculate time remaining - runs every second
+  useEffect(() => {
+    if (!auctionDetail?.endTime) return
 
     const endTs = Date.parse(auctionDetail.endTime)
 
     const tick = () => {
-      const now = Date.now() + offset
+      const now = Date.now() + offsetRef.current
       const distance = endTs - now
 
       if (distance < 0) {
@@ -132,6 +143,35 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
 
     placeBid(amount);
     setBidAmount("");
+  };
+
+  const handlePayment = async () => {
+    if (!auctionDetail?.auctionId) {
+      alert("Không thể tìm thấy thông tin phiên đấu giá");
+      return;
+    }
+
+    setFetchingOrder(true);
+    try {
+      const order = await auctionApi.getOrderByAuctionId(auctionDetail.auctionId);
+      if (order && order.orderId) {
+        // Navigate to payment page with order ID
+        navigate(`/payment/${order.orderId}`, {
+          state: {
+            auctionId: auctionDetail.auctionId,
+            amount: currentPrice,
+            productTitle: auctionDetail.product.title
+          }
+        });
+      } else {
+        alert("Không thể tìm thấy đơn hàng cho phiên đấu giá này. Vui lòng liên hệ hỗ trợ.");
+      }
+    } catch (err: any) {
+      console.error("Error fetching order:", err);
+      alert("Lỗi khi tải thông tin đơn hàng: " + (err.message || "Vui lòng thử lại"));
+    } finally {
+      setFetchingOrder(false);
+    }
   };
 
   const handleBuyNow = async () => {
@@ -192,18 +232,20 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
 
       {/* Product Info */}
       <div className="auction-product-info">
-        <h1>{auctionDetail.product.title}</h1>
-        {ownerName && (
-          <div className="owner-info">
-            <strong>Người sở hữu:</strong> {ownerName}
-          </div>
-        )}
         <div className="product-images">
-          {auctionDetail.product.images.map((img: string, idx: number) => (
+          {(auctionDetail.product.images || auctionDetail.product.imageUrls || []).map((img: string, idx: number) => (
             <img key={idx} src={img} alt={`Product ${idx + 1}`} />
           ))}
         </div>
-        <p>{auctionDetail.product.description}</p>
+        <div>
+          <h1>{auctionDetail.product.title}</h1>
+          {ownerName && (
+            <div className="owner-info">
+              <strong>Người sở hữu:</strong> {ownerName}
+            </div>
+          )}
+          <p>{auctionDetail.product.description}</p>
+        </div>
       </div>
 
       {/* Auction Status */}
@@ -325,6 +367,33 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
           <h3>🏆 Người thắng cuộc</h3>
           <p>Người thắng: {winnerName || "Đang tải..."}</p>
           <p>Giá cuối: {formatPrice(currentPrice)}</p>
+
+          {/* Payment button if current user won */}
+          {auctionDetail.winnerId === userId && (
+            <div className="payment-section" style={{ marginTop: '15px' }}>
+              <button
+                onClick={handlePayment}
+                disabled={fetchingOrder}
+                style={{
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: fetchingOrder ? 'not-allowed' : 'pointer',
+                  opacity: fetchingOrder ? 0.6 : 1,
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  width: '100%'
+                }}
+              >
+                {fetchingOrder ? 'Đang tải...' : '💳 Thanh toán ngay'}
+              </button>
+              <p style={{ color: '#666', fontSize: '14px', marginTop: '10px' }}>
+                Vui lòng hoàn tất thanh toán để nhận sản phẩm
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
