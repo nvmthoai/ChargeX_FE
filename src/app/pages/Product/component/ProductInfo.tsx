@@ -106,17 +106,17 @@ export default function ProductInfo({ product }: { product: Product }) {
             <div className="grid grid-cols-2 gap-y-3 text-sm text-gray-800">
               <div className="font-medium text-gray-500">Start Price</div>
               <div className="font-semibold text-gray-900">
-                ${(product.price_start).toLocaleString()}
+                {(product.price_start).toLocaleString()} VND
               </div>
 
               <div className="font-medium text-gray-500">Current Price</div>
               <div className="font-bold text-green-600 text-base">
-                ${(product.price_now ?? product.price_start).toLocaleString()}
+                {(product.price_now ?? product.price_start).toLocaleString()}  VND
               </div>
 
               <div className="font-medium text-gray-500">Buy Now Price</div>
               <div className="font-semibold text-blue-600">
-                ${(product.price_buy_now ?? 0).toLocaleString()}
+                {(product.price_buy_now ?? 0).toLocaleString()}  VND
               </div>
 
               <div className="font-medium text-gray-500">End Time</div>
@@ -187,7 +187,7 @@ export default function ProductInfo({ product }: { product: Product }) {
         >
           {loading
             ? "Đang xử lý..."
-            : `Buy Now $${Number(product.price_buy_now).toLocaleString()}`}
+            : `Buy Now ${Number(product.price_buy_now).toLocaleString()} VND`}
         </button>
 
         <button

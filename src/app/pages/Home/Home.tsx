@@ -66,12 +66,13 @@ export default function EVMarketplace() {
     setPriceType([]);
   };
 
-  const getDisplayPrice = (product: (typeof products)[0]) => {
-    if (product.price_now) return `$${product.price_now.toLocaleString()}`;
-    if (product.price_buy_now)
-      return `$${product.price_buy_now.toLocaleString()}`;
-    return `$${product.price_start.toLocaleString()}`;
-  };
+const getDisplayPrice = (product: (typeof products)[0]) => {
+  if (product.price_buy_now !== null && product.price_buy_now !== undefined) {
+    return `${Number(product.price_buy_now).toLocaleString()} VND`;
+  }
+  return "N/A";
+};
+
 
   const getCondition = (product: (typeof products)[0]) => {
     if (product.condition_grade) return `Grade ${product.condition_grade}`;

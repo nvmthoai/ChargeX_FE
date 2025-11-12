@@ -237,16 +237,16 @@ export default function Checkout() {
               <div className="border-t pt-4 space-y-2 text-gray-700">
                 <p className="flex justify-between">
                   <span>Price</span>
-                  <span>${Number(product.price_buy_now).toLocaleString()}</span>
+                  <span>{Number(product.price_buy_now).toLocaleString()}  VND</span>
                 </p>
                 <p className="flex justify-between">
                   <span>Shipping Fee</span>
-                  <span>${Number(DEFAULT_SHIPPING_FEE).toLocaleString()}</span>
+                  <span>{Number(DEFAULT_SHIPPING_FEE).toLocaleString()}  VND</span>
                 </p>
                 <p className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
                   <span className="text-[#0F74C7]">
-                    ${(Number(product.price_buy_now) + Number(DEFAULT_SHIPPING_FEE)).toLocaleString()}
+                    {(Number(product.price_buy_now) + Number(DEFAULT_SHIPPING_FEE)).toLocaleString()} VND
                   </span>
                 </p>
               </div>

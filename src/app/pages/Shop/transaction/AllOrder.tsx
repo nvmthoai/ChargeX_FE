@@ -165,7 +165,7 @@ export default function AllOrder() {
                     </td>
 
                     <td className="px-5 py-3 text-right font-semibold">
-                      {o.totalPrice?.toLocaleString("vi-VN")}₫
+                      {Number(o.totalPrice)?.toLocaleString()} VND
                     </td>
 
                     <td className="px-5 py-3">

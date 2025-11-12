@@ -203,7 +203,7 @@ const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
                   </td>
 
                   <td className="px-5 py-3 text-right text-gray-900 font-semibold">
-                   ${(Number(p.price_buy_now)).toLocaleString()}
+                   {(Number(p.price_buy_now)).toLocaleString()} VND
                   </td>
 
                   <td className="px-5 py-3 relative" onClick={(e) => e.stopPropagation()}>

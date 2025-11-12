@@ -157,7 +157,7 @@ export default function OrderDetail() {
               </div>
             </div>
             <p className="font-medium text-gray-700 text-right">
-              ${Number(order.totalPrice).toLocaleString()}
+              {Number(order.totalPrice).toLocaleString()} VND
             </p>
           </div>
         </div>
@@ -167,19 +167,19 @@ export default function OrderDetail() {
       <div className="border-t pt-5">
         <div className="flex justify-between mb-2 text-gray-600">
           <span>Subtotal</span>
-          <span>${Number(order.totalPrice).toLocaleString()}</span>
+          <span>{Number(order.totalPrice).toLocaleString()} VND</span>
         </div>
         <div className="flex justify-between mb-2 text-gray-600">
           <span>Shipping Charge</span>
-          <span>${Number(order.totalShippingFee).toLocaleString()}</span>
+          <span>{Number(order.totalShippingFee).toLocaleString()} VND</span>
         </div>
-        <div className="flex justify-between mb-2 text-gray-600">
+        {/* <div className="flex justify-between mb-2 text-gray-600">
           <span>Tax Fee</span>
           <span>$0</span>
-        </div>
+        </div> */}
         <div className="flex justify-between text-lg font-semibold mt-3 border-t pt-3">
           <span>Total</span>
-          <span className="text-green-600">${total.toLocaleString()}</span>
+          <span className="text-green-600">{total.toLocaleString()} VND</span>
         </div>
       </div>
 

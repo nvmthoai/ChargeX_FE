@@ -10,7 +10,7 @@ export default function AddProduct({ onClose }: { onClose?: () => void }) {
     try {
       await createProduct(formData);
       alert("✅ Thêm sản phẩm thành công!");
-      onClose?.(); // 🟢 Đóng form (modal) sau khi thêm
+      onClose?.();
     } catch (err) {
       console.error(err);
       alert("❌ Lỗi khi thêm sản phẩm!");

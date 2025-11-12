@@ -72,7 +72,7 @@ export default function PaymentSuccess() {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Amount Paid</span>
               <span className="text-2xl font-bold text-green-600">
-                ${Number(amount).toLocaleString()}
+                {Number(amount).toLocaleString()} VND
               </span>
             </div>
             <div className="flex justify-between items-center">
