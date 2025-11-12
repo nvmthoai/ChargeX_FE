@@ -234,22 +234,23 @@ const WithdrawManagement: React.FC = () => {
             </button>
           </div>
 
-          <section className="admin-table-container">
-            <Spin spinning={loading}>
-              <Table
-                columns={columns}
-                dataSource={payouts}
-                rowKey="id"
-                pagination={{
-                  current: pagination.page,
-                  pageSize: pagination.limit,
-                  total: pagination.total,
-                  onChange: (page) => fetchPayouts(page, statusFilter),
-                }}
-                scroll={{ x: 1400 }}
-              />
-            </Spin>
-          </section>
+          <div style={{ width: '100%', overflow: 'hidden' }}>
+            <section className="admin-table-container">
+              <Spin spinning={loading}>
+                <Table
+                  columns={columns}
+                  dataSource={payouts}
+                  rowKey="id"
+                  pagination={{
+                    current: pagination.page,
+                    pageSize: pagination.limit,
+                    total: pagination.total,
+                    onChange: (page) => fetchPayouts(page, statusFilter),
+                  }}
+                />
+              </Spin>
+            </section>
+          </div>
 
           <ApprovePayoutModal
             visible={approveModalVisible}

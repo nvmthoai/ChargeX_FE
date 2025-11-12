@@ -111,9 +111,11 @@ export default function PaymentPage() {
       if (method === PaymentProvider.WALLET) {
         // 🪙 Thanh toán qua ví nội bộ
         console.log("🪙 payOrderWithWallet →", { orderId: order.orderId, total });
-        const result = await payOrderWithWallet(order.orderId, total);
+        const result = await payOrderWithWallet(order.orderId, total) as any;
 
-        if (result?.success || result?.status === 200 || result?.status === 201) {
+        const ok = Boolean(result && (result.success || result.status === 200 || result.status === 201));
+
+        if (ok) {
           message.success("Thanh toán ví nội bộ thành công!");
 
           // 🔗 Ghi lại Payment record để Order có payment hiển thị ở các màn sau
@@ -137,10 +139,10 @@ export default function PaymentPage() {
             console.warn("⚠️ createPaymentForOrder (WALLET) failed, continue redirect:", e);
           }
 
-          const txId = result?.data?.transactionId || `WALLET-${Date.now()}`;
+          const txId = (result && result.data && result.data.transactionId) || `WALLET-${Date.now()}`;
           navigate(`/payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}`);
         } else {
-          message.error(result?.message || "Thanh toán ví thất bại!");
+          message.error((result && result.message) || "Thanh toán ví thất bại!");
         }
       } else {
         // 💳 Thanh toán qua PayOS (tạo Payment + redirect)
@@ -226,7 +228,7 @@ export default function PaymentPage() {
               <div className="flex-1">
                 <p className="font-semibold text-gray-900 text-lg">{product.title}</p>
                 <p className="text-sm text-gray-500 line-clamp-2">{product.description || "Không có mô tả"}</p>
-                <p className="font-semibold text-[#0F74C7] mt-1">{Number(order.totalPrice).toLocaleString()} ₫</p>
+                <p className="font-semibold text-[#0F74C7] mt-1">${Number(order.totalPrice).toLocaleString()}</p>
               </div>
             </div>
           )}
@@ -280,14 +282,14 @@ export default function PaymentPage() {
             )}
             <p className="text-gray-700 mt-1">
               <span className="font-medium">Phí vận chuyển:</span>{" "}
-              {order.totalShippingFee ? `${Number(order.totalShippingFee).toLocaleString()} ₫` : "0 ₫"}
+              {order.totalShippingFee ? `$${Number(order.totalShippingFee).toLocaleString()}` : "$0"}
             </p>
           </div>
 
           {/* 💰 Tổng tiền */}
           <div className="pt-4 border-t border-gray-200 text-right">
             <p className="font-semibold text-gray-800 text-lg">Tổng thanh toán:</p>
-            <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{total.toLocaleString()} ₫</p>
+            <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">${total.toLocaleString()}</p>
           </div>
         </div>
 
@@ -339,7 +341,7 @@ export default function PaymentPage() {
                           <p>
                             Số dư khả dụng:{" "}
                             <span className="font-semibold text-[#0F74C7]">
-                              {wallet.available.toLocaleString()} ₫
+                              ${wallet.available.toLocaleString()}
                             </span>
                           </p>
                           {wallet.available < total && (

@@ -81,7 +81,7 @@ export default function ProductInfo({ product }: { product: Product }) {
 
         <div className="flex justify-between text-sm text-gray-500 mt-4">
           <span className="flex items-center gap-1">
-            <Clock3 className="w-4 h-4 text-blue-500" />
+            <Clock3 className="w-4 h-4 text-[#0F74C7]" />
             {product.createdAt
               ? new Date(product.createdAt).toLocaleDateString("vi-VN", {
                 day: "2-digit",
@@ -152,6 +152,11 @@ export default function ProductInfo({ product }: { product: Product }) {
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xl">
                 {product.seller.fullName[0].toUpperCase()}
+                {/* <img
+                  src={product.seller.image || "/default_avatar.png"}
+                  alt="Seller Avatar"
+                  className="w-16 h-16 rounded-full object-cover"
+                /> */}
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 ">
@@ -169,28 +174,37 @@ export default function ProductInfo({ product }: { product: Product }) {
         </Link>
       )}
 
-      {/* Buy Now + Wishlist (ẩn nếu là sản phẩm của user) */}
-      {!isOwner && (
-        <div className="flex gap-3 mt-5">
-          <button
-            onClick={handleBuyNow}
-            disabled={loading}
-            className={`flex-1 bg-[#0F74C7] text-white px-4 py-2 rounded font-medium ${loading
-              ? "opacity-60 cursor-not-allowed"
-              : "hover:bg-[#3888ca] transition"
-              }`}
-          >
-            {loading
-              ? "Đang xử lý..."
-              : `Buy Now • $${Number(product.price_buy_now).toLocaleString()}`}
-          </button>
-          <button
-            onClick={() => handleAddToCart()}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium">
-            Add to Watchlist
-          </button>
-        </div>
+      {/* Buy Now + Watchlist */}
+      <div
+        className={`flex gap-3 mt-5 ${isOwner ? "opacity-60 pointer-events-none select-none" : ""
+          }`}
+      >
+        <button
+          onClick={handleBuyNow}
+          disabled={loading}
+          className={`flex-1 bg-[#0F74C7] text-white px-4 py-2 rounded font-medium transition ${loading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#3888ca]"
+            }`}
+        >
+          {loading
+            ? "Đang xử lý..."
+            : `Buy Now $${Number(product.price_buy_now).toLocaleString()}`}
+        </button>
+
+        <button
+          onClick={handleAddToCart}
+          className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium"
+        >
+          Add to Watchlist
+        </button>
+      </div>
+
+      {/* Nếu là sản phẩm của chính user, hiển thị cảnh báo nhỏ bên dưới */}
+      {isOwner && (
+        <p className="text-sm text-red-500 mt-2 italic">
+          ⚠️ Bạn không thể mua hoặc thêm sản phẩm của chính mình.
+        </p>
       )}
+
 
       {/* Specifications */}
       <div className="pt-6">

@@ -9,16 +9,12 @@ import {
   Space,
   message,
   Spin,
-  Select,
-  Row,
-  Col,
-  Input,
 } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
+import { EyeOutlined, CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { ReportDetailModal } from "./ReportDetailModal";
 import { ResolveReportModal } from "./ResolveReportModal";
 import "../NavigationBar/NavigationBar.css";
-import dayjs from "dayjs";
+import "./index.css";
 import type { Report } from "../../../models/dispute.model";
 import useDisputes from "../../../hooks/useDisputes";
 
@@ -123,7 +119,7 @@ export const DisputesManagement: React.FC = () => {
       title: "User",
       dataIndex: ["openedBy", "fullName"],
       key: "user",
-      width: 150,
+      width: "18%",
       render: (text: string, record: Report) => (
         <div className="text-sm">
           <div className="font-medium">{text}</div>
@@ -132,19 +128,17 @@ export const DisputesManagement: React.FC = () => {
       ),
     },
     {
-      title: "Type",
-      dataIndex: "type",
-      key: "type",
-      width: 100,
-      render: (type: string) => (
-        <Tag color={getTypeColor(type)}>{type.toUpperCase()}</Tag>
-      ),
+      title: "Phone",
+      dataIndex: ["openedBy", "phone"],
+      key: "phone",
+      width: "12%",
+      render: (phone: string) => <span className="text-sm">{phone}</span>,
     },
     {
       title: "Amount",
       dataIndex: ["order", "grandTotal"],
       key: "amount",
-      width: 120,
+      width: "12%",
       render: (amount: string) => (
         <span className="text-sm font-medium">
           ₫{Number.parseFloat(amount).toLocaleString()}
@@ -152,29 +146,26 @@ export const DisputesManagement: React.FC = () => {
       ),
     },
     {
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      width: "12%",
+      render: (type: string) => (
+        <Tag color={getTypeColor(type)}>{type.toUpperCase()}</Tag>
+      ),
+    },
+    {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      width: 100,
+      width: "12%",
       render: (status: string) => (
         <Tag color={getStatusColor(status)}>{status.toUpperCase()}</Tag>
       ),
     },
     {
-      title: "Created",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      width: 160,
-      render: (date: string) => (
-        <span className="text-sm">
-          {dayjs(date).format("YYYY-MM-DD HH:mm")}
-        </span>
-      ),
-    },
-    {
       title: "Actions",
       key: "actions",
-      width: 200,
       render: (_: any, record: Report) => (
         <Space size="small">
           <Button
@@ -187,13 +178,24 @@ export const DisputesManagement: React.FC = () => {
             Details
           </Button>
           {record.status === "pending" && (
-            <Button
-              type="primary"
-              size="small"
-              onClick={() => handleResolve(record)}
-            >
-              Resolve
-            </Button>
+            <>
+              <Button
+                type="primary"
+                size="small"
+                icon={<CheckCircleOutlined />}
+                onClick={() => handleResolve(record)}
+              >
+                Resolve
+              </Button>
+              <Button
+                danger
+                size="small"
+                icon={<CloseCircleOutlined />}
+                onClick={() => handleResolve(record)}
+              >
+                Reject
+              </Button>
+            </>
           )}
         </Space>
       ),
@@ -202,67 +204,69 @@ export const DisputesManagement: React.FC = () => {
 
   return (
     <div className="admin-container">
-      <div className="p-6 bg-slate-50 min-h-screen">
-        <div className="bg-slate-900 rounded-lg p-6 mb-6">
-          <h1 className="text-2xl font-bold text-white mb-4">
-            Report Management
-          </h1>
-          <Row gutter={16}>
-            <Col xs={24} sm={12} lg={6}>
-              <Input.Search
-                placeholder="Search by user, email or order"
-                allowClear
-                onChange={(e) => setSearchText(e.target.value)}
-                className="w-full"
-              />
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Select
-                placeholder="Filter by type"
-                allowClear
-                onChange={(value) => setTypeFilter(value)}
-                options={[
-                  { label: "Refund", value: "refund" },
-                  { label: "Damaged", value: "damaged" },
-                  { label: "Not Received", value: "not_received" },
-                  { label: "Other", value: "other" },
-                ]}
-                className="w-full"
-              />
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Select
-                placeholder="Filter by status"
-                allowClear
-                onChange={(value) => setStatusFilter(value)}
-                options={[
-                  { label: "Pending", value: "pending" },
-                  { label: "Resolved", value: "resolved" },
-                  { label: "Refunded", value: "refunded" },
-                  { label: "Rejected", value: "rejected" },
-                ]}
-                className="w-full"
-              />
-            </Col>
-          </Row>
+      <div className="inner-container management-container withdraw-management-container">
+        <header className="main-header">
+          <h1>Report Management</h1>
+        </header>
+
+        <div className="controls">
+          <div className="search-bar">
+            <i className="fa-solid fa-magnifying-glass" />
+            <input
+              type="text"
+              placeholder="Find by name, email, phone or order..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+          </div>
+
+          <form>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <option value="">-- Type --</option>
+              <option value="refund">Refund</option>
+              <option value="damaged">Damaged</option>
+              <option value="not_received">Not received</option>
+              <option value="other">Other</option>
+            </select>
+          </form>
+
+          <form>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">-- Status --</option>
+              <option value="pending">Pending</option>
+              <option value="resolved">Resolved</option>
+              <option value="refunded">Refunded</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </form>
+
+          <button className="btn btn-secondary" onClick={() => fetchReports(1, statusFilter, typeFilter)}>
+            Refresh
+          </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow">
-          <Spin spinning={loading}>
-            <Table
-              columns={columns}
-              dataSource={reports}
-              rowKey="id"
-              pagination={{
-                current: pagination.page,
-                pageSize: pagination.limit,
-                total: pagination.total,
-                onChange: (page) =>
-                  fetchReports(page, statusFilter, typeFilter),
-              }}
-              scroll={{ x: 1400 }}
-            />
-          </Spin>
+        <div style={{ width: '100%', overflow: 'hidden' }}>
+          <div className="admin-table-container">
+            <Spin spinning={loading}>
+              <Table
+                columns={columns}
+                dataSource={reports}
+                rowKey="id"
+                pagination={{
+                  current: pagination.page,
+                  pageSize: pagination.limit,
+                  total: pagination.total,
+                  onChange: (page) => fetchReports(page, statusFilter, typeFilter),
+                }}
+              />
+            </Spin>
+          </div>
         </div>
 
         <ReportDetailModal
@@ -282,9 +286,7 @@ export const DisputesManagement: React.FC = () => {
             orderId={selectedReport.order.orderId}
             grandTotal={selectedReport.order.grandTotal}
             onClose={() => setResolveVisible(false)}
-            onSuccess={() =>
-              fetchDisputes()
-            }
+            onSuccess={() => fetchDisputes()}
           />
         )}
       </div>

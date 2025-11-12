@@ -86,6 +86,7 @@ export default function useAuctionLive(
   const [pendingBid, setPendingBid] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [serverTimeOffset, setServerTimeOffset] = useState<number>(0);
 
   const socketRef = useRef<Socket | null>(null);
   const resyncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -114,7 +115,17 @@ export default function useAuctionLive(
         setAuction(auctionData);
         setError(null);
         setLoading(false);
-      }
+        // if server provides serverNow, compute offset
+        try {
+          const serverNow = auctionData?.serverNow || auctionData?.server_now || null;
+          if (serverNow) {
+            const serverMs = new Date(serverNow).getTime();
+            if (!Number.isNaN(serverMs)) setServerTimeOffset(Date.now() - serverMs);
+          }
+        } catch {
+          // ignore
+        }
+       }
     } catch (err: unknown) {
       console.error("[useAuctionLive] fetchAuctionDetail error:", err);
       if (mountedRef.current) {
@@ -149,8 +160,12 @@ export default function useAuctionLive(
     if (!auctionId) return;
 
     try {
-      const userId = localStorage.getItem("userId") || undefined;
-      const socket = auctionSocket.connect(userId);
+      const storedUserId = localStorage.getItem("userId");
+      const normalizedUserId =
+        storedUserId && storedUserId !== "null" && storedUserId !== "undefined"
+          ? storedUserId
+          : undefined;
+      const socket = auctionSocket.connect(normalizedUserId);
       socketRef.current = socket;
 
       socket.on("connect", () => {
@@ -200,8 +215,19 @@ export default function useAuctionLive(
           };
           setAuction(mapped);
           setLoading(false);
-        }
-      });
+          // update server time offset if provided by socket payload
+          try {
+            const sv: any = sd
+            const sNow = sv.serverNow ?? sv.server_now ?? sv.serverTime
+            if (sNow) {
+              const sMs = new Date(sNow).getTime()
+              if (!Number.isNaN(sMs)) setServerTimeOffset(Date.now() - sMs)
+            }
+          } catch {
+            // ignore
+          }
+         }
+       });
 
       socket.on("auction:price_update", (update: PriceUpdate) => {
         console.log("[useAuctionLive] Price update:", update);
@@ -252,48 +278,61 @@ export default function useAuctionLive(
   const placeBid = useCallback(
     async (amount: number) => {
       if (!socketRef.current?.connected) {
-        throw new Error("Not connected to auction server");
+        const msg = "Not connected to auction server"
+        console.error("[useAuctionLive]", msg)
+        throw new Error(msg)
       }
 
       if (!auctionId) {
-        throw new Error("No auction ID");
+        const msg = "No auction ID"
+        console.error("[useAuctionLive]", msg)
+        throw new Error(msg)
       }
 
-      // Set pending bid for optimistic UI
-      setPendingBid(amount);
-      setError(null);
+      // Try to resolve bidderId: prefer provided option, fallback to localStorage
+      const normalizedOptionBidder =
+        bidderId && bidderId !== "null" && bidderId !== "undefined" ? bidderId : null
+      const storedUserId = localStorage.getItem("userId")
+      const normalizedStoredUser =
+        storedUserId && storedUserId !== "null" && storedUserId !== "undefined"
+          ? storedUserId
+          : null
+      const decodedUser = tryDecodeTokenSub()
+      const effectiveBidderId = normalizedOptionBidder ?? normalizedStoredUser ?? decodedUser ?? null
+
+      if (!effectiveBidderId) {
+        console.error("❌ [useAuctionLive] No bidderId provided!")
+        const errMsg = "User not authenticated. Please log in to place a bid."
+        // update hook error state and throw to caller
+        setError(errMsg)
+        throw new Error(errMsg)
+      }
+
+      // Set pending bid for optimistic UI only after we validated bidder
+      setPendingBid(amount)
+      setError(null)
 
       const clientBidId = `bid-${Date.now()}-${Math.random()
         .toString(36)
-        .substr(2, 9)}`;
-
-      // Check if we have bidderId
-      if (!bidderId) {
-        console.error("❌ [useAuctionLive] No bidderId provided!");
-        throw new Error("User not authenticated. Please log in to place a bid.");
-      }
-
- 
+        .substr(2, 9)}`
 
       // Emit bid to server
       socketRef.current.emit("auction:place_bid", {
         auctionId,
-        bidderId,
+        bidderId: effectiveBidderId,
         amount,
         clientBidId,
-      });
-      
-      
+      })
 
       // Clear pending after a timeout (in case we don't get response)
       setTimeout(() => {
         if (mountedRef.current) {
-          setPendingBid(null);
+          setPendingBid(null)
         }
-      }, 5000);
+      }, 5000)
     },
     [auctionId, bidderId]
-  );
+  )
 
   // Update countdown
   useEffect(() => {
@@ -303,15 +342,16 @@ export default function useAuctionLive(
     }
 
     const updateCountdown = () => {
-      const now = new Date().getTime();
-      
+      // derive server current time using offset (serverNow = Date.now() - offset)
+      const now = Date.now() - serverTimeOffset;
+
       // Ensure endTime is properly parsed as ISO string (UTC)
       let endTimeStr = auction.endTime;
       // If endTime doesn't have timezone info, assume it's UTC
       if (!endTimeStr.endsWith('Z') && !endTimeStr.includes('+') && !endTimeStr.includes('-', 10)) {
         endTimeStr = endTimeStr + 'Z';
       }
-      
+
       const end = new Date(endTimeStr).getTime();
       const distance = Math.max(0, end - now);
       const seconds = Math.floor(distance / 1000);
@@ -333,7 +373,7 @@ export default function useAuctionLive(
         clearInterval(countdownIntervalRef.current);
       }
     };
-  }, [auction?.endTime]);
+  }, [auction?.endTime, serverTimeOffset]);
 
   // Initial fetch and socket connection
   useEffect(() => {
@@ -376,6 +416,20 @@ export default function useAuctionLive(
       setReconnecting(false);
     };
   }, [auctionId, connectSocket, fetchAuctionDetail, resyncIntervalSeconds]);
+
+  // Helper: try decode JWT payload to extract user id
+  const tryDecodeTokenSub = () => {
+    try {
+      const tk = localStorage.getItem("token")
+      if (!tk) return null
+      const parts = tk.split('.')
+      if (parts.length < 2) return null
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+      return payload?.sub || payload?.userId || null
+    } catch {
+      return null
+    }
+  }
 
   return {
     auction,
