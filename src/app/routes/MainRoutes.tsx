@@ -45,9 +45,11 @@ import OrderManagement from "../pages/Profile/Orders";
 import { DisputesManagement } from "../pages/Admin/DisputesManagement";
 
 export default function MainRoutes() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  console.log('user', user);
   return (
     <BrowserRouter>
-      <div className="sticky top-0 left-0 z-20"><Header /></div>
+      {user?.role !== "admin" && <div className="sticky top-0 left-0 z-20"><Header /></div>}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
