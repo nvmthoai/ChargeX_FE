@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-  Upload,
-  Link as LinkIcon,
+  UploadCloud,
   Image as ImageIcon,
   CheckCircle,
   XCircle,
   PauseCircle,
   FileText,
+  Trash2,
 } from "lucide-react";
 import type { Product } from "../../../../api/product/type";
 
@@ -17,9 +17,8 @@ interface ProductFormProps {
   onSubmit: (formData: FormData) => Promise<void>;
 }
 
-// 🧩 Form state chuẩn với Product type
 type FormState = Omit<Product, "id" | "seller" | "createdAt" | "imageUrls"> & {
-  imageUrls: string; // textarea nhập link ảnh
+  imageUrls: string;
 };
 
 export default function ProductForm({
@@ -54,18 +53,16 @@ export default function ProductForm({
 
   const [files, setFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
-  const [linkPreviews, setLinkPreviews] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<"link" | "upload">("link");
   const [openStatus, setOpenStatus] = useState(false);
 
   const statusOptions = [
-    { value: "active", label: "Hoạt động", icon: CheckCircle },
-    { value: "sold", label: "Đã bán", icon: XCircle },
-    { value: "ended", label: "Kết thúc", icon: PauseCircle },
-    { value: "draft", label: "Bản nháp", icon: FileText },
+    { value: "active", label: "Active", icon: CheckCircle },
+    { value: "sold", label: "Sold", icon: XCircle },
+    { value: "ended", label: "Ended", icon: PauseCircle },
+    { value: "draft", label: "Draft", icon: FileText },
   ];
 
-  // 🟦 Load dữ liệu khi edit
+  // 🔹 Load data when editing
   useEffect(() => {
     if (initialData) {
       setForm((prev) => ({
@@ -86,11 +83,11 @@ export default function ProductForm({
         is_auction: initialData.is_auction ?? false,
         imageUrls: (initialData.imageUrls || []).join("\n"),
       }));
-      setLinkPreviews(initialData.imageUrls || []);
+      setFilePreviews(initialData.imageUrls || []); // ✅ Hiển thị ảnh cũ
     }
   }, [initialData]);
 
-  // 🖼️ Upload file
+  // 🔹 Handle file uploads
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList?.length) return;
@@ -105,14 +102,15 @@ export default function ProductForm({
     e.target.value = "";
   };
 
-  // 🧩 Handle input change
+  // 🔹 Handle input changes
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value, type } = e.target;
-    const checked = type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
+    const checked =
+      type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
 
     setForm((prev) => {
       if (name === "is_auction") {
@@ -153,25 +151,21 @@ export default function ProductForm({
     });
   };
 
-  // 🔁 Preview link ảnh
-  useEffect(() => {
-    if (!form.imageUrls.trim()) {
-      setLinkPreviews([]);
-      return;
-    }
-    const urls = form.imageUrls
-      .split(/[\n,]/)
-      .map((u) => u.trim())
-      .filter(Boolean);
-    setLinkPreviews(urls);
-  }, [form.imageUrls]);
+  // 🔹 Format tiền hiển thị $11,000 hoặc 11,000 VND
+  const handleMoneyChange = (name: string, value: string) => {
+    const numeric = value.replace(/,/g, "");
+    setForm((prev) => ({
+      ...prev,
+      [name]: numeric === "" ? 0 : Number(numeric),
+    }));
+  };
 
-  // 🚀 Submit form
+  // 🔹 Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.title || !form.description) {
-      alert("Vui lòng nhập đầy đủ thông tin bắt buộc!");
+      alert("Please fill in all required fields!");
       return;
     }
 
@@ -193,23 +187,14 @@ export default function ProductForm({
       }
     });
 
-    // 🟩 Xử lý ảnh (link hoặc upload)
-    if (activeTab === "link" && form.imageUrls.trim()) {
-      const arr = form.imageUrls
-        .split(/[\n,]/)
-        .map((url) => url.trim())
-        .filter(Boolean);
-      formData.append("imageUrls", JSON.stringify(arr));
-    }
-
-    if (activeTab === "upload" && files.length > 0) {
+    if (files.length > 0) {
       files.forEach((f) => formData.append("files", f));
     }
 
     await onSubmit(formData);
   };
 
-  // 🧹 Cleanup preview
+  // 🔹 Cleanup file previews
   useEffect(() => {
     return () => {
       filePreviews.forEach((url) => URL.revokeObjectURL(url));
@@ -219,51 +204,66 @@ export default function ProductForm({
   return (
     <div className="min-h-[85vh] rounded-3xl shadow-lg p-10 border border-blue-100 bg-white transition-all duration-300">
       <form onSubmit={handleSubmit} className="space-y-10 max-w-3xl mx-auto">
-        {/* 🟦 PHẦN 1: THÔNG TIN CƠ BẢN */}
+        {/* SECTION 1: Basic Information */}
         <section className="space-y-6">
           <h2 className="text-xl font-semibold text-blue-600 border-b-2 border-blue-200 pb-2 flex items-center gap-2">
-            <FileText className="text-blue-500" size={20} /> Thông tin cơ bản
+            <FileText className="text-blue-500" size={20} /> Basic Information
           </h2>
 
-          {/* Tên + Trạng thái */}
+          {/* Title + Status */}
           <div className="grid grid-cols-2 gap-5">
             <div>
               <label className="block font-medium text-gray-700 mb-1">
-                Tên sản phẩm <span className="text-red-500">*</span>
+                Product Name <span className="text-red-500">*</span>
               </label>
               <input
                 name="title"
                 value={form.title}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-xl px-4 py-2.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                placeholder="Nhập tên sản phẩm..."
+                placeholder="Enter product name..."
               />
             </div>
 
-            {/* Dropdown status */}
+            {/* Dropdown Status */}
             <div className="relative">
-              <label className="block font-medium text-gray-700 mb-1">Tình trạng</label>
+              <label className="block font-medium text-gray-700 mb-1">
+                Status
+              </label>
               <div
                 className="border border-gray-300 rounded-xl px-4 py-2.5 bg-white shadow-sm cursor-pointer hover:border-blue-400 transition-all flex justify-between items-center"
                 onClick={() => setOpenStatus((o) => !o)}
               >
                 <div className="flex items-center gap-2">
                   {(() => {
-                    const selected = statusOptions.find((s) => s.value === form.status);
+                    const selected = statusOptions.find(
+                      (s) => s.value === form.status
+                    );
                     if (!selected) return null;
                     const Icon = selected.icon;
                     return <Icon size={18} className="text-blue-500" />;
                   })()}
-                  <span>{statusOptions.find((s) => s.value === form.status)?.label ?? "Chọn"}</span>
+                  <span>
+                    {
+                      statusOptions.find((s) => s.value === form.status)
+                        ?.label ?? "Select"
+                    }
+                  </span>
                 </div>
                 <svg
-                  className={`w-4 h-4 text-gray-500 transition-transform ${openStatus ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 text-gray-500 transition-transform ${
+                    openStatus ? "rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
               {openStatus && (
@@ -291,219 +291,230 @@ export default function ProductForm({
             </div>
           </div>
 
-          {/* Mô tả */}
+          {/* Description */}
           <div>
             <label className="block font-medium text-gray-700 mb-1">
-              Mô tả sản phẩm <span className="text-red-500">*</span>
+              Description <span className="text-red-500">*</span>
             </label>
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
-              placeholder="Nhập mô tả chi tiết..."
+              placeholder="Enter detailed product description..."
               className="w-full border border-gray-300 rounded-xl px-4 py-3 h-28 resize-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
 
-          {/* Giá và kích thước */}
+          {/* Price & Dimensions */}
           <div className="grid grid-cols-3 gap-4">
-            <input
-              type="number"
-              name="price_buy_now"
-              placeholder="Giá mua ngay (VNĐ)"
-              value={form.price_buy_now ?? ""}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-            />
-            <input
-              type="number"
-              name="price_start"
-              placeholder="Giá khởi điểm (VNĐ)"
-              value={form.price_start ?? ""}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-            />
-            <input
-              type="text"
-              name="dimension"
-              placeholder="Kích thước (VD: 30x20x10cm)"
-              value={form.dimension ?? ""}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-            />
-            <input
-              type="number"
-              name="weight_kg"
-              placeholder="Trọng lượng (kg)"
-              value={form.weight_kg ?? ""}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-            />
+            <div>
+              <label className="block font-medium text-gray-700 mb-1">
+                Buy Now Price (VND)
+              </label>
+              <input
+                type="text"
+                name="price_buy_now"
+                value={
+                  form.price_buy_now
+                    ? form.price_buy_now.toLocaleString("en-US")
+                    : ""
+                }
+                onChange={(e) =>
+                  handleMoneyChange("price_buy_now", e.target.value)
+                }
+                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 w-full"
+                placeholder="e.g. 11,000"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium text-gray-700 mb-1">
+                Starting Price (VND)
+              </label>
+              <input
+                type="text"
+                name="price_start"
+                value={
+                  form.price_start
+                    ? form.price_start.toLocaleString("en-US")
+                    : ""
+                }
+                onChange={(e) =>
+                  handleMoneyChange("price_start", e.target.value)
+                }
+                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 w-full"
+                placeholder="e.g. 5,000"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium text-gray-700 mb-1">
+                Dimension <span className="text-gray-500 text-sm">(cm)</span>
+              </label>
+              <input
+                type="text"
+                name="dimension"
+                value={form.dimension ?? ""}
+                onChange={handleChange}
+                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 w-full"
+                placeholder="e.g. 30x20x10"
+              />
+            </div>
           </div>
 
-          {/* Thông số kỹ thuật */}
+          {/* Technical specs */}
           <div className="grid grid-cols-3 gap-4">
-            <input
-              type="number"
-              name="soh_percent"
-              placeholder="SOH (%)"
-              value={form.soh_percent ?? ""}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-            />
-            <input
-              type="number"
-              name="cycle_count"
-              placeholder="Số chu kỳ sạc"
-              value={form.cycle_count ?? ""}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-            />
-            <input
-              type="number"
-              name="nominal_voltage_v"
-              placeholder="Điện áp danh định (V)"
-              value={form.nominal_voltage_v ?? ""}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-            />
+            <div>
+              <label className="block font-medium text-gray-700 mb-1">
+                SOH (%) <span className="text-gray-500 text-sm">(State of Health)</span>
+              </label>
+              <input
+                type="number"
+                name="soh_percent"
+                value={form.soh_percent ?? ""}
+                onChange={handleChange}
+                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 w-full"
+                placeholder="e.g. 80"
+              />
+            </div>
+            <div>
+              <label className="block font-medium text-gray-700 mb-1">
+                Cycle Count
+              </label>
+              <input
+                type="number"
+                name="cycle_count"
+                value={form.cycle_count ?? ""}
+                onChange={handleChange}
+                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 w-full"
+                placeholder="e.g. 500"
+              />
+            </div>
+            <div>
+              <label className="block font-medium text-gray-700 mb-1">
+                Nominal Voltage (V)
+              </label>
+              <input
+                type="number"
+                name="nominal_voltage_v"
+                value={form.nominal_voltage_v ?? ""}
+                onChange={handleChange}
+                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 w-full"
+                placeholder="e.g. 48"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              name="condition_grade"
-              placeholder="Tình trạng (VD: A+, B...)"
-              value={form.condition_grade ?? ""}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400"
-            />
+            <div>
+              <label className="block font-medium text-gray-700 mb-1">
+                Weight (kg)
+              </label>
+              <input
+                type="number"
+                name="weight_kg"
+                value={form.weight_kg ?? ""}
+                onChange={handleChange}
+                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 w-full"
+                placeholder="e.g. 25"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium text-gray-700 mb-1">
+                Condition Grade <span className="text-gray-500 text-sm">(A+, A, B...)</span>
+              </label>
+              <input
+                type="text"
+                name="condition_grade"
+                value={form.condition_grade ?? ""}
+                onChange={handleChange}
+                className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 w-full"
+                placeholder="e.g. A+"
+              />
+            </div>
           </div>
         </section>
 
-        {/* 🟩 HÌNH ẢNH */}
+        {/* SECTION 2: IMAGE UPLOAD */}
         <section className="space-y-4">
           <h2 className="text-xl font-semibold text-blue-600 border-b-2 border-blue-200 pb-2 flex items-center gap-2">
-            <ImageIcon className="text-blue-500" size={20} /> Hình ảnh sản phẩm
+            <ImageIcon className="text-blue-500" size={20} /> Product Images
           </h2>
 
-          {/* Tab chọn kiểu thêm ảnh */}
-          <div className="flex gap-4 mb-3">
-            {[
-              { key: "link", label: "Dán link ảnh", icon: LinkIcon },
-              { key: "upload", label: "Upload file", icon: Upload },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
-                    activeTab === tab.key
-                      ? "bg-blue-100 border-blue-400 text-blue-600"
-                      : "bg-white border-gray-300 hover:border-blue-300"
-                  }`}
-                  onClick={() => setActiveTab(tab.key as "link" | "upload")}
-                >
-                  <Icon size={18} /> {tab.label}
-                </button>
-              );
-            })}
+          <div
+            className="border-2 border-dashed border-blue-200 bg-blue-50/40 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition"
+            onClick={() => document.getElementById("fileInput")?.click()}
+          >
+            <UploadCloud className="text-blue-500 mb-3" size={40} />
+            <p className="text-blue-600 font-medium text-lg">
+              Click to upload or drag & drop
+            </p>
+            <p className="text-gray-500 text-sm mt-1">
+              Supported formats: JPG, PNG, JPEG • Max 5MB each
+            </p>
+            <input
+              id="fileInput"
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              accept="image/*"
+              className="hidden"
+            />
           </div>
 
-          {/* === Link Mode === */}
-          {activeTab === "link" ? (
-            <div>
-              <textarea
-                name="imageUrls"
-                value={form.imageUrls}
-                onChange={handleChange}
-                placeholder="Mỗi dòng một link ảnh hoặc ngăn cách bằng dấu phẩy"
-                className="w-full border rounded-xl px-4 py-3 h-24 resize-none focus:ring-2 focus:ring-blue-400"
-              />
-              {linkPreviews.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {linkPreviews.map((url, i) => (
-                    <img
-                      key={i}
-                      src={url}
-                      alt={`Link ${i}`}
-                      className="w-full h-32 object-cover border rounded-md shadow-sm hover:scale-[1.03] transition-transform"
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 min-h-[220px] bg-white">
-              {filePreviews.length > 0 ? (
-                <div className="flex flex-wrap gap-3 justify-start">
-                  {filePreviews.map((src, i) => (
-                    <div key={i} className="relative group w-[120px] h-[120px]">
-                      <img
-                        src={src}
-                        alt={`preview-${i}`}
-                        className="w-full h-full object-cover rounded-lg shadow-sm border border-gray-200 group-hover:opacity-80 transition"
-                      />
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setFiles((prev) => prev.filter((_, idx) => idx !== i));
-                          setFilePreviews((prev) => prev.filter((_, idx) => idx !== i));
-                        }}
-                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
-                        title="Xoá ảnh này"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-[180px] text-gray-500">
-                  <Upload className="text-blue-400 mb-2" size={32} />
-                  <p>Chưa chọn ảnh nào</p>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between mt-3">
+          {filePreviews.length > 0 && (
+            <div className="mt-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-gray-700 font-medium">
+                  Selected Images ({filePreviews.length})
+                </h3>
                 <button
                   type="button"
-                  onClick={() => document.getElementById("fileInput")?.click()}
-                  className="px-4 py-2 bg-blue-100 text-blue-600 font-medium rounded-lg hover:bg-blue-200 transition"
+                  onClick={() => {
+                    setFiles([]);
+                    setFilePreviews([]);
+                  }}
+                  className="text-sm text-red-600 flex items-center gap-1 hover:text-red-700"
                 >
-                  📤 Chọn hoặc kéo ảnh vào đây
+                  <Trash2 size={16} /> Remove all
                 </button>
-
-                {filePreviews.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFiles([]);
-                      setFilePreviews([]);
-                    }}
-                    className="text-sm text-red-600 underline hover:text-red-700"
-                  >
-                    Xoá tất cả ảnh
-                  </button>
-                )}
               </div>
 
-              <input
-                id="fileInput"
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                accept="image/*"
-                className="hidden"
-              />
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {filePreviews.map((src, i) => (
+                  <div
+                    key={i}
+                    className="relative group rounded-lg overflow-hidden shadow-sm border border-gray-200"
+                  >
+                    <img
+                      src={src}
+                      alt={`preview-${i}`}
+                      className="w-full h-32 object-cover group-hover:scale-[1.03] transition-transform"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setFiles((prev) => prev.filter((_, idx) => idx !== i));
+                        setFilePreviews((prev) =>
+                          prev.filter((_, idx) => idx !== i)
+                        );
+                      }}
+                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                      title="Remove image"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </section>
 
-        {/* 🟢 Nút Submit */}
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
@@ -511,11 +522,11 @@ export default function ProductForm({
         >
           {loading
             ? mode === "edit"
-              ? "Đang cập nhật..."
-              : "Đang thêm..."
+              ? "Updating..."
+              : "Adding..."
             : mode === "edit"
-              ? "Lưu thay đổi"
-              : "Thêm sản phẩm"}
+            ? "Save Changes"
+            : "Add Product"}
         </button>
       </form>
     </div>

@@ -388,17 +388,6 @@ export const auctionApi = {
     return response.data;
   },
 
-<<<<<<< HEAD
-  // Get order for ended auction (for payment navigation)
-  getOrderByAuctionId: async (auctionId: string) => {
-    const response = await axiosInstance.get(`/auction/${auctionId}/order`);
-    // Unwrap NestJS response format if needed
-    let data = response.data;
-    if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
-      data = data.data;
-    }
-    return data;
-=======
   // Get order created for ended auction
   getOrderByAuctionId: async (auctionId: string) => {
     try {
@@ -416,6 +405,5 @@ export const auctionApi = {
       console.error('❌ [API] getOrderByAuctionId failed:', error);
       throw error;
     }
->>>>>>> main
   },
 };

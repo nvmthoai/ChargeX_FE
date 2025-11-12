@@ -10,7 +10,7 @@ import FilterProduct from "./FilterProduct";
 
 export default function ProductManagerTable() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState(""); 
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<string | undefined>("newest"); // 🆕 sort FE
   const [appliedKeyword, setAppliedKeyword] = useState("");
