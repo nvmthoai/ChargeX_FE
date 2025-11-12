@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Eye} from "lucide-react";
+import { Eye } from "lucide-react";
 import { getAllOrders } from "../../../../api/order/api";
 import type { Order, OrderStatus } from "../../../../api/order/type";
 import { useNavigate } from "react-router-dom";
+import FilterProduct from "../product/FilterProduct"; // 🧩 tái sử dụng component Filter
 
 export default function AllOrder() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -10,46 +11,57 @@ export default function AllOrder() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 6;
-  // const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const navigate = useNavigate();
 
-const fetchOrders = async () => {
-  setLoading(true);
-  try {
-    // ✅ Lấy thông tin user trong localStorage
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      console.warn("⚠️ No current user found in localStorage");
-      return;
+  // 🟢 State cho filter
+  const [keyword, setKeyword] = useState("");
+  const [status, setStatus] = useState<string | undefined>(undefined);
+  const [sort, setSort] = useState<string | undefined>("newest");
+
+  // 🟢 State dùng để trigger fetch khi nhấn tìm
+  const [appliedKeyword, setAppliedKeyword] = useState("");
+  const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined);
+  const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
+
+  // 🧭 Gọi API lấy danh sách đơn hàng
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (!storedUser) {
+        console.warn("⚠️ No current user found in localStorage");
+        return;
+      }
+
+      const user = JSON.parse(storedUser);
+      const currentUserId = user?.sub;
+
+      // ✅ Gọi API lọc theo người bán + filter
+      const res = await getAllOrders({
+        sellerId: currentUserId,
+        keyword: appliedKeyword || undefined,
+        status: appliedStatus || undefined,
+        page,
+        limit: pageSize,
+        sortBy: "createdAt",
+        sortOrder: appliedSort === "newest" ? "DESC" : "ASC",
+      });
+
+      setOrders(res ?? []);
+      setTotal(res?.length ?? 0);
+    } catch (err) {
+      console.error("❌ Lỗi tải đơn hàng:", err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // ✅ Parse object và lấy userId/sub
-    const user = JSON.parse(storedUser);
-    const currentUserId = user?.sub; // "28829ea8-896d-4cd8-ae51-014e158b1e68"
-
-    // ✅ Gọi API lọc theo người bán
-    const res = await getAllOrders({
-      sellerId: currentUserId,
-      page,
-      limit: pageSize,
-      sortBy: "createdAt",
-      sortOrder: "DESC",
-    });
-
-    setOrders(res ?? []);
-    setTotal(res?.length ?? 0);
-  } catch (err) {
-    console.error("❌ Lỗi tải đơn hàng:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+  // 🔁 Fetch lại khi filter hoặc page đổi
   useEffect(() => {
     fetchOrders();
-  }, [page]);
+  }, [page, appliedKeyword, appliedStatus, appliedSort]);
 
+  // 📄 Tính số trang
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const getPageList = () => {
@@ -71,6 +83,41 @@ const fetchOrders = async () => {
   return (
     <div className="p-6 space-y-6 relative">
       <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
+        {/* 🔍 Bộ lọc (search + status + sort) */}
+        <FilterProduct
+          keyword={keyword}
+          onKeywordChange={setKeyword}
+          status={status}
+          onStatusChange={setStatus}
+          sort={sort}
+          onSortChange={setSort}
+          onSearch={() => {
+            setAppliedKeyword(keyword.trim());
+            setAppliedStatus(status);
+            setAppliedSort(sort);
+            setPage(1);
+          }}
+          onReset={() => {
+            setKeyword("");
+            setStatus(undefined);
+            setSort("newest");
+            setAppliedKeyword("");
+            setAppliedStatus(undefined);
+            setAppliedSort("newest");
+            setPage(1);
+          }}
+          // 🟩 Gắn options trạng thái riêng cho đơn hàng
+          statusOptions={[
+            { label: "Chờ xử lý", value: "pending" },
+            { label: "Đã thanh toán", value: "paid" },
+            { label: "Đang giao", value: "in_transit" },
+            { label: "Đã giao", value: "delivered" },
+            { label: "Hoàn tất", value: "completed" },
+            { label: "Đã hủy", value: "cancelled" },
+          ]}
+        />
+
+        {/* 🧾 Bảng danh sách đơn hàng */}
         {loading ? (
           <div className="p-10 text-center text-gray-400 animate-pulse">
             Đang tải đơn hàng...
@@ -81,53 +128,56 @@ const fetchOrders = async () => {
           </div>
         ) : (
           <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-600 text-center font-semibold text-[14px] border-b border-gray-400">
+            <thead className="bg-gray-50 text-gray-600 font-semibold text-[14px] border-b border-gray-300">
               <tr>
-                <th className="px-5 py-3 w-16">#</th>
-                <th className="px-5 py-3">Người mua</th>
-                <th className="px-5 py-3">Sản phẩm</th>
-                <th className="px-5 py-3 w-28 text-right">Giá</th>
+                <th className="px-5 py-3 text-left">Sản phẩm</th>
+                <th className="px-5 py-3 text-right w-32">Giá</th>
                 <th className="px-5 py-3 w-40">Trạng thái</th>
                 <th className="px-5 py-3 w-36">Ngày tạo</th>
-                <th className="px-5 py-3 w-20 text-center">⋮</th>
+                <th className="px-5 py-3 w-16 text-center">⋮</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((o, idx) => {
-                // const seller = o.orderShops?.[0]?.seller;
+              {orders.map((o) => {
                 const product = o.orderShops?.[0]?.orderDetails?.[0]?.product;
                 return (
                   <tr
                     key={o.orderId}
-                    className="border-b border-gray-200 last:border-none hover:bg-blue-50 transition text-center"
+                    className="border-b border-gray-200 last:border-none hover:bg-blue-50 transition"
                   >
-                    <td className="px-5 py-3 font-medium text-gray-700">
-                      {(page - 1) * pageSize + idx + 1}
-                    </td>
-                    <td className="px-5 py-3 text-gray-900">
-                      {o.buyer?.fullName}
-                    </td>
+                    {/* Ảnh + tên + người mua */}
                     <td className="px-5 py-3">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center gap-3">
                         <img
                           src={product?.imageUrls?.[0] || "/placeholder.png"}
                           alt={product?.title}
-                          className="w-10 h-10 rounded-md object-cover border"
+                          className="w-12 h-12 rounded-md object-cover border"
                         />
-                        <span>{product?.title}</span>
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            {product?.title || "Không tên"}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Người mua: {o.buyer?.fullName || "Ẩn danh"}
+                          </p>
+                        </div>
                       </div>
                     </td>
+
                     <td className="px-5 py-3 text-right font-semibold">
-                      {o.totalPrice?.toLocaleString()}₫
+                      {o.totalPrice?.toLocaleString("vi-VN")}₫
                     </td>
-                    <td className="px-5 py-3 relative">
+
+                    <td className="px-5 py-3">
                       <OrderStatusBadge value={o.status} />
                     </td>
+
                     <td className="px-5 py-3 text-gray-500">
                       {o.createdAt
                         ? new Date(o.createdAt).toLocaleDateString("vi-VN")
                         : "-"}
                     </td>
+
                     <td className="px-5 py-3 text-center">
                       <button
                         onClick={() => navigate(`/orders/${o.orderId}`)}
@@ -144,7 +194,7 @@ const fetchOrders = async () => {
         )}
       </div>
 
-      {/* Pagination */}
+      {/* 📄 Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-end items-center gap-1 mt-4">
           <button
@@ -203,8 +253,18 @@ const statusMap: Record<
   cancelled: { text: "Đã hủy", color: "bg-gray-100 text-gray-500 border-gray-200", dot: "bg-gray-300" },
 };
 
-function OrderStatusBadge({ value }: { value: OrderStatus }) {
-  const s = statusMap[value];
+function OrderStatusBadge({ value }: { value: string }) {
+  const key = value?.toLowerCase() as keyof typeof statusMap;
+  const s = statusMap[key];
+  if (!s) {
+    return (
+      <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm border bg-gray-100 text-gray-500 border-gray-200">
+        <span className="h-2 w-2 rounded-full bg-gray-300" />
+        {value || "Không xác định"}
+      </div>
+    );
+  }
+
   return (
     <div
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm border ${s.color}`}

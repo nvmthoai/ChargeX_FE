@@ -254,7 +254,7 @@ export default function OrderDetail() {
             onClick={() => navigate(-1)}
             className="rounded-full px-6 py-2"
           >
-            Back to Profile
+            Back
           </Button>
         </div>
       </div>
