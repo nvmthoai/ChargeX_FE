@@ -74,14 +74,14 @@ export const deletePayment = async (id: string): Promise<void> => {
 export const payOrderWithWallet = async (
   orderId: string,
   amount: number
-): Promise<unknown> => {
+): Promise<{ success: boolean; message?: string; transactionId?: string }> => {
   try {
     const res = await axiosInstance.post("/wallet/pay-order", {
       orderId,
       amount,
     });
     console.log("✅ Wallet payment result:", res.data);
-    return res.data as unknown;
+    return res.data;
   } catch (err) {
     console.error("❌ Error paying with wallet:", err);
     throw err;

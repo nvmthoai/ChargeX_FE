@@ -24,6 +24,7 @@ type WalletInfo = { balance: number; held: number; available: number } | null;
 export default function PaymentPage() {
   const [params] = useSearchParams();
   const orderId = params.get("orderId");
+  const isMobile = params.get("mobile") === "true"; // Check if from mobile app
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,7 @@ export default function PaymentPage() {
         console.log("🧾 Order detail fetched:", data);
         console.log("getOrderById", data);
         setOrder(data);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("❌ Error fetching order:", err);
         message.error("Không thể tải thông tin đơn hàng!");
       } finally {
@@ -64,17 +65,17 @@ export default function PaymentPage() {
   useEffect(() => {
     const loadAddressNames = async () => {
       if (!order) return;
-      const convertAddress = async (addr: any) => {
+      const convertAddress = async (addr: { provinceId?: number; districtId?: number; wardCode?: string; line1?: string }) => {
         if (!addr) return "Không có địa chỉ";
         try {
-          const province = provinces.find((p) => p.code === addr.provinceId);
-          const districtList = await fetchDistricts(addr.provinceId);
-          const district = districtList.find((d) => d.code === addr.districtId);
-          const wardList = await fetchWards(addr.districtId);
+          const province = provinces.find((p) => p.code === Number(addr.provinceId));
+          const districtList = await fetchDistricts(Number(addr.provinceId));
+          const district = districtList.find((d) => d.code === Number(addr.districtId));
+          const wardList = await fetchWards(Number(addr.districtId));
           const ward = wardList.find((w) => w.code.toString() === addr.wardCode);
           return `${addr.line1}, ${ward?.name || ""}, ${district?.name || ""}, ${province?.name || ""}`;
         } catch {
-          return addr.line1;
+          return addr.line1 || "Không rõ địa chỉ";
         }
       };
 
@@ -111,11 +112,9 @@ export default function PaymentPage() {
       if (method === PaymentProvider.WALLET) {
         // 🪙 Thanh toán qua ví nội bộ
         console.log("🪙 payOrderWithWallet →", { orderId: order.orderId, total });
-        const result = await payOrderWithWallet(order.orderId, total) as any;
+        const result = await payOrderWithWallet(order.orderId, total);
 
-        const ok = Boolean(result && (result.success || result.status === 200 || result.status === 201));
-
-        if (ok) {
+        if (result.success) {
           message.success("Thanh toán ví nội bộ thành công!");
 
           // 🔗 Ghi lại Payment record để Order có payment hiển thị ở các màn sau
@@ -139,10 +138,18 @@ export default function PaymentPage() {
             console.warn("⚠️ createPaymentForOrder (WALLET) failed, continue redirect:", e);
           }
 
-          const txId = (result && result.data && result.data.transactionId) || `WALLET-${Date.now()}`;
-          navigate(`/payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}`);
+          const txId = result.transactionId || `WALLET-${Date.now()}`;
+          
+          // 📱 If from mobile, redirect back to mobile app with deep link
+          if (isMobile) {
+            const deepLinkUrl = `reev://payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}&status=paid`;
+            console.log('📱 Redirecting to mobile app:', deepLinkUrl);
+            window.location.href = deepLinkUrl;
+          } else {
+            navigate(`/payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}`);
+          }
         } else {
-          message.error((result && result.message) || "Thanh toán ví thất bại!");
+          message.error(result.message || "Thanh toán ví thất bại!");
         }
       } else {
         // 💳 Thanh toán qua PayOS (tạo Payment + redirect)
@@ -167,7 +174,7 @@ export default function PaymentPage() {
           message.error("Không nhận được đường dẫn thanh toán!");
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("❌ Error processing payment:", err);
       message.error("Không thể xử lý thanh toán!");
     } finally {
@@ -181,8 +188,8 @@ export default function PaymentPage() {
       try {
         const data = await getWalletAvailable();
         setWallet(data);
-      } catch (err) {
-        console.error("Không thể tải số dư ví");
+      } catch (err: unknown) {
+        console.error("Không thể tải số dư ví", err);
       }
     })();
   }, []);
