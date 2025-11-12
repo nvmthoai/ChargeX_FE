@@ -21,20 +21,20 @@ export default function OrderSummary({
 
       <div className="flex justify-between mb-2">
         <span>Subtotal</span>
-        <span>${subtotal.toFixed(2)}</span>
+        <span>{Number(subtotal).toLocaleString()} VND</span>
       </div>
       <div className="flex justify-between mb-2">
         <span>Shipping</span>
-        <span>${shipping.toFixed(2)}</span>
+        <span>{Number(shipping).toLocaleString()} VND</span>
       </div>
       <div className="flex justify-between mb-2">
         <span>Tax (estimated)</span>
-        <span>${tax.toFixed(2)}</span>
+        <span>{Number(tax).toLocaleString()} VND</span>
       </div>
 
       <div className="flex justify-between font-bold text-lg border-t pt-3">
         <span>Order Total</span>
-        <span>${total.toFixed(2)}</span>
+        <span>{Number(total).toLocaleString()} VND</span>
       </div>
 
       {/* {onCheckout && ( */}
