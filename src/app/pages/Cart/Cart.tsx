@@ -37,12 +37,7 @@ export default function CartPage() {
     fetchDataAPI();
   }, [refresh, user]);
 
-  // const updateQty = (id: number, qty: number) => {
-  //   setItems(items.map((i: any) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i)));
-  // };
-
   const removeItem = async (orderId: number) => {
-    // setItems(items.filter((i: any) => i.id !== id));
     setLoading(true);
     try {
       const RemoveItemsResponse = await deleteData(`/orders/${orderId}`, token);
@@ -65,6 +60,7 @@ export default function CartPage() {
     });
   };
 
+  // FIX==Fee
   const filteredItems = items.filter(item => selectedItems.includes(item.orderId));
   const subtotal = filteredItems.reduce((sum: any, i: any) => sum + (i.orderShops?.[0]?.orderDetails?.[0]?.price || 0) * i.orderShops?.[0]?.orderDetails?.[0]?.quantity, 0);
   const shipping = filteredItems.reduce((sum: any, i: any) => sum + parseInt(i.orderShops?.[0]?.shippingFee || 0), 0);
