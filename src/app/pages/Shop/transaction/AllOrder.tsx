@@ -15,12 +15,12 @@ export default function AllOrder() {
 
   // 🟢 State cho filter
   const [keyword, setKeyword] = useState("");
-  const [status, setStatus] = useState<string | undefined>(undefined);
+const [status, setStatus] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<string | undefined>("newest");
 
   // 🟢 State dùng để trigger fetch khi nhấn tìm
   const [appliedKeyword, setAppliedKeyword] = useState("");
-  const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined);
+const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined);
   const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
 
   // 🧭 Gọi API lấy danh sách đơn hàng
@@ -39,13 +39,14 @@ export default function AllOrder() {
       // ✅ Gọi API lọc theo người bán + filter
       const res = await getAllOrders({
         sellerId: currentUserId,
-        keyword: appliedKeyword || undefined,
-        status: appliedStatus || undefined,
+        search: appliedKeyword,
+        status: appliedStatus,
         page,
         limit: pageSize,
         sortBy: "createdAt",
         sortOrder: appliedSort === "newest" ? "DESC" : "ASC",
       });
+
 
       setOrders(res ?? []);
       setTotal(res?.length ?? 0);
@@ -88,12 +89,12 @@ export default function AllOrder() {
           keyword={keyword}
           onKeywordChange={setKeyword}
           status={status}
-          onStatusChange={setStatus}
+          onStatusChange={(v) => setStatus(v as OrderStatus)}
           sort={sort}
           onSortChange={setSort}
           onSearch={() => {
             setAppliedKeyword(keyword.trim());
-            setAppliedStatus(status);
+            setAppliedStatus(status as OrderStatus);
             setAppliedSort(sort);
             setPage(1);
           }}
@@ -209,11 +210,10 @@ export default function AllOrder() {
               <button
                 key={i}
                 onClick={() => setPage(p)}
-                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${
-                  page === p
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "hover:bg-gray-50"
-                }`}
+                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${page === p
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "hover:bg-gray-50"
+                  }`}
               >
                 {p}
               </button>
