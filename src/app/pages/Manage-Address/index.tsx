@@ -2,13 +2,11 @@
 
 import type React from "react";
 import { useState } from "react";
-import { Plus, MapPin } from "lucide-react";
+import { message } from "antd";
 import userAddress from "../../hooks/useAddress";
 import AddressFormModal from "./AddressFormModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import AddressList from "./AddressList";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Address {
   addressId: string;
@@ -65,7 +63,7 @@ const AddressManagement: React.FC = () => {
       setShowDeleteModal(false);
       setDeletingAddressId(null);
     } catch (error) {
-      console.error("Failed to delete address", error);
+      message.error("Failed to delete address");
     } finally {
       setDeleteLoading(false);
     }
@@ -76,38 +74,46 @@ const AddressManagement: React.FC = () => {
       await fetch(`/api/addresses/${addressId}/set-default`, {
         method: "PATCH",
       });
+      message.success("Default address updated");
     } catch (error) {
       console.error("Error setting default address:", error);
+      message.error("Failed to set default address");
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-ocean-500 to-energy-500 bg-clip-text text-transparent">
-            My Addresses
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your delivery addresses
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="w-[800px] mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">My Addresses</h1>
+          <button
+            onClick={handleAddAddress}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add New Address
+          </button>
         </div>
-        <Button onClick={handleAddAddress} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Add New Address
-        </Button>
-      </div>
 
-      {/* Address List Card */}
-      <Card className="border-ocean-200/30 shadow-sm bg-white">
-        <CardHeader className="border-b border-ocean-200/30 bg-white">
-          <CardTitle className="flex items-center gap-2 text-ocean-700">
-            <MapPin className="w-5 h-5 text-ocean-600" />
-            Saved Addresses ({addresses.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
+        {/* Address List */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">Addresses</h2>
+          </div>
+
           <AddressList
             addresses={addresses}
             isLoading={isLoading}
@@ -115,8 +121,8 @@ const AddressManagement: React.FC = () => {
             onDelete={handleDeleteClick}
             onSetDefault={handleSetDefault}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Address Form Modal */}
       {showModal && (

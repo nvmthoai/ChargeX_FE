@@ -121,9 +121,11 @@ export interface UpdateOrderRequest {
 export interface GetOrdersParams {
   buyerId?: string;
   sellerId?: string;
-  status?: OrderStatus;
+  status?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
   sortOrder?: "ASC" | "DESC";
+  search?: string; // 🟢 thêm dòng này
 }
+
