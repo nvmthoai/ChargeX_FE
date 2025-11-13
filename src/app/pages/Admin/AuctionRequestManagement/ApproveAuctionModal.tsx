@@ -2,9 +2,9 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Form, Input, InputNumber, DatePicker, Tooltip } from "antd"
+import { Form, Input, DatePicker } from "antd"
 import dayjs from 'dayjs'
-import { CheckCircle, Info, Clock, DollarSign, Settings } from "lucide-react"
+import { CheckCircle, Info, Clock } from "lucide-react"
 import type { ApproveAuctionPayload } from "../../../models/auction.model"
 import useAuction from "../../../hooks/useAuction"
 import { Button } from "@/components/ui/button"
