@@ -124,7 +124,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg w-[800px] max-h-[90vh] overflow-y-auto py-10 px-20">
         <div className="p-6">
           <h2 className="text-2xl font-semibold text-gray-900">{address ? "Update Address" : "Add New Address"}</h2>
