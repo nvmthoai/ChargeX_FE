@@ -21,7 +21,7 @@ export default function ProductManager() {
 
       {/* Danh sách sản phẩm */}
       <div className="border border-dashed border-gray-300 rounded-xl p-8 bg-white text-gray-500 text-center shadow-sm">
-        <AllProduct/>
+        <AllProduct />
       </div>
 
       {/* Popup overlay */}
@@ -43,7 +43,7 @@ export default function ProductManager() {
 
             {/* Nội dung form */}
             <div className="p-6 overflow-y-auto max-h-[80vh]">
-              <AddProduct />
+              <AddProduct onClose={() => setShowAddModal(false)} />
             </div>
           </div>
         </div>
