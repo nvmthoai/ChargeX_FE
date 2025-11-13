@@ -2,22 +2,23 @@ export interface AuctionRequest {
   id: string
   productId: string
   sellerId: string
-  note: string
+  startingPrice: number
+  reservePrice: number
+  minBidIncrement: number
+  antiSnipingSeconds: number
+  buyNowPrice?: number
+  bidDepositPercent: number
+  note?: string
   status: "pending" | "approved" | "rejected"
-  reviewedBy: string | null
+  reviewedBy?: string
   requestedAt: string
-  reviewedAt: string | null
+  reviewedAt?: string
 }
 
 export interface ApproveAuctionPayload {
   auctionRequestId: string
   startTime: string
   endTime: string
-  startingPrice?: number
-  reservePrice: number
-  minBidIncrement: number
-  antiSnipingSeconds: number
-  bidDepositPercent: number
 }
 
 export interface GetAuctionRequestsResponse {
