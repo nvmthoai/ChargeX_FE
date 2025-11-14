@@ -90,10 +90,9 @@ export interface Order {
 export interface CreateOrderRequest {
   receiverName: string;
   receiverPhone: string;
-  receiverAddress?: string;
-  receiverDistrictId?: number;
-  receiverWardCode?: string;
-  receiverAddressId?: string;
+  receiverAddress: string;
+  receiverDistrictId: number;
+  receiverWardCode: string;
 
   orderShops: {
     sellerId: string;
@@ -107,6 +106,7 @@ export interface CreateOrderRequest {
     }[];
   }[];
 }
+
 
 // 🟨 Cập nhật đơn hàng
 export interface UpdateOrderRequest {
