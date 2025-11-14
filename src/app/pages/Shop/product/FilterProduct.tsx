@@ -1,4 +1,4 @@
-import { Input, Select, Button, Space,Tooltip } from "antd";
+import { Input, Select, Button, Space, Tooltip } from "antd";
 import {
   SearchOutlined,
   ReloadOutlined,
@@ -6,33 +6,61 @@ import {
   SortAscendingOutlined,
   SortDescendingOutlined,
 } from "@ant-design/icons";
+// import type { OrderStatus } from "../../../../api/order/type";
+
+interface StatusOption {
+  label: string;
+  value: string;
+}
 
 interface Props {
   keyword: string;
   onKeywordChange: (v: string) => void;
+
   status?: string;
   onStatusChange: (v?: string) => void;
+
   sort?: string;
   onSortChange: (v?: string) => void;
+
   onSearch: () => void;
   onReset: () => void;
+
+  /** 🟢 Cho phép truyền option trạng thái từ ngoài vào */
+  statusOptions?: StatusOption[];
 }
 
 export default function FilterProduct({
   keyword,
   onKeywordChange,
+
   status,
   onStatusChange,
+
   sort,
   onSortChange,
+
   onSearch,
   onReset,
+
+  statusOptions,
 }: Props) {
+
+  // 🟢 Default option dành cho sản phẩm (nếu không truyền từ ngoài vào)
+  const defaultStatusOptions: StatusOption[] = [
+    { label: "Đang bán", value: "active" },
+    { label: "Đã bán", value: "sold" },
+    { label: "Tạm ẩn", value: "draft" },
+  ];
+
+  const finalStatusOptions = statusOptions ?? defaultStatusOptions;
+
   return (
     <div className="flex flex-wrap justify-between items-center gap-3 bg-white px-5 py-4">
+
       {/* 🔍 Tìm kiếm */}
       <Input
-        placeholder="Tìm sản phẩm..."
+        placeholder="Tìm..."
         prefix={<SearchOutlined className="text-gray-400" />}
         value={keyword}
         onChange={(e) => onKeywordChange(e.target.value)}
@@ -45,13 +73,9 @@ export default function FilterProduct({
         allowClear
         placeholder="Trạng thái"
         value={status}
-        onChange={(val) => onStatusChange(val)}
+        onChange={(val) => onStatusChange(val ?? undefined)}
         style={{ width: 160 }}
-        options={[
-          { label: "Đang bán", value: "active" },
-          { label: "Đã bán", value: "sold" },
-          { label: "Tạm ẩn", value: "draft" },
-        ]}
+        options={finalStatusOptions}
       />
 
       {/* 🕒 Sắp xếp */}
@@ -59,7 +83,7 @@ export default function FilterProduct({
         allowClear
         placeholder="Sắp xếp theo"
         value={sort}
-        onChange={(val) => onSortChange(val)}
+        onChange={(val) => onSortChange(val ?? undefined)}
         style={{ width: 180 }}
         options={[
           {
@@ -73,14 +97,13 @@ export default function FilterProduct({
           {
             label: (
               <span className="flex items-center gap-2">
-                <SortAscendingOutlined /> Ngày tạo (cũ nhất) 
+                <SortAscendingOutlined /> Ngày tạo (cũ nhất)
               </span>
             ),
             value: "oldest",
           },
         ]}
       />
-
 
       {/* ⚙️ Nút hành động */}
       <Space>
@@ -96,10 +119,7 @@ export default function FilterProduct({
         </Tooltip>
 
         <Tooltip title="Đặt lại tất cả bộ lọc">
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={onReset}
-          >
+          <Button icon={<ReloadOutlined />} onClick={onReset}>
             Làm mới
           </Button>
         </Tooltip>
