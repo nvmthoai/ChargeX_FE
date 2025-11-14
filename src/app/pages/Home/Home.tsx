@@ -76,7 +76,7 @@ export default function EVMarketplace() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-ocean-50 via-energy-50/30 to-dark-50">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-ocean-500 via-energy-500 to-ocean-600 text-white">
         <div className="absolute inset-0 opacity-20" style={{
@@ -87,14 +87,14 @@ export default function EVMarketplace() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 animate-fadeIn">
               EV Battery Marketplace
             </h1>
-            <p 
+            <p
               className="text-xl sm:text-2xl mb-8 animate-slideUp text-black"
-           
+
             >
               Discover Premium Electric Vehicle Batteries
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <div 
+              <div
                 className="flex items-center gap-2 backdrop-blur-sm rounded-full px-4 py-2"
                 style={{
                   background: 'rgba(255, 255, 255, 0.3)',
@@ -106,7 +106,7 @@ export default function EVMarketplace() {
                 <Zap className="w-5 h-5" />
                 <span>High Quality</span>
               </div>
-              <div 
+              <div
                 className="flex items-center gap-2 backdrop-blur-sm rounded-full px-4 py-2"
                 style={{
                   background: 'rgba(255, 255, 255, 0.3)',
@@ -118,7 +118,7 @@ export default function EVMarketplace() {
                 <Battery className="w-5 h-5" />
                 <span>Certified</span>
               </div>
-              <div 
+              <div
                 className="flex items-center gap-2 backdrop-blur-sm rounded-full px-4 py-2"
                 style={{
                   background: 'rgba(255, 255, 255, 0.3)',
@@ -136,12 +136,12 @@ export default function EVMarketplace() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-15">
           {/* Filters Sidebar */}
-          <div 
+          <div
             className="w-full lg:w-80 rounded-2xl p-6 h-fit shadow-xl sticky top-20"
             style={{
-              background: 'linear-gradient(to bottom right, #bae7ff, #d9f7be, #bae7ff)',
+              // background: 'linear-gradient(to bottom right, #bae7ff, #d9f7be, #bae7ff)',
               border: '2px solid rgba(24, 144, 255, 0.3)',
               backdropFilter: 'blur(8px)'
             }}
@@ -341,11 +341,10 @@ export default function EVMarketplace() {
                     {/* Status & Seller */}
                     <div className="flex items-center justify-between mb-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          getCondition(product) === "Active"
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getCondition(product) === "Active"
                             ? "bg-gradient-to-r from-energy-100 to-energy-200 text-energy-800"
                             : "bg-dark-100 text-dark-700"
-                        }`}
+                          }`}
                       >
                         {getCondition(product)}
                       </span>
@@ -381,11 +380,10 @@ export default function EVMarketplace() {
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-4 py-2 rounded-xl font-semibold transition-all hover:scale-110 focus:outline-none focus:ring-4 ${
-                        page === currentPage
+                      className={`px-4 py-2 rounded-xl font-semibold transition-all hover:scale-110 focus:outline-none focus:ring-4 ${page === currentPage
                           ? "bg-gradient-to-r from-ocean-500 to-ocean-600 text-white shadow-lg focus:ring-ocean-500/50"
                           : "bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 border-2 border-ocean-300 text-dark-800 hover:bg-ocean-100 hover:border-ocean-400 shadow-md focus:ring-ocean-400/40"
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>
