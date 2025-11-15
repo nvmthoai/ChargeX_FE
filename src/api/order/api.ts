@@ -70,3 +70,39 @@ export const deleteOrder = async (id: string): Promise<void> => {
     throw err;
   }
 };
+
+// 📦 Đánh dấu đơn hàng đã giao hàng
+export const markOrderAsDelivered = async (
+  orderId: string,
+  note?: string
+): Promise<Order> => {
+  try {
+    const res = await axiosInstance.patch(
+      `/orders/${orderId}/mark-as-delivered`,
+      { note }
+    );
+    console.log(`✅ Order ${orderId} marked as delivered:`, res.data?.data);
+    return res.data?.data ?? res.data;
+  } catch (err) {
+    console.error(`❌ Error marking order ${orderId} as delivered:`, err);
+    throw err;
+  }
+};
+
+// ✅ Đánh dấu đơn hàng đã hoàn thành
+export const markOrderAsCompleted = async (
+  orderId: string,
+  note?: string
+): Promise<Order> => {
+  try {
+    const res = await axiosInstance.patch(
+      `/orders/${orderId}/mark-as-completed`,
+      { note }
+    );
+    console.log(`✅ Order ${orderId} marked as completed:`, res.data?.data);
+    return res.data?.data ?? res.data;
+  } catch (err) {
+    console.error(`❌ Error marking order ${orderId} as completed:`, err);
+    throw err;
+  }
+};
