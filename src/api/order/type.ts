@@ -90,10 +90,9 @@ export interface Order {
 export interface CreateOrderRequest {
   receiverName: string;
   receiverPhone: string;
-  receiverAddress?: string;
-  receiverDistrictId?: number;
-  receiverWardCode?: string;
-  receiverAddressId?: string;
+  receiverAddress: string;
+  receiverDistrictId: number;
+  receiverWardCode: string;
 
   orderShops: {
     sellerId: string;
@@ -108,6 +107,7 @@ export interface CreateOrderRequest {
   }[];
 }
 
+
 // 🟨 Cập nhật đơn hàng
 export interface UpdateOrderRequest {
   status?: OrderStatus;
@@ -121,9 +121,11 @@ export interface UpdateOrderRequest {
 export interface GetOrdersParams {
   buyerId?: string;
   sellerId?: string;
-  status?: OrderStatus;
+  status?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
   sortOrder?: "ASC" | "DESC";
+  search?: string; // 🟢 thêm dòng này
 }
+
