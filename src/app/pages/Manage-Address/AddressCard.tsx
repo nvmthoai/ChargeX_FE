@@ -74,7 +74,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
           {/* Nút Update luôn có */}
           <button
             onClick={() => onEdit(address)}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
           >
             Update
           </button>
