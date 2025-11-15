@@ -55,7 +55,7 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Gallery bên trái */}
           <div className="lg:sticky lg:top-24 lg:self-start">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-ocean-200/50 overflow-hidden">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden">
               <ProductGallery images={product.imageUrls || []} />
             </div>
           </div>
