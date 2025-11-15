@@ -21,12 +21,19 @@ export default function AdminDashboard() {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      // TODO: Replace with actual API call to backend
-      // const res = await fetch('/admin/dashboard/stats')
-      // const data = await res.json()
-      // setStats(data)
+      const res = await fetch('/dashboard/admin/stats');
 
-      // Mock data for now
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setStats(data);
+    } catch (err) {
+      console.error("Error fetching dashboard stats:", err);
+      message.error("Failed to load dashboard statistics");
+
+      // Fallback: Mock data for development
       const mockStats: DashboardStats = {
         totalOrders: 150,
         completedOrders: 145,
@@ -35,9 +42,6 @@ export default function AdminDashboard() {
         platformFeePercent: 10,
       };
       setStats(mockStats);
-    } catch (err) {
-      console.error("Error fetching dashboard stats:", err);
-      message.error("Failed to load dashboard statistics");
     } finally {
       setLoading(false);
     }

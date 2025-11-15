@@ -7,22 +7,26 @@ export default function ProductManager() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Quản lý sản phẩm</h2>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all"
-        >
-          <Plus size={18} />
-          <span>Thêm sản phẩm</span>
-        </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <div>
+            <h2 className="text-2xl font-bold text-dark-100 mb-2">Product Management</h2>
+            <p className="text-dark-300">Manage your products and view product listings</p>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-ocean-500 to-energy-500 hover:from-ocean-600 hover:to-energy-600 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all font-semibold"
+          >
+            <Plus size={18} />
+            <span>Add Product</span>
+          </button>
+        </div>
       </div>
 
       {/* Danh sách sản phẩm */}
-      <div className="border border-dashed border-gray-300 rounded-xl p-8 bg-white text-gray-500 text-center shadow-sm">
-        <AllProduct />
-      </div>
+      <AllProduct />
 
       {/* Popup overlay */}
       {showAddModal && (

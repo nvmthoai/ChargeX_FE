@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import AuctionRequestModal from "../component/AuctionRequestModal";
 import useAuction from "../../../hooks/useAuction";
 import FilterProduct from "./FilterProduct";
+import { Card, Spin, Empty } from "antd";
 
 export default function ProductManagerTable() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -126,9 +127,48 @@ const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
     return pages;
   };
 
+  // Calculate stats
+  const allProducts = products; // You might want to fetch all products for stats
+  const totalProducts = total;
+  const activeProducts = allProducts.filter((p) => p.status === "active").length;
+  const soldProducts = allProducts.filter((p) => p.status === "sold").length;
+  const draftProducts = allProducts.filter((p) => p.status === "draft").length;
+
   return (
-    <div className="p-6 space-y-6 relative">
-      <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20">
+          <div>
+            <p className="text-dark-300 text-sm mb-1">Total Products</p>
+            <p className="text-3xl font-bold text-blue-400">{totalProducts}</p>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/20">
+          <div>
+            <p className="text-dark-300 text-sm mb-1">Active</p>
+            <p className="text-3xl font-bold text-green-400">{activeProducts}</p>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20">
+          <div>
+            <p className="text-dark-300 text-sm mb-1">Sold</p>
+            <p className="text-3xl font-bold text-orange-400">{soldProducts}</p>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-gray-500/10 to-gray-600/10 border border-gray-500/20">
+          <div>
+            <p className="text-dark-300 text-sm mb-1">Draft</p>
+            <p className="text-3xl font-bold text-gray-400">{draftProducts}</p>
+          </div>
+        </Card>
+      </div>
+
+      {/* Filter and Table Card */}
+      <Card className="border border-ocean-800/20">
         <FilterProduct
           keyword={keyword}
           onKeywordChange={setKeyword}
@@ -154,114 +194,115 @@ const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
 
         {/* 🧾 Bảng sản phẩm */}
         {loading ? (
-          <div className="p-10 text-center text-gray-400 animate-pulse">
-            Đang tải sản phẩm...
+          <div className="flex justify-center items-center h-[400px]">
+            <Spin size="large" />
           </div>
         ) : products.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
-            <p>Chưa có sản phẩm nào được đăng.</p>
-          </div>
+          <Empty description="No products yet" />
         ) : (
-          <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-600 text-center font-semibold text-[14px] border-b border-gray-400">
-              <tr>
-                <th className="px-5 py-3 w-20">Ảnh</th>
-                <th className="px-5 py-3">Tên sản phẩm</th>
-                <th className="px-5 py-3">Đấu giá</th>
-                <th className="px-5 py-3 w-28 text-right">Giá bán</th>
-                <th className="px-5 py-3 w-40">Tình trạng</th>
-                <th className="px-5 py-3 w-36">Ngày tạo</th>
-                <th className="px-5 py-3 w-20 text-center">⋮</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((p) => (
-                <tr
-                  key={p.id}
-                  className="border-b border-gray-200 last:border-none hover:bg-blue-50 transition text-center"
-                >
-                  <td className="px-5 py-3 text-center">
-                    <img
-                      src={p.imageUrls?.[0] || "/placeholder.png"}
-                      alt={p.title}
-                      className="w-14 h-14 object-cover rounded-md border"
-                    />
-                  </td>
-
-                  <td className="px-5 py-3 text-gray-900 font-medium">{p.title}</td>
-
-                  <td className="px-5 py-3">
-                    {p.is_auction ? (
-                      <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-xs font-medium px-3 py-1.5 rounded-full border border-indigo-200">
-                        <Gavel size={12} /> Đấu giá
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200">
-                        Bán thường
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="px-5 py-3 text-right text-gray-900 font-semibold">
-                   {(Number(p.price_buy_now)).toLocaleString()} VND
-                  </td>
-
-                  <td className="px-5 py-3 relative" onClick={(e) => e.stopPropagation()}>
-                    <StatusBadge
-                      value={(p.status as any) ?? "draft"}
-                      isOpen={openDropdown === p.id}
-                      onToggle={() =>
-                        setOpenDropdown(openDropdown === p.id ? null : p.id)
-                      }
-                      onSelect={(s) => handleChangeStatus(p.id, s)}
-                    />
-                  </td>
-
-                  <td className="px-5 py-3 text-gray-500">
-                    {p.createdAt
-                      ? new Date(p.createdAt).toLocaleDateString("vi-VN")
-                      : "-"}
-                  </td>
-
-                  <td className="px-5 py-3 text-center">
-                    <ActionMenu
-                      showAuction={!p.is_auction}
-                      onAuction={() => openAuctionModal(p)}
-                      onView={() => navigate(`/shop/productdetail/${p.id}`)}
-                      onEdit={() => handleOpenEdit(p.id)}
-                    />
-                  </td>
+          <div className="mt-4">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gradient-to-r from-ocean-500/20 to-ocean-600/20 text-dark-100 text-center font-semibold text-[14px] border-b border-ocean-400/30">
+                <tr>
+                  <th className="px-5 py-3 w-20">Image</th>
+                  <th className="px-5 py-3">Product Name</th>
+                  <th className="px-5 py-3">Type</th>
+                  <th className="px-5 py-3 w-28 text-right">Price</th>
+                  <th className="px-5 py-3 w-40">Status</th>
+                  <th className="px-5 py-3 w-36">Created</th>
+                  <th className="px-5 py-3 w-20 text-center">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {products.map((p) => (
+                  <tr
+                    key={p.id}
+                    className="border-b border-ocean-800/20 last:border-none hover:bg-ocean-500/10 transition text-center"
+                  >
+                    <td className="px-5 py-3 text-center">
+                      <img
+                        src={p.imageUrls?.[0] || "/placeholder.png"}
+                        alt={p.title}
+                        className="w-14 h-14 object-cover rounded-md border border-ocean-200/30"
+                      />
+                    </td>
+
+                    <td className="px-5 py-3 text-dark-100 font-medium">{p.title}</td>
+
+                    <td className="px-5 py-3">
+                      {p.is_auction ? (
+                        <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-xs font-medium px-3 py-1.5 rounded-full border border-indigo-200">
+                          <Gavel size={12} /> Auction
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200">
+                          Regular
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-5 py-3 text-right text-dark-100 font-semibold">
+                     {(Number(p.price_buy_now)).toLocaleString()} VND
+                    </td>
+
+                    <td className="px-5 py-3 relative" onClick={(e) => e.stopPropagation()}>
+                      <StatusBadge
+                        value={(p.status as any) ?? "draft"}
+                        isOpen={openDropdown === p.id}
+                        onToggle={() =>
+                          setOpenDropdown(openDropdown === p.id ? null : p.id)
+                        }
+                        onSelect={(s) => handleChangeStatus(p.id, s)}
+                      />
+                    </td>
+
+                    <td className="px-5 py-3 text-dark-400">
+                      {p.createdAt
+                        ? new Date(p.createdAt).toLocaleDateString("vi-VN")
+                        : "-"}
+                    </td>
+
+                    <td className="px-5 py-3 text-center">
+                      <ActionMenu
+                        showAuction={!p.is_auction}
+                        onAuction={() => openAuctionModal(p)}
+                        onView={() => navigate(`/shop/productdetail/${p.id}`)}
+                        onEdit={() => handleOpenEdit(p.id)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-end items-center gap-1 mt-4">
+        <div className="flex justify-end items-center gap-1 mt-4 bg-dark-800 rounded-xl border border-ocean-800/30 shadow-sm p-4">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 disabled:opacity-40"
+            className="px-3 py-2 border border-ocean-400/30 rounded-md text-sm bg-ocean-500/10 hover:bg-ocean-500/20 text-ocean-200 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
-            ← Trước
+            ← Previous
           </button>
           {getPageList().map((p, i) =>
             typeof p === "number" ? (
               <button
                 key={i}
                 onClick={() => setPage(p)}
-                className={`px-3 py-2 border border-gray-400 rounded-md text-sm ${page === p
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "hover:bg-gray-50"
-                  }`}
+                className={`px-3 py-2 border rounded-md text-sm transition-all ${
+                  page === p
+                    ? "bg-ocean-500 text-white border-ocean-500 shadow-md"
+                    : "border-ocean-400/30 bg-ocean-500/10 hover:bg-ocean-500/20 text-ocean-200 hover:text-white"
+                }`}
               >
                 {p}
               </button>
             ) : (
-              <span key={i} className="px-2 text-gray-500">
+              <span key={i} className="px-2 text-dark-400">
                 …
               </span>
             )
@@ -269,9 +310,9 @@ const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 disabled:opacity-40"
+            className="px-3 py-2 border border-ocean-400/30 rounded-md text-sm bg-ocean-500/10 hover:bg-ocean-500/20 text-ocean-200 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
-            Sau →
+            Next →
           </button>
         </div>
       )}
