@@ -19,10 +19,10 @@ export default function Shop() {
       isActive: path.includes("/shop/history"),
     },
     {
-      to: "auction",
-      label: "Sản phẩm đấu giá",
+      to: "dashboard",
+      label: "Dashboard",
       icon: Gavel,
-      isActive: path.includes("/shop/auction"),
+      isActive: path.includes("/shop/dashboard"),
     },
   ];
 

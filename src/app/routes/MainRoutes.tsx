@@ -20,7 +20,6 @@ import KnowYourCus from "../pages/KYC/KnowYourCus";
 import Shop from "../pages/Shop/Shop";
 import ProductManager from "../pages/Shop/component/ProductManager";
 import TransactionHistory from "../pages/Shop/component/TransactionHistory";
-import AuctionManager from "../pages/Shop/component/AuctionManager";
 import VerifyOTPPage from "../pages/Verify-Otp";
 import PaymentSuccess from "../pages/Payment/success";
 import PaymentError from "../pages/Payment/error";
@@ -36,6 +35,7 @@ import OrderDetail from "../pages/Order/OrderDetail";
 import ShopDetailPage from "../pages/Shop-Detail";
 import OrderManagement from "../pages/Profile/Orders";
 import { DisputesManagement } from "../pages/Admin/DisputesManagement";
+import DashboardManager from "@/app/pages/Shop/component/DashboardManager";
 
 // Lazy-load heavier pages to improve initial bundle size
 const Home = lazy(() => import("../pages/Home/Home"));
@@ -86,7 +86,7 @@ function RoutesContent() {
               <Route index element={<Navigate to="products" />} />
               <Route path="products" element={<ProductManager />} />
               <Route path="history" element={<TransactionHistory />} />
-              <Route path="auction" element={<AuctionManager />} />
+              <Route path="dashboard" element={<DashboardManager />} />
               <Route path="productdetail/:id" element={<ProductDetailShop />} />
             </Route>
           </Route>
