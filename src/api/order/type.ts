@@ -35,9 +35,9 @@ export interface UserRef {
 // 📦 Sản phẩm
 export interface ProductRef {
   id: string;
-  title: string;
+  name: string;
   description?: string;
-  imageUrls: string[];
+  imageUrl: string[];
 }
 
 // 💰 Chi tiết sản phẩm trong đơn hàng
@@ -129,3 +129,18 @@ export interface GetOrdersParams {
   search?: string; // 🟢 thêm dòng này
 }
 
+export interface PaginatedOrders {
+  data: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  statusCode: number;
+  data: T;
+}
+
+export type GetOrdersResponse = ApiResponse<PaginatedOrders>;

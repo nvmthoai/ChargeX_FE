@@ -145,7 +145,7 @@ const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
           onReset={() => {
             setKeyword("");
             setStatus(undefined);
-            setSort("newest");
+            setSort(undefined);
             setAppliedKeyword("");
             setAppliedStatus(undefined);
             setPage(1);
