@@ -43,18 +43,19 @@ export interface AuctionDetail extends AuctionSummary {
 
 export interface RequestAuctionDto {
   productId: string;
+  startingPrice: number;
+  reservePrice: number;
+  minBidIncrement: number;
+  antiSnipingSeconds: number;
+  buyNowPrice?: number;
+  bidDepositPercent: number;
   note?: string;
-  // Optional auctionId support to match backend DTO (some clients may include it)
-  auctionId?: string;
 }
 
 export interface ApproveAuctionDto {
   auctionRequestId: string;
   startTime: string;
   endTime: string;
-  startingPrice: number;
-  buyNowPrice?: number;
-  minBidIncrement: number;
 }
 
 export interface PaginatedAuctions {

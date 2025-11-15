@@ -4,10 +4,19 @@ import { auctionApi, type RequestAuctionDto, type ApproveAuctionDto } from "../.
 const auctionService = () => {
   const [loading, setLoading] = useState(false);
 
-  const sendRequestCreateAuction = async (sellerId: string, productId: string, note: string) => {
+  const sendRequestCreateAuction = async (sellerId: string, _productId: string, values: any) => {
     try {
       setLoading(true);
-      const data: RequestAuctionDto = { productId, note };
+      const data: RequestAuctionDto = {
+        productId: values.productId,
+        startingPrice: values.startingPrice,
+        reservePrice: values.reservePrice,
+        minBidIncrement: values.minBidIncrement,
+        antiSnipingSeconds: values.antiSnipingSeconds,
+        buyNowPrice: values.buyNowPrice,
+        bidDepositPercent: values.bidDepositPercent,
+        note: values.note,
+      };
       const response = await auctionApi.requestAuction(sellerId, data);
       return response;
     } catch (e: any) {

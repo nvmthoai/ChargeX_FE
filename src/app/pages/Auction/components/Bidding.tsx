@@ -2,54 +2,46 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import useAuctionLive from "../../../hooks/useAuctionLive";
 import { useAuth } from "../../../hooks/AuthContext";
-import useWallet from "../../../../hooks/useWallet";
+import useWallet from "../../../hooks/useWallet";
 import toast from "react-hot-toast";
 import { userApi } from "../../../../api/user/api";
-import { auctionApi } from "../../../../api/auction";
 import {
   mapErrorMessage,
   extractApiError,
   isInsufficientFundsError,
   extractRequiredDeposit,
 } from "../../../utils/errorMapping";
-import { notificationSocket } from '../../../../services/notificationSocket';
-import { useNavigate } from 'react-router-dom';
 
 export default function Bidding() {
   const { id } = useParams();
   const auctionId = id ?? null;
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   const {
     auction,
     loading,
     live,
     reconnecting,
-    isConnected,
     countdown,
     placeBid,
     pendingBid,
   } = useAuctionLive(auctionId, {
     resyncIntervalSeconds: 8,
+    bidderId: user?.sub || null, // Pass user ID from auth context
   });
 
   const {
-    wallet: walletHook,
-    deposit,
-    calculateDeposit,
-    checkSufficientBalance,
-    formatCurrency: formatVND,
-    fetchBalance,
-  } = useWallet({ autoFetch: true, refreshIntervalSeconds: 30 });
-  const walletFinal = walletHook;
+    myWallet,
+    handleDeposit: depositToWallet,
+  } = useWallet();
+
+  // Use myWallet as wallet for compatibility
+  const wallet = myWallet;
 
   const [input, setInput] = useState<string>("");
   const [placing, setPlacing] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [winnerName, setWinnerName] = useState<string>("");
-  const [orderIdForAuction, setOrderIdForAuction] = useState<string | null>(null);
-  const [fetchingOrder, setFetchingOrder] = useState(false);
 
   // Fetch winner name when auction ends
   useEffect(() => {
@@ -66,109 +58,53 @@ export default function Bidding() {
     fetchWinnerName();
   }, [auction?.status, auction?.winnerId]);
 
-  // Listen for auction_won notifications and auto-navigate to payment
-  useEffect(() => {
-    if (!user?.sub) return;
-    const handleNotif = async (n: any) => {
-      try {
-        if (n?.type === 'auction_won') {
-          const data = n.data || {};
-          console.log('🎉 [Bidding] Received auction_won notification:', n);
+  // Helper functions for wallet operations
+  const formatVND = (amount: number) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      minimumFractionDigits: 0,
+    }).format(amount);
 
-          if (String(data.auctionId) === String(auctionId)) {
-            // Show toast notification to user
-            toast.success(
-              `🎉 ${n.title || 'Chúc mừng! Bạn đã thắng đấu giá'}\n${n.message || ''}`,
-              {
-                duration: 5000,
-                position: 'top-center'
-              }
-            );
-
-            // Navigate to payment after short delay
-            setTimeout(() => {
-              if (data.orderId) {
-                console.log('📍 [Bidding] Navigating to payment with orderId:', data.orderId);
-                navigate(`/payment?orderId=${data.orderId}`);
-              }
-            }, 2000);
-          }
-        }
-      } catch (e) {
-        console.warn('notification handler error', e);
-      }
-    };
-
-    // ensure socket is connected (idempotent)
-    try {
-      if (user?.sub) notificationSocket.connect(user.sub);
-      notificationSocket.onNotification(handleNotif);
-    } catch (e) {
-      console.warn('Failed to attach notification handler', e);
-    }
-
-    return () => {
-      try {
-        notificationSocket.offNotification(handleNotif);
-      } catch {}
-    };
-  }, [user?.sub, auctionId, navigate]);
-
-  // Helper to find order created for this auction (if any)
-  const fetchOrderIdForAuction = async (): Promise<string | null> => {
-    if (!auctionId) return null;
-    try {
-      // First, debug endpoint to see what's in the database
-      console.log('🔍 [Bidding] Calling debug endpoint for auction:', auctionId);
-      const debugData = await auctionApi.getAuctionDebug(auctionId);
-      console.log('🔍 [Bidding] Debug data:', debugData);
-
-      // Then try to get the order
-      const order = await auctionApi.getOrderByAuctionId(auctionId);
-      console.log('✅ [Bidding] Order response:', order);
-      if (order && order.orderId) {
-        return order.orderId;
-      }
-      return null;
-    } catch (e) {
-      console.warn('fetchOrderIdForAuction failed', e);
-      return null;
-    }
+  const calculateDeposit = (bidAmount: number, depositPercent: number): number => {
+    return Math.ceil((bidAmount * depositPercent) / 100);
   };
 
-  // Use wallet helpers provided by useWallet (formatVND, calculateDeposit, checkSufficientBalance, fetchBalance)
-  // Determine currentPrice with fallback to startingPrice/product.priceStart when no bids yet
+  const checkSufficientBalance = (bidAmount: number, depositPercent: number) => {
+    const required = calculateDeposit(bidAmount, depositPercent);
+    const available = myWallet?.available ?? 0;
+    return {
+      sufficient: available >= required,
+      required,
+      available,
+    };
+  };
+
+  const fetchBalance = async () => {
+    // Wallet will auto-refresh via useEffect in useWallet hook
+  };
+
+  const deposit = async (amount: number) => {
+    await depositToWallet(amount.toString());
+  };
+
+  // Use startingPrice if currentPrice is 0 (no bids yet)
   const rawCurrentPrice = auction?.currentPrice ?? 0;
-  const startingPrice = auction?.startingPrice ?? auction?.product?.priceStart ?? 0;
+  const startingPrice = (auction as any)?.startingPrice ?? (auction as any)?.product?.priceStart ?? 0;
   const currentPrice = rawCurrentPrice > 0 ? rawCurrentPrice : startingPrice;
-
-  // Prefer minBidIncrement (backend), fallback to legacy minIncrement
-  const minIncrement = (auction as any)?.minBidIncrement ?? (auction as any)?.minIncrement ?? 0;
-
+  
+  const minIncrement = auction?.minBidIncrement ?? 0;
   const nextMinBid = currentPrice + minIncrement;
-
-  // Debug log
-  console.log("🔍 [Bidding] Debug data:", {
-    auction,
-    currentPrice,
-    minIncrement,
-    nextMinBid,
-    live,
-    loading,
-    reconnecting,
-    isConnected,
-  });
 
   const canBid = useMemo(() => {
     if (!user) return { ok: false, reason: "Not logged in" };
     if (!user.role || user.role !== "member")
       return { ok: false, reason: "Insufficient role" };
     if (!live) return { ok: false, reason: "Auction not live" };
-    if (!isConnected) return { ok: false, reason: "Not connected to live server" };
     if (reconnecting) return { ok: false, reason: "Reconnecting..." };
     // TODO: check user's balance via wallet API and return false+reason if insufficient
     return { ok: true, reason: "" };
-  }, [user, live, reconnecting, isConnected]);
+  }, [user, live, reconnecting]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("vi-VN", {
@@ -195,7 +131,7 @@ export default function Bidding() {
         `Insufficient funds. You need ${formatVND(
           depositRequired
         )} deposit, but only have ${formatVND(
-          walletFinal?.available ?? 0
+          wallet?.available ?? 0
         )} available.`
       );
       setShowDepositModal(true);
@@ -232,8 +168,8 @@ export default function Bidding() {
     if (Number.isNaN(amount)) return;
     const depositRequired = calculateDeposit(amount, depositPercent);
     const shortfall =
-      (walletFinal?.available ?? 0) < depositRequired
-        ? depositRequired - (walletFinal?.available ?? 0)
+      (wallet?.available ?? 0) < depositRequired
+        ? depositRequired - (wallet?.available ?? 0)
         : depositRequired;
 
     try {
@@ -245,7 +181,7 @@ export default function Bidding() {
     }
   };
 
-  const isFinalSecond = countdown <= 1 && countdown > 0;
+  const isFinalSecond = countdown <= 1000 && countdown > 0;
 
   return (
     <div className="product-bidding-container">
@@ -266,17 +202,17 @@ export default function Bidding() {
           <p>
             Next Min Bid: <strong>{formatCurrency(nextMinBid)}</strong>
           </p>
-          {walletFinal && (
+          {wallet && (
             <p className="mt-2 text-gray-600">
               💰 Your Balance:{" "}
               <strong
                 className={
-                  (walletFinal as any).available >= nextMinBid * 0.1
+                  wallet.available >= nextMinBid * 0.1
                     ? "text-green-600"
                     : "text-red-600"
                 }
               >
-                {formatVND((walletFinal as any).available)}
+                {formatVND(wallet.available)}
               </strong>
             </p>
           )}
@@ -291,48 +227,9 @@ export default function Bidding() {
             {auction.winnerId === user?.sub ? (
               <div>
                 <p className="winner">
-                  🏆 You won! Complete payment to claim the item.
+                  You won! Complete payment to claim the item.
                 </p>
-                <button
-                  className="btn primary"
-                  disabled={fetchingOrder}
-                  onClick={async () => {
-                    setFetchingOrder(true);
-                    try {
-                      let oid = orderIdForAuction;
-                      if (!oid) {
-                        console.log("📦 [Bidding] Fetching order ID for auction:", auctionId);
-                        oid = await fetchOrderIdForAuction();
-                        if (oid) {
-                          setOrderIdForAuction(oid);
-                          console.log("✅ [Bidding] Order found:", oid);
-                        }
-                      }
-
-                      if (oid) {
-                        console.log("🔗 [Bidding] Navigating to payment with orderId:", oid);
-                        toast.success("Đang chuyển đến trang thanh toán...");
-                        setTimeout(() => {
-                          navigate(`/payment?orderId=${oid}`);
-                        }, 500);
-                      } else {
-                        console.warn("⚠️ [Bidding] Order not found");
-                        toast.error(
-                          "Không tìm thấy đơn hàng. Vui lòng kiểm tra email hoặc thử lại trong giây lát."
-                        );
-                      }
-                    } catch (e: any) {
-                      console.error("❌ [Bidding] Pay button error:", e);
-                      toast.error(
-                        `Lỗi: ${e?.message || "Không thể xử lý thanh toán. Vui lòng thử lại."}`
-                      );
-                    } finally {
-                      setFetchingOrder(false);
-                    }
-                  }}
-                >
-                  {fetchingOrder ? "🔄 Đang tải..." : "💳 Thanh toán ngay"}
-                </button>
+                <button className="btn primary">Pay / Complete</button>
               </div>
             ) : (
               <p className="loser">
@@ -396,32 +293,40 @@ export default function Bidding() {
         )}
         {!live && !loading && <p className="live-status">Not live</p>}
         <div className={`countdown ${isFinalSecond ? "pulse" : ""}`}>
-          Time left: {Math.ceil(countdown)}s
+          Time left: {Math.ceil(countdown / 1000)}s
         </div>
       </div>
 
       <div className="auction-card bidding-history">
         <h2 className="card-title">Bidding History</h2>
         <div className="history-list">
-          {!auction?.bidHistory || auction.bidHistory.length === 0 ? (
-            <p>No bids yet. Live updates will appear here.</p>
-          ) : (
-            <div className="bid-items">
-              {auction.bidHistory.map((bid, idx: number) => (
-                <div key={bid.bidId || idx} className="bid-item">
-                  <div className="bid-info">
-                    <span className="bid-user">{bid.userName || 'Anonymous'}</span>
-                    {bid.isWinning && <span className="bid-winning-badge">🏆 Winning</span>}
+          {auction?.bidHistory && auction.bidHistory.length > 0 ? (
+            <div className="space-y-2">
+              {auction.bidHistory.map((bid) => (
+                <div 
+                  key={bid.bidId} 
+                  className={`p-3 rounded ${bid.isWinning ? 'bg-green-100 border-2 border-green-500' : 'bg-gray-100'}`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="font-semibold">
+                        {bid.isWinning && '🏆 '}
+                        {bid.userName || 'Anonymous'}
+                      </span>
+                      {bid.userId === user?.sub && (
+                        <span className="ml-2 text-xs text-blue-600 font-bold">(You)</span>
+                      )}
+                    </div>
+                    <span className="font-bold text-lg">{formatCurrency(bid.amount)}</span>
                   </div>
-                  <div className="bid-amount">
-                    {formatCurrency(bid.amount)}
-                  </div>
-                  <div className="bid-time">
-                    {new Date(bid.timestamp).toLocaleTimeString('vi-VN')}
+                  <div className="text-xs text-gray-500 mt-1">
+                    {new Date(bid.timestamp).toLocaleString('vi-VN')}
                   </div>
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="text-gray-500">No bids yet. Be the first to bid!</p>
           )}
         </div>
       </div>
