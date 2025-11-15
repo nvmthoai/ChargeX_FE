@@ -38,6 +38,7 @@ import OrderManagement from "../pages/Profile/Orders";
 import { DisputesManagement } from "../pages/Admin/DisputesManagement";
 import TermsOfService from "../pages/Term";
 import ForgotPassword from "../pages/Forgot-Password/inde";
+import ResetPassword from "../pages/Reset-Password";
 
 // Lazy-load heavier pages to improve initial bundle size
 const Home = lazy(() => import("../pages/Home/Home"));
@@ -73,6 +74,7 @@ function RoutesContent() {
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
 
             <Route path="/profile" element={<Profile />} >

@@ -70,6 +70,19 @@ const authService = () => {
     }
   };
 
+  const resetPassword = async (values: any) => {
+    try {
+      setLoading(true);
+      const response = await authApi.resetPassword(values);
+      return response;
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || "Failed to resetPassword");
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     register,
     resendOtp,
@@ -77,7 +90,8 @@ const authService = () => {
     loading,
     setIsLoading: setLoading,
     verifyOtp,
-    forgotPassword
+    forgotPassword,
+    resetPassword
   };
 };
 
