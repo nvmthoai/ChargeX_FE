@@ -18,6 +18,7 @@ import {
 import dayjs from "dayjs";
 import { orderActions } from "../../config/order-status-config";
 import OrderTracking from "./component/OrderTracking";
+import OrderStatusActions from "./component/OrderStatusActions";
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
@@ -159,6 +160,14 @@ export default function OrderDetail() {
 
       {/* ✅ Order Tracking (dựa theo OrderEvent) */}
       <OrderTracking events={events} />
+
+      {/* 📦 Order Status Actions */}
+      <OrderStatusActions
+        order={order}
+        role={role}
+        onStatusChange={handleAction}
+        loading={loading}
+      />
 
       {/* Order Items */}
       <div className="mb-8">
