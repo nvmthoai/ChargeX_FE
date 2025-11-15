@@ -187,7 +187,7 @@ export default function AuctionManager() {
 
   const columns: ColumnsType<AuctionInfo> = [
     {
-      title: "Product",
+      title: "Sản phẩm",
       key: "productName",
       render: (_, record) => (
         <div className="flex items-center gap-2">
@@ -197,83 +197,83 @@ export default function AuctionManager() {
             className="w-12 h-12 rounded object-cover"
           />
           <div>
-            <p className="font-semibold text-dark-100">{record.productName}</p>
-            <p className="text-xs text-dark-400">{record.auctionId}</p>
+            <p className="font-semibold text-gray-900">{record.productName}</p>
+            <p className="text-xs text-gray-500">{record.auctionId}</p>
           </div>
         </div>
       ),
       width: 280
     },
     {
-      title: "Status",
+      title: "Trạng thái",
       key: "status",
       render: (_, record) => getStatusTag(record.status),
       width: 140
     },
     {
-      title: "Current Bid",
+      title: "Giá hiện tại",
       key: "currentBid",
       render: (_, record) => (
         <div>
-          <p className="font-semibold text-green-400">${record.currentBid.toFixed(2)}</p>
-          <p className="text-xs text-dark-400">Reserve: ${record.reservePrice.toFixed(2)}</p>
+          <p className="font-semibold text-green-600">${record.currentBid.toFixed(2)}</p>
+          <p className="text-xs text-gray-500">Reserve: ${record.reservePrice.toFixed(2)}</p>
         </div>
       ),
       width: 130
     },
     {
-      title: "Bids",
+      title: "Lượt đấu",
       key: "totalBids",
       render: (_, record) => (
-        <span className="text-dark-200 font-semibold">{record.totalBids}</span>
+        <span className="text-gray-700 font-semibold">{record.totalBids}</span>
       ),
       width: 80
     },
     {
-      title: "Time",
+      title: "Thời gian",
       key: "endTime",
       render: (_, record) => {
         const timeLeft = calculateTimeLeft(record.endTime);
         const isEnded = new Date(record.endTime).getTime() <= new Date().getTime();
         return (
           <div>
-            <p className={`font-semibold ${isEnded ? "text-red-400" : "text-ocean-400"}`}>
+            <p className={`font-semibold ${isEnded ? "text-red-600" : "text-blue-600"}`}>
               {timeLeft}
             </p>
-            <p className="text-xs text-dark-400">{formatDate(record.endTime)}</p>
+            <p className="text-xs text-gray-500">{formatDate(record.endTime)}</p>
           </div>
         );
       },
       width: 150
     },
     {
-      title: "Winner",
+      title: "Người thắng",
       key: "winner",
       render: (_, record) => {
         if (record.status === "sold" && record.currentWinner) {
           return (
             <div>
-              <p className="font-semibold text-dark-100">{record.currentWinner.username}</p>
-              <p className="text-xs text-dark-400">{record.currentWinner.email}</p>
+              <p className="font-semibold text-gray-900">{record.currentWinner.username}</p>
+              <p className="text-xs text-gray-500">{record.currentWinner.email}</p>
             </div>
           );
         }
         if (record.status === "failed") {
-          return <span className="text-red-400 text-sm">No winner</span>;
+          return <span className="text-red-600 text-sm">Không có</span>;
         }
         if (record.status === "active" && record.currentWinner) {
           return (
             <div className="text-sm">
-              <p className="text-dark-200">Leading: {record.currentWinner.username}</p>
+              <p className="text-gray-700">Đang dẫn: {record.currentWinner.username}</p>
             </div>
           );
         }
-        return <span className="text-dark-400 text-sm">—</span>;
+        return <span className="text-gray-500 text-sm">—</span>;
       },
       width: 160
     },
     {
-      title: "Action",
+      title: "Thao tác",
       key: "action",
       render: (_, record) => (
         <Button
@@ -285,7 +285,7 @@ export default function AuctionManager() {
             setDetailModalOpen(true);
           }}
         >
-          Details
+          Chi tiết
         </Button>
       ),
       width: 100
@@ -294,72 +294,34 @@ export default function AuctionManager() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-[400px]">
-        <Spin size="large" />
+      <div className="border border-dashed border-gray-300 rounded-xl p-8 bg-white text-gray-500 text-center shadow-sm">
+        <div className="flex justify-center items-center h-[400px]">
+          <Spin size="large" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-dark-100 mb-2">Auction Management</h2>
-        <p className="text-dark-300">Monitor your active auctions and view auction results</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20">
-          <div>
-            <p className="text-dark-300 text-sm mb-1">Total Auctions</p>
-            <p className="text-3xl font-bold text-blue-400">{auctions.length}</p>
-          </div>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/20">
-          <div>
-            <p className="text-dark-300 text-sm mb-1">Sold</p>
-            <p className="text-3xl font-bold text-green-400">
-              {auctions.filter(a => a.status === "sold").length}
-            </p>
-          </div>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20">
-          <div>
-            <p className="text-dark-300 text-sm mb-1">Active</p>
-            <p className="text-3xl font-bold text-orange-400">
-              {auctions.filter(a => a.status === "active").length}
-            </p>
-          </div>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-red-500/10 to-red-600/10 border border-red-500/20">
-          <div>
-            <p className="text-dark-300 text-sm mb-1">Failed</p>
-            <p className="text-3xl font-bold text-red-400">
-              {auctions.filter(a => a.status === "failed").length}
-            </p>
-          </div>
-        </Card>
-      </div>
-
-      {/* Auctions Table */}
-      <Card className="border border-ocean-800/20">
+    <div>
+      <div className="border border-dashed border-gray-300 rounded-xl p-8 bg-white text-gray-500 text-center shadow-sm">
         {auctions.length > 0 ? (
-          <Table
-            columns={columns}
-            dataSource={auctions}
-            rowKey="auctionId"
-            pagination={{ pageSize: 10 }}
-            scroll={{ x: 1200 }}
-            className="bg-transparent"
-          />
+          <div className="text-left">
+            <Table
+              columns={columns}
+              dataSource={auctions}
+              rowKey="auctionId"
+              pagination={{ pageSize: 10 }}
+              scroll={{ x: 1200 }}
+              className="bg-transparent"
+            />
+          </div>
         ) : (
-          <Empty description="No auctions yet" />
+          <div className="p-12 text-center text-gray-500">
+            <p>Chưa có đấu giá nào được đăng.</p>
+          </div>
         )}
-      </Card>
+      </div>
 
       {/* Detail Modal */}
       <Modal
