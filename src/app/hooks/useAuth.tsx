@@ -22,7 +22,8 @@ interface HandleLoginProps {
 }
 
 const UserAuth = () => {
-  const { register, login, forgotPassword } = authSerivce();
+  const { register, login, forgotPassword, resetPassword, loading } =
+    authSerivce();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const { login: setAuthUser } = useAuth();
@@ -76,6 +77,23 @@ const UserAuth = () => {
     if (response) {
       message.success("Check your mail to claim new password!");
       setTimeout(() => {
+        navigate("/reset-password");
+      }, 1500);
+      return response;
+    }
+    return null;
+  };
+
+  const handleResetPassword = async (values: any) => {
+    const valuesSubmit = {
+      email: values.email,
+      newPassword: values.newPassword,
+      otp: values.otp,
+    };
+    const response = await resetPassword(valuesSubmit);
+    if (response) {
+      message.success("Reset Password Successfully");
+      setTimeout(() => {
         navigate("/auth");
       }, 1500);
       return response;
@@ -83,7 +101,13 @@ const UserAuth = () => {
     return null;
   };
 
-  return { handleRegister, handleLogin, handleForgotPassword };
+  return {
+    handleRegister,
+    handleLogin,
+    handleForgotPassword,
+    handleResetPassword,
+    loading,
+  };
 };
 
 export default UserAuth;
