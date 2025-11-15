@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import Header from "./Header/Header";
+import Footer from "./Footer/Footer";
+import { useLocation } from "react-router-dom";
 
 interface BaseLayoutProps {
   children: ReactNode;
@@ -7,8 +9,15 @@ interface BaseLayoutProps {
 }
 
 export default function BaseLayout({ children, showHeader = true }: BaseLayoutProps) {
+  const location = useLocation();
+  
+  // Hide footer on authentication pages and admin pages
+  const isAuthRoute = location.pathname.startsWith("/auth") || location.pathname.startsWith("/verify-otp");
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  const showFooter = !isAuthRoute && !isAdminRoute;
+
   return (
-    <div className="min-h-screen  relative">
+    <div className="min-h-screen flex flex-col relative">
       {/* Background Pattern */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full opacity-60" style={{
@@ -24,9 +33,14 @@ export default function BaseLayout({ children, showHeader = true }: BaseLayoutPr
           <Header />
         </div>
       )}
-      <main className="relative z-10 w-full">
+      <main className="relative z-10 w-full flex-1">
         {children}
       </main>
+      {showFooter && (
+        <div className="relative z-10">
+          <Footer />
+        </div>
+      )}
     </div>
   );
 }

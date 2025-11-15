@@ -20,7 +20,7 @@ export default function Shop() {
     },
     {
       to: "auction",
-      label: "Sản phẩm đấu giá",
+      label: "Quản lý đấu giá",
       icon: Gavel,
       isActive: path.includes("/shop/auction"),
     },

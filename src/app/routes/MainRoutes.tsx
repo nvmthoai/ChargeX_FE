@@ -20,7 +20,6 @@ import KnowYourCus from "../pages/KYC/KnowYourCus";
 import Shop from "../pages/Shop/Shop";
 import ProductManager from "../pages/Shop/component/ProductManager";
 import TransactionHistory from "../pages/Shop/component/TransactionHistory";
-import AuctionManager from "../pages/Shop/component/AuctionManager";
 import VerifyOTPPage from "../pages/Verify-Otp";
 import PaymentSuccess from "../pages/Payment/success";
 import PaymentError from "../pages/Payment/error";
@@ -36,7 +35,12 @@ import OrderDetail from "../pages/Order/OrderDetail";
 import ShopDetailPage from "../pages/Shop-Detail";
 import OrderManagement from "../pages/Profile/Orders";
 import { DisputesManagement } from "../pages/Admin/DisputesManagement";
+import DashboardManager from "@/app/pages/Shop/component/DashboardManager";
+import TermsOfService from "../pages/Term";
+import ForgotPassword from "../pages/Forgot-Password/inde";
+import ResetPassword from "../pages/Reset-Password";
 import AdminDashboard from "../pages/Admin/Dashboard/Dashboard";
+import AuctionManager from "../pages/Shop/component/AuctionManager";
 
 // Lazy-load heavier pages to improve initial bundle size
 const Home = lazy(() => import("../pages/Home/Home"));
@@ -70,6 +74,9 @@ function RoutesContent() {
 
             <Route element={<AuthRoute />}>
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
 
             <Route path="/profile" element={<Profile />} >
