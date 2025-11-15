@@ -37,8 +37,8 @@ export const getAllOrders = async (params?: GetOrdersParams): Promise<Order[]> =
 export const getOrderById = async (id: string): Promise<Order> => {
   try {
     const res = await axiosInstance.get(`/orders/${id}`);
-    console.log(`✅ Order ${id}:`, res.data?.data?.data);
-    return res.data?.data?.data;
+    console.log(`✅ Order ${id}:`, res.data?.data);
+    return res.data?.data;
   } catch (err) {
     console.error(`❌ Error fetching order ${id}:`, err);
     throw err;
