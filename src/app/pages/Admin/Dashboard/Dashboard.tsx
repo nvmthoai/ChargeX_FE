@@ -53,47 +53,61 @@ export default function AdminDashboard() {
 
   if (!stats) {
     return (
-      <div className="p-8">
+      <div className="p-6">
         <Empty
           description="No data available"
-          style={{ marginTop: 48, marginBottom: 48 }}
+          styles={{ description: { color: 'rgba(209, 213, 219, 1)' } }}
         />
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl font-bold text-dark-100 mb-2">
             Admin Dashboard
           </h1>
-          <p className="text-gray-600">
+          <p className="text-dark-300">
             Platform metrics and revenue tracking
           </p>
         </div>
 
         {/* Platform Fee Stats */}
-        <Card className="shadow-lg">
-          <PlatformFeeStats stats={stats} loading={loading} />
-        </Card>
+        <PlatformFeeStats stats={stats} loading={loading} />
 
         {/* Additional Sections (TODO) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
           {/* Placeholder for additional widgets */}
-          <Card className="h-48 flex items-center justify-center text-gray-400">
+          <Card 
+            styles={{ body: { padding: '0', height: '192px', display: 'flex', alignItems: 'center', justifyContent: 'center' } }}
+            style={{
+              background: 'rgba(31, 41, 55, 0.8)',
+              border: '1px solid rgba(30, 58, 138, 0.3)',
+              borderRadius: '12px',
+            }}
+            className="backdrop-blur-sm"
+          >
             <Empty
               description="Order Analytics Coming Soon"
-              style={{ margin: 0 }}
+              styles={{ description: { color: 'rgba(156, 163, 175, 1)' } }}
             />
           </Card>
 
-          <Card className="h-48 flex items-center justify-center text-gray-400">
+          <Card 
+            styles={{ body: { padding: '0', height: '192px', display: 'flex', alignItems: 'center', justifyContent: 'center' } }}
+            style={{
+              background: 'rgba(31, 41, 55, 0.8)',
+              border: '1px solid rgba(30, 58, 138, 0.3)',
+              borderRadius: '12px',
+            }}
+            className="backdrop-blur-sm"
+          >
             <Empty
               description="User Activity Coming Soon"
-              style={{ margin: 0 }}
+              styles={{ description: { color: 'rgba(156, 163, 175, 1)' } }}
             />
           </Card>
         </div>

@@ -9,7 +9,8 @@ import {
   AlertCircle,
   LogOut,
   Home,
-  Sparkles
+  Sparkles,
+  LayoutDashboard
 } from "lucide-react";
 
 export default function AdminNavigationBar() {
@@ -18,6 +19,7 @@ export default function AdminNavigationBar() {
   const location = useLocation();
 
   const menuItems = [
+    { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
     { name: "Members", icon: Users, path: "/admin/user-management" },
     { name: "KYC", icon: Shield, path: "/admin/kyc-management" },
     { name: "Auctions", icon: Gavel, path: "/admin/auction-management" },
@@ -27,6 +29,9 @@ export default function AdminNavigationBar() {
   ];
 
   const isActive = (path: string) => {
+    if (path === "/admin/dashboard") {
+      return location.pathname === "/admin" || location.pathname === "/admin/dashboard" || location.pathname.startsWith("/admin/dashboard/");
+    }
     return location.pathname === path || location.pathname.startsWith(path + "/");
   };
 
