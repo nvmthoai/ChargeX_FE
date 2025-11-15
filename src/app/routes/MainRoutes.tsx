@@ -36,6 +36,7 @@ import OrderDetail from "../pages/Order/OrderDetail";
 import ShopDetailPage from "../pages/Shop-Detail";
 import OrderManagement from "../pages/Profile/Orders";
 import { DisputesManagement } from "../pages/Admin/DisputesManagement";
+import AdminDashboard from "../pages/Admin/Dashboard/Dashboard";
 
 // Lazy-load heavier pages to improve initial bundle size
 const Home = lazy(() => import("../pages/Home/Home"));
@@ -93,7 +94,8 @@ function RoutesContent() {
 
           {/* Admin routes with AdminLayout */}
           <Route path="/admin" element={<AdminLayout><Outlet /></AdminLayout>}>
-            <Route index element={<Navigate to="user-management" replace />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="user-management" element={<UserManagement />} />
             <Route path="auction-management" element={<AuctionRequestManagement />} />
             <Route path="auction-live-management" element={<AuctionLiveManagement />} />
