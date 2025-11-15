@@ -43,7 +43,18 @@ export const authApi = {
     const response = await axiosInstance.post("/auth/resend-otp", data);
     return response.data;
   },
+
+  forgotPassword: async (data: { email: string }) => {
+    const response = await axiosInstance.post("/auth/forgot-password", data);
+    return response.data;
+  },
+
+  resetPassword: async (data: any) => {
+    const response = await axiosInstance.post("/auth/reset-password", data);
+    return response.data;
+  },
 };
+
 
 
 

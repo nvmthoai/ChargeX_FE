@@ -57,13 +57,41 @@ const authService = () => {
     }
   };
 
+   const forgotPassword = async (values: { email: string }) => {
+    try {
+      setLoading(true);
+      const response = await authApi.forgotPassword(values);
+      return response;
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || "Failed to forgotPassword");
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (values: any) => {
+    try {
+      setLoading(true);
+      const response = await authApi.resetPassword(values);
+      return response;
+    } catch (e: any) {
+      message.error(e?.response?.data?.message || "Failed to resetPassword");
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     register,
     resendOtp,
     login,
     loading,
     setIsLoading: setLoading,
-    verifyOtp
+    verifyOtp,
+    forgotPassword,
+    resetPassword
   };
 };
 

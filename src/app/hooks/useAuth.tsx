@@ -7,7 +7,6 @@ import { jwtDecode } from "jwt-decode";
 import { useAuth } from "./AuthContext";
 import type { User } from "../.././api/user/type";
 
-
 interface HandleRegisterProps {
   email: string;
   password: string;
@@ -23,7 +22,8 @@ interface HandleLoginProps {
 }
 
 const UserAuth = () => {
-  const { register, login } = authSerivce();
+  const { register, login, forgotPassword, resetPassword, loading } =
+    authSerivce();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const { login: setAuthUser } = useAuth();
@@ -60,19 +60,54 @@ const UserAuth = () => {
 
       message.success("Login successfully!");
       switch (decoded.role) {
-        case 'admin':
-          return navigate('/admin')
-        case 'member':
-          return navigate('/')
+        case "admin":
+          return navigate("/admin");
+        case "member":
+          return navigate("/");
         default:
-          return navigate('/')
+          return navigate("/");
       }
     }
 
     return null;
   };
 
-  return { handleRegister, handleLogin };
+  const handleForgotPassword = async (values: any) => {
+    const response = await forgotPassword(values);
+    if (response) {
+      message.success("Check your mail to claim new password!");
+      setTimeout(() => {
+        navigate("/reset-password");
+      }, 1500);
+      return response;
+    }
+    return null;
+  };
+
+  const handleResetPassword = async (values: any) => {
+    const valuesSubmit = {
+      email: values.email,
+      newPassword: values.newPassword,
+      otp: values.otp,
+    };
+    const response = await resetPassword(valuesSubmit);
+    if (response) {
+      message.success("Reset Password Successfully");
+      setTimeout(() => {
+        navigate("/auth");
+      }, 1500);
+      return response;
+    }
+    return null;
+  };
+
+  return {
+    handleRegister,
+    handleLogin,
+    handleForgotPassword,
+    handleResetPassword,
+    loading,
+  };
 };
 
 export default UserAuth;
