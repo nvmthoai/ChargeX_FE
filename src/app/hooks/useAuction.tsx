@@ -8,7 +8,13 @@ import { useState, useCallback } from "react";
 export interface requestCreateAuctionValues {
   sellerId: string;
   productId: string;
-  note: string;
+  startingPrice: number;
+  reservePrice: number;
+  minBidIncrement: number;
+  antiSnipingSeconds: number;
+  buyNowPrice?: number;
+  bidDepositPercent: number;
+  note?: string;
 }
 
 const useAuction = () => {
@@ -29,10 +35,10 @@ const useAuction = () => {
     const response = await sendRequestCreateAuction(
       values.sellerId,
       values.productId,
-      values.note
+      values
     );
     if (response) {
-      message.success("Send request to admin successfully!");
+      message.success("Auction request submitted successfully!");
       return response.data;
     }
     return null;
