@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, Spin, Empty, message } from "antd";
 import PlatformFeeStats from "../components/PlatformFeeStats";
+import axiosInstance from '../../../config/axios';
 
 interface DashboardStats {
   totalOrders: number;
@@ -21,13 +22,8 @@ export default function AdminDashboard() {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/dashboard/admin/stats');
-
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status}`);
-      }
-
-      const data = await res.json();
+      const res = await axiosInstance.get('/dashboard/admin/stats');
+      const data = res.data?.data || res.data;
       setStats(data);
     } catch (err) {
       console.error("Error fetching dashboard stats:", err);
