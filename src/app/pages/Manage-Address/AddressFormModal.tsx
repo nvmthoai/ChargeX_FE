@@ -46,13 +46,15 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
   handleCreateAddress,
   handleUpdateAddress,
 }) => {
-  const [form] = Form.useForm()
-  const [loading, setLoading] = useState(false)
-  const { provinces, fetchDistricts, fetchWards } = useProvinces()
 
-  const [districts, setDistricts] = useState<District[]>([])
-  const [wards, setWards] = useState<Ward[]>([])
-  const [selectedLabel, setSelectedLabel] = useState(address?.label || "Home")
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const { provinces, fetchDistricts, fetchWards } = useProvinces();
+  console.log("provinces: ", provinces)
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+  const [selectedLabel, setSelectedLabel] = useState(address?.label || "Home");
+
 
   const handleProvinceChange = async (provinceId: number) => {
     form.setFieldsValue({ districtId: undefined, wardCode: undefined })
@@ -164,8 +166,8 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
               filterOption={(input, option) => (option?.children +'').toLowerCase().includes(input.toLowerCase())}
             >
               {provinces.map((province) => (
-                <Select.Option key={province.code} value={province.code}>
-                  {province.name}
+                <Select.Option key={province.Code} value={province.Code}>
+                  {province.NameExtension[0]}
                 </Select.Option>
               ))}
             </Select>
