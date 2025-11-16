@@ -55,12 +55,12 @@ const AddressCard: React.FC<AddressCardProps> = ({
                 Default
               </span>
             )}
-
+{/* 
             {address.label === "Office" && (
               <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-medium rounded border border-gray-300">
                 Pickup Address
               </span>
-            )}
+            )} */}
           </div>
 
           <p className="text-gray-700 mb-1">{address.line1}</p>
