@@ -74,7 +74,7 @@ export default function PaymentCart() {
                 sellerMap.set(ord.orderShops?.[0]?.seller?.userId, {
                     userId: ord.orderShops?.[0]?.seller?.userId,
                     fullName: ord.orderShops?.[0]?.seller?.fullName,
-                    shippingFee: Number(ord.orderShops?.[0]?.shippingFee),
+                    shippingFee: Number(ord.totalShippingFee),
                     orders: [ord],
                 });
             } else { sellerMap.get(ord.orderShops?.[0]?.seller?.userId)!.orders.push(ord) }
@@ -85,7 +85,7 @@ export default function PaymentCart() {
     console.log("sellers", sellers);
 
     // Tính tổng
-    const PriceBuyNow = order?.reduce((sum: any, i: any) => sum + Number(i.totalPrice || 0) * Number(i.orderShops?.[0]?.orderDetails?.[0]?.quantity), 0);
+    const PriceBuyNow = order?.reduce((sum: any, i: any) => sum + Number(i.orderShops?.[0]?.orderDetails?.[0]?.price || 0) * Number(i.orderShops?.[0]?.orderDetails?.[0]?.quantity), 0);
     const totalShippingFee = sellers?.reduce((sum: any, i: any) => sum + Number(i.shippingFee || 0), 0);
     // const uniqueSellerCount = new Set(order?.map((i: any) => i.orderShops?.[0]?.seller?.userId))?.size;
     const total = PriceBuyNow + totalShippingFee;
@@ -101,7 +101,7 @@ export default function PaymentCart() {
         const items = order?.map((ord: any) => ({
             orderId: ord.orderId,
             amount:
-                Number(ord.totalPrice) +
+                Number(ord.orderShops?.[0]?.orderDetails?.[0]?.price) +
                 Number(ord.totalShippingFee) /
                 (order?.filter(
                     (o: any) =>
@@ -183,7 +183,7 @@ export default function PaymentCart() {
                                     <div className="flex-1">
                                         <p className="font-semibold text-gray-900 text-lg">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</p>
                                         <p className="text-sm text-gray-500 line-clamp-2">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.description || "Không có mô tả"}</p>
-                                        <p className="font-semibold text-[#0F74C7] mt-1">{Number(ord.totalPrice).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</p>
+                                        <p className="font-semibold text-[#0F74C7] mt-1">{Number(ord.orderShops?.[0]?.orderDetails?.[0]?.price ).toLocaleString()} VND</p>
                                     </div>
                                 </div>
                             ))}
@@ -237,7 +237,7 @@ export default function PaymentCart() {
                                 )}
                                 <p className="text-gray-700 mt-1">
                                     <span className="font-medium">Phí vận chuyển:</span>{" "}
-                                    {slr?.orders?.[0]?.totalShippingFee ? `${Number(slr?.orders?.[0]?.totalShippingFee).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}` : "$0"}
+                                    {slr?.orders?.[0]?.totalShippingFee ? `${Number(slr?.orders?.[0]?.totalShippingFee).toLocaleString()} VND` : "0 VND"}
                                 </p>
                             </div>
                         </div>
@@ -246,7 +246,7 @@ export default function PaymentCart() {
                     {/* 💰 Tổng tiền */}
                     <div className="pt-4 border-t border-gray-200 text-right">
                         <p className="font-semibold text-gray-800 text-lg">Tổng thanh toán:</p>
-                        <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</p>
+                        <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{Number(total).toLocaleString()} VND</p>
                     </div>
                 </div>
 
@@ -297,7 +297,7 @@ export default function PaymentCart() {
                                                 <>
                                                     <p>
                                                         Số dư khả dụng:{" "}
-                                                        <span className="font-semibold text-[#0F74C7]">{wallet.available.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                                                        <span className="font-semibold text-[#0F74C7]">{Number(wallet?.available).toLocaleString()} VND</span>
                                                     </p>
                                                     {wallet.available < total && (
                                                         <p className="text-red-500 mt-1">⚠️ Số dư không đủ để thanh toán!</p>
@@ -321,7 +321,7 @@ export default function PaymentCart() {
                         <button
                             onClick={handlePayment}
                             disabled={processing || isWalletInsufficient}
-                            className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${processing || isWalletInsufficient ? "bg-gray-400 cursor-not-allowed" : "bg-[#0F74C7] hover:bg-[#3888ca]"
+                            className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition cursor-pointer ${processing || isWalletInsufficient ? "bg-gray-400 cursor-not-allowed" : "bg-[#0F74C7] hover:bg-[#3888ca]"
                                 }`}
                         >
                             {processing ? "Đang xử lý..." : "Thanh toán ngay"}
@@ -329,7 +329,7 @@ export default function PaymentCart() {
 
                         <button
                             onClick={() => navigate(-1)}
-                            className="w-full py-3 rounded-lg border text-gray-700 hover:border-[#0F74C7] transition flex items-center justify-center gap-2"
+                            className="w-full py-3 rounded-lg border text-gray-700 hover:border-[#0F74C7] transition flex items-center justify-center gap-2 cursor-pointer"
                         >
                             <ArrowLeftOutlined /> Quay lại
                         </button>
