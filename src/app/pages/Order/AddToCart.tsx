@@ -28,6 +28,9 @@ const AddToCart = async (product: any, selectedAddressId: any, addresses: any): 
         const payload = {
             receiverName: selectedAddress.fullName,
             receiverPhone: selectedAddress.phone,
+            receiverAddress: selectedAddress.line1 || "",
+            receiverDistrictId: selectedAddress.districtId || 0,
+            receiverWardCode: selectedAddress.wardCode || "",
             receiverAddressId: selectedAddress.addressId, // ✅ chỉ truyền ID
             orderShops: [
                 {

@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getWalletAvailable } from "../../../api/payment/api";
 import { PaymentProvider } from "../../../api/payment/type";
 import { postData } from "../../../mocks/CallingAPI";
-import useProvinces from "../../hooks/useProvinces";
+import useProvinces, { type District, type Ward } from "../../hooks/useProvinces";
 
 type WalletInfo = { balance: number; held: number; available: number } | null;
 
@@ -44,12 +44,13 @@ export default function PaymentCart() {
             const convertAddress = async (addr: any) => {
                 if (!addr) return "Không có địa chỉ";
                 try {
-                    const province = provinces.find((p) => p.code === addr.provinceId);
+                    const province = provinces.find((p) => p.Code === addr.provinceId);
                     const districtList = await fetchDistricts(addr.provinceId);
-                    const district = districtList.find((d) => d.code === addr.districtId);
+                    const district = districtList.find((d: District) => d.code === addr.districtId);
                     const wardList = await fetchWards(addr.districtId);
-                    const ward = wardList.find((w) => w.code.toString() === addr.wardCode);
-                    return `${addr.line1}, ${ward?.name || ""}, ${district?.name || ""}, ${province?.name || ""}`;
+                    const ward = wardList.find((w: Ward) => w.code.toString() === addr.wardCode);
+                    const provinceName = province?.NameExtension?.[0] || "";
+                    return `${addr.line1}, ${ward?.name || ""}, ${district?.name || ""}, ${provinceName}`;
                 } catch {
                     return addr.line1;
                 }

@@ -96,11 +96,11 @@ export default function OrderDetail() {
       let updatedOrder;
 
       // 📦 Use specialized API for delivery confirmation
-      if (key === "mark-delivered") {
+      if (key === "markDelivered") {
         updatedOrder = await markOrderAsDelivered(order.orderId, "Package delivered to buyer");
       }
       // ✅ Use specialized API for completion confirmation
-      else if (key === "mark-completed") {
+      else if (key === "completeOrder") {
         updatedOrder = await markOrderAsCompleted(order.orderId, "Order completed - buyer confirmed receipt");
       }
       // 📝 Use generic update for other statuses
