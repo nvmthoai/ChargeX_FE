@@ -35,7 +35,7 @@ import OrderDetail from "../pages/Order/OrderDetail";
 import ShopDetailPage from "../pages/Shop-Detail";
 import OrderManagement from "../pages/Profile/Orders";
 import { DisputesManagement } from "../pages/Admin/DisputesManagement";
-import DashboardManager from "@/app/pages/Shop/component/DashboardManager";
+// import DashboardManager from "@/app/pages/Shop/component/DashboardManager"; // Unused
 import TermsOfService from "../pages/Term";
 import ForgotPassword from "../pages/Forgot-Password/inde";
 import ResetPassword from "../pages/Reset-Password";

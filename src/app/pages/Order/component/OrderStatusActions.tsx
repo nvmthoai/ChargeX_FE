@@ -96,8 +96,8 @@ export default function OrderStatusActions({ order, role, onStatusChange, loadin
           {actions.map((actionItem) => (
             <Tooltip key={actionItem.key} title={actionItem.tooltip}>
               <Button
-                type="primary"
-                color={actionItem.color}
+                type={actionItem.color === "danger" ? "primary" : "default"}
+                danger={actionItem.color === "danger"}
                 icon={actionItem.icon}
                 onClick={() => handleActionClick(actionItem.key)}
                 loading={loading}

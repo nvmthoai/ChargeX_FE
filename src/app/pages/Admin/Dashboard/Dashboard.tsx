@@ -24,7 +24,30 @@ export default function AdminDashboard() {
       setLoading(true);
       const res = await axiosInstance.get('/dashboard/admin/stats');
       const data = res.data?.data || res.data;
-      setStats(data);
+
+      // attempt to fetch platform_fee payments as a fallback/augmentation
+      let platformFeeTotal = 0;
+      try {
+        const payRes = await axiosInstance.get('/payment/admin');
+        const payments = payRes.data?.data ?? payRes.data ?? [];
+        const platformFees = Array.isArray(payments)
+          ? payments.filter((p: any) => String(p.type).toLowerCase() === 'platform_fee')
+          : [];
+        platformFeeTotal = platformFees.reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+      } catch (e) {
+        // ignore admin payments fetch error; we still show stats (or mock)
+        console.warn('Failed to fetch admin payments for platform fee total', e);
+      }
+
+      const merged: DashboardStats = {
+        totalOrders: Number(data.totalOrders || data.total_orders || 0),
+        completedOrders: Number(data.completedOrders || data.completed_orders || 0),
+        totalGrossValue: Number(data.totalGrossValue || data.total_gross_value || 0),
+        platformFeeCollected: Number(data.platformFeeCollected || data.platform_fee_collected || platformFeeTotal || 0),
+        platformFeePercent: Number(data.platformFeePercent || data.platform_fee_percent || 10),
+      };
+
+      setStats(merged);
     } catch (err) {
       console.error("Error fetching dashboard stats:", err);
       message.error("Failed to load dashboard statistics");

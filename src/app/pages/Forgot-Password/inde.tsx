@@ -8,10 +8,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import UserAuth from "@/app/hooks/useAuth";
 
-interface ForgotPasswordFormData {
-  email: string;
-}
-
 interface ResetPasswordFormData {
   password: string;
   confirmPassword: string;
@@ -20,7 +16,6 @@ interface ResetPasswordFormData {
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [resetCode, setResetCode] = useState("");
   const { handleForgotPassword } = UserAuth();
