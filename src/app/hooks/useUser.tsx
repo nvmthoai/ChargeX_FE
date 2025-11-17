@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import userService from "../services/UserService";
 import type { ShopDetail, UserDetail } from "../models/user.model";
 import { App } from "antd";
+import { useAuth } from "./AuthContext";
 export interface uploadAvatarValues {
   file: File;
 }
@@ -11,9 +12,27 @@ const useUser = () => {
   const [shopDetail, setShopDetail] = useState<ShopDetail | null>(null);
   const { getUserDetail, getShopDetail, uploadAvatar, uploadProfile, loading } = userService();
   const { message } = App.useApp();
+  const { token } = useAuth();
 
   useEffect(() => {
-    fetchUserDetail();
+    // fetch when mounted and whenever token changes (login/logout)
+    if (token) {
+      fetchUserDetail();
+    } else {
+      setUserDetail(null);
+    }
+  }, [token]);
+
+  // also react to custom auth events for safety
+  useEffect(() => {
+    const onLogin = () => fetchUserDetail();
+    const onLogout = () => setUserDetail(null);
+    window.addEventListener("auth:login", onLogin);
+    window.addEventListener("auth:logout", onLogout);
+    return () => {
+      window.removeEventListener("auth:login", onLogin);
+      window.removeEventListener("auth:logout", onLogout);
+    };
   }, []);
 
   const fetchUserDetail = async () => {

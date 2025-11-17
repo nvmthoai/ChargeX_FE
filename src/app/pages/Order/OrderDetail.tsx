@@ -18,7 +18,6 @@ import {
 import dayjs from "dayjs";
 import { orderActions } from "../../config/order-status-config";
 import OrderTracking from "./component/OrderTracking";
-import OrderStatusActions from "./component/OrderStatusActions";
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
@@ -97,11 +96,11 @@ export default function OrderDetail() {
       let updatedOrder;
 
       // 📦 Use specialized API for delivery confirmation
-      if (key === "mark-delivered") {
+      if (key === "markDelivered") {
         updatedOrder = await markOrderAsDelivered(order.orderId, "Package delivered to buyer");
       }
       // ✅ Use specialized API for completion confirmation
-      else if (key === "mark-completed") {
+      else if (key === "completeOrder") {
         updatedOrder = await markOrderAsCompleted(order.orderId, "Order completed - buyer confirmed receipt");
       }
       // 📝 Use generic update for other statuses
@@ -161,13 +160,7 @@ export default function OrderDetail() {
       {/* ✅ Order Tracking (dựa theo OrderEvent) */}
       <OrderTracking events={events} />
 
-      {/* 📦 Order Status Actions */}
-      <OrderStatusActions
-        order={order}
-        role={role}
-        onStatusChange={handleAction}
-        loading={loading}
-      />
+      {/* NOTE: OrderStatusActions removed to avoid duplicate English buttons. */}
 
       {/* Order Items */}
       <div className="mb-8">

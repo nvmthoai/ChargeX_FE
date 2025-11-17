@@ -21,7 +21,7 @@ import useOrder from "../../../hooks/useOrder";
 import useReview from "../../../hooks/useReview";
 import ReviewListModal from "./ReviewListModal";
 import { getUserInfo } from "../../../hooks/useAddress";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ReportModal from "./ReportModal";
 import useDisputes from "../../../hooks/useDisputes";
 import { Badge } from "@/components/ui/badge";
@@ -103,6 +103,8 @@ export default function OrderManagement() {
     sellerId: "",
     sellerName: "",
   });
+  // router navigate for Pay button
+  const navigate = useNavigate();
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order: any) => {
@@ -251,6 +253,18 @@ export default function OrderManagement() {
                   <Eye className="w-4 h-4" />
                   View Reviews
                 </Button>
+                {record.status === "pending" && (
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/payment?orderId=${record.orderId}`);
+                    }}
+                    className="gap-1 bg-[#0F74C7] text-white"
+                  >
+                    Pay
+                  </Button>
+                )}
                 {record.status === "completed" && (
                   <>
                     <Button

@@ -46,6 +46,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("token", token);
     setUser(user);
     setToken(token);
+    try {
+      window.dispatchEvent(new Event("auth:login"));
+    } catch {}
 
     // Initialize notification socket when user logs in
     (async () => {
@@ -74,6 +77,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("token");
     setUser(null);
     setToken(null);
+    try {
+      window.dispatchEvent(new Event("auth:logout"));
+    } catch {}
 
     (async () => {
       try {

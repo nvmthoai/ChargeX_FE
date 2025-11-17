@@ -8,6 +8,7 @@ import WalletDisplay from "./WalletDisplay";
 import DepositModal from "./DepositModal";
 import WithdrawalModal from "./WithdrawalModal";
 import useWallet from "../../hooks/useWallet";
+import useWalletBalance from "../../../hooks/useWallet";
 import useUser from "../../hooks/useUser";
 
 export interface Bank {
@@ -36,6 +37,8 @@ export default function Header() {
     setWithdrawalModalOpen,
     withdrawalModalOpen,
   } = useWallet();
+  // Auto-fetch wallet balance on login
+  useWalletBalance({ autoFetch: true, refreshIntervalSeconds: 0 });
   const { userDetail } = useUser();
 
   // Hide header on authentication pages (login / register / verify otp) and admin pages
