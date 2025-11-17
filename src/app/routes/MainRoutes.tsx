@@ -35,10 +35,12 @@ import OrderDetail from "../pages/Order/OrderDetail";
 import ShopDetailPage from "../pages/Shop-Detail";
 import OrderManagement from "../pages/Profile/Orders";
 import { DisputesManagement } from "../pages/Admin/DisputesManagement";
-import DashboardManager from "@/app/pages/Shop/component/DashboardManager";
+// import DashboardManager from "@/app/pages/Shop/component/DashboardManager"; // Unused
 import TermsOfService from "../pages/Term";
 import ForgotPassword from "../pages/Forgot-Password/inde";
 import ResetPassword from "../pages/Reset-Password";
+import AdminDashboard from "../pages/Admin/Dashboard/Dashboard";
+import AuctionManager from "../pages/Shop/component/AuctionManager";
 
 // Lazy-load heavier pages to improve initial bundle size
 const Home = lazy(() => import("../pages/Home/Home"));
@@ -92,14 +94,15 @@ function RoutesContent() {
               <Route index element={<Navigate to="products" />} />
               <Route path="products" element={<ProductManager />} />
               <Route path="history" element={<TransactionHistory />} />
-              <Route path="dashboard" element={<DashboardManager />} />
+              <Route path="auction" element={<AuctionManager />} />
               <Route path="productdetail/:id" element={<ProductDetailShop />} />
             </Route>
           </Route>
 
           {/* Admin routes with AdminLayout */}
           <Route path="/admin" element={<AdminLayout><Outlet /></AdminLayout>}>
-            <Route index element={<Navigate to="user-management" replace />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="user-management" element={<UserManagement />} />
             <Route path="auction-management" element={<AuctionRequestManagement />} />
             <Route path="auction-live-management" element={<AuctionLiveManagement />} />

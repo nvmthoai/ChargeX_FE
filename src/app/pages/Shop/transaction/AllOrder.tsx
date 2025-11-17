@@ -3,66 +3,60 @@ import { Eye } from "lucide-react";
 import { getAllOrders } from "../../../../api/order/api";
 import type { Order, OrderStatus } from "../../../../api/order/type";
 import { useNavigate } from "react-router-dom";
-import FilterProduct from "../product/FilterProduct"; // 🧩 tái sử dụng component Filter
+import FilterProduct from "../product/FilterProduct";
 
 export default function AllOrder() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const pageSize = 6;
+  const pageSize = 5;
   const navigate = useNavigate();
 
-  // 🟢 State cho filter
   const [keyword, setKeyword] = useState("");
-const [status, setStatus] = useState<string | undefined>(undefined);
+  const [status, setStatus] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<string | undefined>("newest");
 
-  // 🟢 State dùng để trigger fetch khi nhấn tìm
   const [appliedKeyword, setAppliedKeyword] = useState("");
-const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined);
+  const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined);
   const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
 
-  // 🧭 Gọi API lấy danh sách đơn hàng
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (!storedUser) {
-        console.warn("⚠️ No current user found in localStorage");
-        return;
-      }
+const fetchOrders = async () => {
+  setLoading(true);
+  try {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) return;
 
-      const user = JSON.parse(storedUser);
-      const currentUserId = user?.sub;
+    const user = JSON.parse(storedUser);
+    const currentUserId = user?.sub;
 
-      // ✅ Gọi API lọc theo người bán + filter
-      const res = await getAllOrders({
-        sellerId: currentUserId,
-        search: appliedKeyword,
-        status: appliedStatus,
-        page,
-        limit: pageSize,
-        sortBy: "createdAt",
-        sortOrder: appliedSort === "newest" ? "DESC" : "ASC",
-      });
+    const res = await getAllOrders({
+      sellerId: currentUserId,
+      search: appliedKeyword,
+      status: appliedStatus,
+      page,
+      limit: pageSize,
+      sortBy: "createdAt",
+      sortOrder: appliedSort === "newest" ? "DESC" : "ASC",
+    });
+    console.log("✅ Fetched orders:", res);
+
+    const paginated = res.data;  
+
+    setOrders(paginated.data);
+    setTotal(paginated.total);
+  } catch (err) {
+    console.error("❌ Failed to load orders:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
 
-      setOrders(res ?? []);
-      setTotal(res?.length ?? 0);
-    } catch (err) {
-      console.error("❌ Lỗi tải đơn hàng:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 🔁 Fetch lại khi filter hoặc page đổi
   useEffect(() => {
     fetchOrders();
   }, [page, appliedKeyword, appliedStatus, appliedSort]);
 
-  // 📄 Tính số trang
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const getPageList = () => {
@@ -84,7 +78,7 @@ const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined
   return (
     <div className="p-6 space-y-6 relative">
       <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
-        {/* 🔍 Bộ lọc (search + status + sort) */}
+        {/* 🔍 Filter */}
         <FilterProduct
           keyword={keyword}
           onKeywordChange={setKeyword}
@@ -101,43 +95,43 @@ const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined
           onReset={() => {
             setKeyword("");
             setStatus(undefined);
-            setSort("newest");
+            setSort(undefined);
             setAppliedKeyword("");
             setAppliedStatus(undefined);
-            setAppliedSort("newest");
+            setAppliedSort(undefined);
             setPage(1);
           }}
-          // 🟩 Gắn options trạng thái riêng cho đơn hàng
           statusOptions={[
-            { label: "Chờ xử lý", value: "pending" },
-            { label: "Đã thanh toán", value: "paid" },
-            { label: "Đang giao", value: "in_transit" },
-            { label: "Đã giao", value: "delivered" },
-            { label: "Hoàn tất", value: "completed" },
-            { label: "Đã hủy", value: "cancelled" },
+            { label: "Pending", value: "pending" },
+            { label: "Paid", value: "paid" },
+            { label: "In Transit", value: "in_transit" },
+            { label: "Delivered", value: "delivered" },
+            { label: "Completed", value: "completed" },
+            { label: "Cancelled", value: "cancelled" },
           ]}
         />
 
-        {/* 🧾 Bảng danh sách đơn hàng */}
+        {/* Table */}
         {loading ? (
           <div className="p-10 text-center text-gray-400 animate-pulse">
-            Đang tải đơn hàng...
+            Loading orders...
           </div>
         ) : orders.length === 0 ? (
           <div className="p-12 text-center text-gray-500">
-            <p>Không có đơn hàng nào.</p>
+            <p>No orders found.</p>
           </div>
         ) : (
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 text-gray-600 font-semibold text-[14px] border-b border-gray-300">
               <tr>
-                <th className="px-5 py-3 text-left">Sản phẩm</th>
-                <th className="px-5 py-3 text-right w-32">Giá</th>
-                <th className="px-5 py-3 w-40">Trạng thái</th>
-                <th className="px-5 py-3 w-36">Ngày tạo</th>
+                <th className="px-5 py-3 text-left">Product</th>
+                <th className="px-5 py-3 text-right w-32">Price</th>
+                <th className="px-5 py-3 w-40">Status</th>
+                <th className="px-5 py-3 w-36">Created</th>
                 <th className="px-5 py-3 w-16 text-center">⋮</th>
               </tr>
             </thead>
+
             <tbody>
               {orders.map((o) => {
                 const product = o.orderShops?.[0]?.orderDetails?.[0]?.product;
@@ -146,7 +140,6 @@ const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined
                     key={o.orderId}
                     className="border-b border-gray-200 last:border-none hover:bg-blue-50 transition"
                   >
-                    {/* Ảnh + tên + người mua */}
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <img
@@ -156,10 +149,10 @@ const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined
                         />
                         <div>
                           <p className="font-medium text-gray-800">
-                            {product?.title || "Không tên"}
+                            {product?.title || "Untitled"}
                           </p>
                           <p className="text-sm text-gray-500">
-                            Người mua: {o.buyer?.fullName || "Ẩn danh"}
+                            Buyer: {o.buyer?.fullName || "Unknown"}
                           </p>
                         </div>
                       </div>
@@ -195,7 +188,7 @@ const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined
         )}
       </div>
 
-      {/* 📄 Pagination */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-end items-center gap-1 mt-4">
           <button
@@ -203,8 +196,9 @@ const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined
             disabled={page === 1}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 disabled:opacity-40"
           >
-            ← Trước
+            ← Prev
           </button>
+
           {getPageList().map((p, i) =>
             typeof p === "number" ? (
               <button
@@ -223,12 +217,13 @@ const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined
               </span>
             )
           )}
+
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 disabled:opacity-40"
           >
-            Sau →
+            Next →
           </button>
         </div>
       )}
@@ -237,30 +232,72 @@ const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined
 }
 
 /* ------------------ Status Badge ------------------ */
+
 const statusMap: Record<
   OrderStatus,
   { text: string; color: string; dot: string }
 > = {
-  pending: { text: "Chờ xử lý", color: "bg-gray-50 text-gray-700 border-gray-200", dot: "bg-gray-400" },
-  paid: { text: "Đã thanh toán", color: "bg-green-50 text-green-700 border-green-200", dot: "bg-green-500" },
-  handed_to_carrier: { text: "Đã giao cho vận chuyển", color: "bg-cyan-50 text-cyan-700 border-cyan-200", dot: "bg-cyan-500" },
-  in_transit: { text: "Đang giao", color: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
-  delivered_pending_confirm: { text: "Chờ xác nhận giao", color: "bg-purple-50 text-purple-700 border-purple-200", dot: "bg-purple-500" },
-  delivered: { text: "Đã giao", color: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
-  refunded: { text: "Hoàn tiền", color: "bg-red-50 text-red-700 border-red-200", dot: "bg-red-500" },
-  completed: { text: "Hoàn tất", color: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
-  disputed: { text: "Khiếu nại", color: "bg-orange-50 text-orange-700 border-orange-200", dot: "bg-orange-500" },
-  cancelled: { text: "Đã hủy", color: "bg-gray-100 text-gray-500 border-gray-200", dot: "bg-gray-300" },
+  pending: {
+    text: "Pending",
+    color: "bg-gray-50 text-gray-700 border-gray-200",
+    dot: "bg-gray-400",
+  },
+  paid: {
+    text: "Paid",
+    color: "bg-green-50 text-green-700 border-green-200",
+    dot: "bg-green-500",
+  },
+  handed_to_carrier: {
+    text: "Handed to Carrier",
+    color: "bg-cyan-50 text-cyan-700 border-cyan-200",
+    dot: "bg-cyan-500",
+  },
+  in_transit: {
+    text: "In Transit",
+    color: "bg-blue-50 text-blue-700 border-blue-200",
+    dot: "bg-blue-500",
+  },
+  delivered_pending_confirm: {
+    text: "Awaiting Confirmation",
+    color: "bg-purple-50 text-purple-700 border-purple-200",
+    dot: "bg-purple-500",
+  },
+  delivered: {
+    text: "Delivered",
+    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  refunded: {
+    text: "Refunded",
+    color: "bg-red-50 text-red-700 border-red-200",
+    dot: "bg-red-500",
+  },
+  completed: {
+    text: "Completed",
+    color: "bg-blue-50 text-blue-700 border-blue-200",
+    dot: "bg-blue-500",
+  },
+  disputed: {
+    text: "Disputed",
+    color: "bg-orange-50 text-orange-700 border-orange-200",
+    dot: "bg-orange-500",
+  },
+  cancelled: {
+    text: "Cancelled",
+    color: "bg-gray-100 text-gray-500 border-gray-200",
+    dot: "bg-gray-300",
+  },
 };
 
 function OrderStatusBadge({ value }: { value: string }) {
   const key = value?.toLowerCase() as keyof typeof statusMap;
   const s = statusMap[key];
+
   if (!s) {
     return (
       <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm border bg-gray-100 text-gray-500 border-gray-200">
         <span className="h-2 w-2 rounded-full bg-gray-300" />
-        {value || "Không xác định"}
+        {value || "Unknown"}
       </div>
     );
   }

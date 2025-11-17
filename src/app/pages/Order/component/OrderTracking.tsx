@@ -49,7 +49,7 @@
     console.log("Current Index:", currentIndex);
 
     return (
-      <div className="rounded-2xl mb-10">
+      <div className=" rounded-2xl mb-10">
 
         <h3 className="text-xl font-bold mb-6 text-gray-700">Order Tracking</h3>
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import ENV from "../config/env";
 
 export interface Province {
   Code: number;
@@ -20,7 +19,6 @@ export interface Ward {
 
 const useProvinces = () => {
   const [provinces, setProvinces] = useState<Province[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getProvinces();
@@ -61,7 +59,6 @@ const useProvinces = () => {
 
   return {
     provinces,
-    loading,
     fetchDistricts,
     fetchWards,
   };
