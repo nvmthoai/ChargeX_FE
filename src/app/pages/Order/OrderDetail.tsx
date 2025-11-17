@@ -1,18 +1,23 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getOrderById, updateOrder } from "../../../api/order/api";
+import {
+  getOrderById,
+  updateOrder,
+  markOrderAsDelivered,
+  markOrderAsCompleted,
+} from "../../../api/order/api";
 import { getOrderEventsByOrderId } from "../../../api/orderevent/api";
 import type { Order } from "../../../api/order/type";
 import type { OrderEvent } from "../../../api/orderevent/type";
 import { Spin, Button, message } from "antd";
 import {
   ArrowLeftOutlined,
-  PrinterOutlined,
-  CheckCircleFilled,
+  PrinterOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { orderActions } from "../../config/order-status-config";
 import OrderTracking from "./component/OrderTracking";
+// import OrderStatusActions from "./component/OrderStatusActions";
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
@@ -88,11 +93,26 @@ export default function OrderDetail() {
     if (!action.nextStatus) return;
 
     try {
-      await updateOrder(order.orderId, {
-        status: action.nextStatus,
-        eventNote: `${action.label} bởi người dùng`, // 🆕 thêm dòng này
-      });
-      setOrder({ ...order, status: action.nextStatus });
+      let updatedOrder;
+
+      // 📦 Use specialized API for delivery confirmation
+      if (key === "mark-delivered") {
+        updatedOrder = await markOrderAsDelivered(order.orderId, "Package delivered to buyer");
+      }
+      // ✅ Use specialized API for completion confirmation
+      else if (key === "mark-completed") {
+        updatedOrder = await markOrderAsCompleted(order.orderId, "Order completed - buyer confirmed receipt");
+      }
+      // 📝 Use generic update for other statuses
+      else {
+        await updateOrder(order.orderId, {
+          status: action.nextStatus,
+          eventNote: `${action.label} bởi người dùng`,
+        });
+        updatedOrder = { ...order, status: action.nextStatus };
+      }
+
+      setOrder(updatedOrder);
 
       // 🟢 Reload events sau khi update
       const eventRes = await getOrderEventsByOrderId(order.orderId);
@@ -156,10 +176,16 @@ export default function OrderDetail() {
         </div>
       </div>
 
-      {/* 🚚 Order Tracking */}
-      <div className="p-8 border-b border-gray-200">
-        <OrderTracking events={events} />
-      </div>
+      {/* ✅ Order Tracking (dựa theo OrderEvent) */}
+      <OrderTracking events={events} />
+
+      {/* 📦 Order Status Actions */}
+      {/* <OrderStatusActions
+        order={order}
+        role={role}
+        onStatusChange={handleAction}
+        loading={loading}
+      /> */}
 
       {/* 🛒 Products */}
       <div className="p-8 border-b border-gray-200">

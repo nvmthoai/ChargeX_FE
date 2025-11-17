@@ -10,7 +10,7 @@ export default function AllOrder() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const pageSize = 6;
+  const pageSize = 5;
   const navigate = useNavigate();
 
   const [keyword, setKeyword] = useState("");
