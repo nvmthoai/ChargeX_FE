@@ -6,13 +6,22 @@ import type {
 } from "./type";
 
 
+export type WalletPaymentResponse = {
+  paymentId?: string
+  method?: string
+  status?: string
+  transactionId?: string
+  checkoutUrl?: string
+}
+
+
 export const createPaymentForOrder = async (
   payload: CreatePaymentRequest
-): Promise<Payment> => {
+): Promise<WalletPaymentResponse> => {
   try {
     const res = await axiosInstance.post("/payment/order", payload);
     console.log("✅ Payment created:", res.data);
-    // 🟦 Backend thường bọc data trong { success, data, ... }
+    // Return canonical data payload
     return res.data.data || res.data;
   } catch (err) {
     console.error("❌ Error creating payment:", err);
@@ -74,14 +83,15 @@ export const deletePayment = async (id: string): Promise<void> => {
 export const payOrderWithWallet = async (
   orderId: string,
   amount: number
-): Promise<{ success: boolean; message?: string; transactionId?: string }> => {
+): Promise<{ success: boolean; message?: string; transactionId?: string; paymentId?: string }> => {
   try {
     const res = await axiosInstance.post("/wallet/pay-order", {
       orderId,
       amount,
     });
     console.log("✅ Wallet payment result:", res.data);
-    return res.data;
+    // normalize controller response
+    return res.data || { success: true };
   } catch (err) {
     console.error("❌ Error paying with wallet:", err);
     throw err;
