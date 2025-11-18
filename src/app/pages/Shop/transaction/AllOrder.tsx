@@ -143,13 +143,13 @@ const fetchOrders = async () => {
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <img
-                          src={product?.imageUrls?.[0] || "/placeholder.png"}
-                          alt={product?.title}
+                          src={product?.imageUrl?.[0] || "/placeholder.png"}
+                          alt={product?.name}
                           className="w-12 h-12 rounded-md object-cover border"
                         />
                         <div>
                           <p className="font-medium text-gray-800">
-                            {product?.title || "Untitled"}
+                            {product?.name || "Untitled"}
                           </p>
                           <p className="text-sm text-gray-500">
                             Buyer: {o.buyer?.fullName || "Unknown"}
