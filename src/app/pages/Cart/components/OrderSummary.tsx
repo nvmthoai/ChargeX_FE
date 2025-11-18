@@ -25,7 +25,7 @@ export default function OrderSummary({
         <h2 className="text-xl font-bold text-dark-900">Order Summary</h2>
       </div>
 
-      <div className="space-y-3 mb-6">
+      {/* <div className="space-y-3 mb-6">
         <div className="flex justify-between items-center py-2">
           <span className="text-dark-800 font-medium">Subtotal</span>
           <span className="font-semibold text-dark-900">{Number(subtotal).toLocaleString()} VND</span>
@@ -38,7 +38,7 @@ export default function OrderSummary({
           <span className="text-dark-600">Tax (estimated)</span>
           <span className="font-semibold text-dark-900">{Number(tax).toLocaleString()} VND</span>
         </div>
-      </div>
+      </div> */}
 
       <div className="border-t border-ocean-200 pt-4 mb-6">
         <div className="flex justify-between items-center">
