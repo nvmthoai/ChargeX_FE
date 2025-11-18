@@ -10,11 +10,16 @@ export enum PaymentProvider {
   WALLET = "wallet",
 }
 
+export enum PaymentMethod {
+  PAYOS = "payos",
+  WALLET = "wallet",
+}
+
 export interface Payment {
   paymentId: string;           // 🟩 UUID
   orderId?: string;            // 🆕 nếu backend có liên kết tới order
   provider: PaymentProvider;
-  method: string;              // e.g., "bank" | "wallet"
+  method: PaymentMethod;              // e.g., "bank" | "wallet"
   status: PaymentStatus;
   amount: number;
   description?: string;
