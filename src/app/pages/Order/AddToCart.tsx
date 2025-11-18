@@ -1,5 +1,6 @@
 import { message } from "antd";
 import { createOrder } from "../../../api/order/api";
+import { toast } from "react-toastify";
 
 const AddToCart = async (product: any, selectedAddressId: any, addresses: any): Promise<boolean> => {
     if (!selectedAddressId) {
@@ -54,8 +55,8 @@ const AddToCart = async (product: any, selectedAddressId: any, addresses: any): 
 
         const order = await createOrder(user.sub, payload);
 
+        toast.success("Thêm vào giỏ hàng thành công!");
         console.log("📦 Order response object:", order);
-
         message.success("✅ Đơn hàng đã được tạo thành công!");
         return true;
     } catch (err: any) {
