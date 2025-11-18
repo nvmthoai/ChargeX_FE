@@ -3,8 +3,6 @@ import {
   Search,
   Filter,
   RefreshCw,
-  ArrowDownAZ,
-  ArrowUpAZ,
 } from "lucide-react";
 
 interface StatusOption {
