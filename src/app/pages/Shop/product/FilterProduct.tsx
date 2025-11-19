@@ -2,9 +2,7 @@ import Select from "@/app/components/Table/Select";
 import {
   Search,
   Filter,
-  RefreshCw,
-  ArrowDownAZ,
-  ArrowUpAZ,
+  RefreshCw
 } from "lucide-react";
 
 interface StatusOption {
