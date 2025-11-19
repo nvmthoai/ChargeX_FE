@@ -253,6 +253,18 @@ export default function OrderManagement() {
                   <Eye className="w-4 h-4" />
                   View Reviews
                 </Button>
+                {/* New: View Order Details button */}
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/orders/${record.orderId}`);
+                  }}
+                  className="gap-1"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Details
+                </Button>
                 {record.status === "pending" && (
                   <Button
                     size="sm"
@@ -265,7 +277,7 @@ export default function OrderManagement() {
                     Pay
                   </Button>
                 )}
-                {record.status === "completed" && (
+                {(record.status === "completed" || record.status === "delivered") && (
                   <>
                     <Button
                       size="sm"

@@ -26,19 +26,23 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // 🧩 Fetch order + events song song
+  // 🧩 Fetch order + events song song and always scroll to top on mount
   useEffect(() => {
     if (!id) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [orderRes, eventRes] = await Promise.all([
           getOrderById(id),
           getOrderEventsByOrderId(id),
         ]);
-        setOrder(orderRes);
-        setEvents(eventRes);
+        setOrder(orderRes || null);
+        setEvents(eventRes || []);
       } catch (err) {
         console.error("❌ Error fetching order or events:", err);
+        setOrder(null);
+        setEvents([]);
       } finally {
         setLoading(false);
       }
@@ -66,13 +70,13 @@ export default function OrderDetail() {
     );
 
   // ✅ Lấy user object từ localStorage
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null") || null;
 
   // ✅ Dùng field 'sub' làm userId
-  const currentUserId = currentUser?.sub;
+  const currentUserId = (currentUser && (currentUser.sub || currentUser.id)) || null;
 
   // ✅ Lấy sellerId từ đơn hàng
-  const sellerId = order.orderShops?.[0]?.seller?.userId;
+  const sellerId = order.orderShops?.[0]?.seller?.userId || null;
 
   // ✅ So sánh để xác định vai trò
   const isSeller = sellerId === currentUserId;
@@ -93,7 +97,7 @@ export default function OrderDetail() {
     if (!action.nextStatus) return;
 
     try {
-      let updatedOrder;
+      let updatedOrder: any = order;
 
       // 📦 Use specialized API for delivery confirmation
       if (key === "markDelivered") {
@@ -105,18 +109,18 @@ export default function OrderDetail() {
       }
       // 📝 Use generic update for other statuses
       else {
-        await updateOrder(order.orderId, {
+        const res = await updateOrder(order.orderId, {
           status: action.nextStatus,
           eventNote: `${action.label} bởi người dùng`,
         });
-        updatedOrder = { ...order, status: action.nextStatus };
+        updatedOrder = res || { ...order, status: action.nextStatus };
       }
 
       setOrder(updatedOrder);
 
       // 🟢 Reload events sau khi update
       const eventRes = await getOrderEventsByOrderId(order.orderId);
-      setEvents(eventRes);
+      setEvents(eventRes || []);
 
       message.success(`✅ ${action.label} thành công`);
     } catch (err) {
@@ -126,10 +130,10 @@ export default function OrderDetail() {
   };
 
 
-  // 🧮 Tính toán dữ liệu cơ bản
-  const total = Number(order.totalPrice) + Number(order.totalShippingFee);
-  const seller = order.orderShops?.[0]?.seller;
-  const product = order.orderShops?.[0]?.orderDetails?.[0]?.product;
+  // 🧮 Tính toán dữ liệu cơ bản with safe defaults
+  const total = Number(order.totalPrice || 0) + Number(order.totalShippingFee || 0);
+  const seller = order.orderShops?.[0]?.seller ?? null;
+  const product = order.orderShops?.[0]?.orderDetails?.[0]?.product ?? null;
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md my-10 p-10 border border-gray-200 relative">
@@ -140,11 +144,11 @@ export default function OrderDetail() {
             Order #{order.orderId}
           </h1>
           <p className="text-gray-500">
-            {dayjs(order.createdAt).format("DD MMM, YYYY")}
+            {order.createdAt ? dayjs(order.createdAt).format("DD MMM, YYYY") : "-"}
           </p>
           <p className="text-sm mt-1">
             <span className="font-semibold">Status:</span>{" "}
-            <span className="capitalize">{order.status}</span>
+            <span className="capitalize">{order.status || "-"}</span>
           </p>
         </div>
 
@@ -169,17 +173,17 @@ export default function OrderDetail() {
           <div className="flex justify-between items-center py-4">
             <div className="flex gap-4">
               <img
-                src={product?.imageUrls?.[0]}
-                alt={product?.title}
+                src={product?.imageUrls?.[0] || "/default_product.png"}
+                alt={product?.title || "Product"}
                 className="w-20 h-20 object-cover rounded-md border"
               />
               <div>
-                <h4 className="font-medium text-gray-800">{product?.title}</h4>
-                <p className="text-sm text-gray-500">{product?.description}</p>
+                <h4 className="font-medium text-gray-800">{product?.title || "-"}</h4>
+                <p className="text-sm text-gray-500">{product?.description || "-"}</p>
               </div>
             </div>
             <p className="font-medium text-gray-700 text-right">
-              ${Number(order.totalPrice).toLocaleString()}
+              ${Number(order.totalPrice || 0).toLocaleString()}
             </p>
           </div>
         </div>
@@ -189,11 +193,11 @@ export default function OrderDetail() {
       <div className="border-t pt-5">
         <div className="flex justify-between mb-2 text-gray-600">
           <span>Subtotal</span>
-          <span>${Number(order.totalPrice).toLocaleString()}</span>
+          <span>${Number(order.totalPrice || 0).toLocaleString()}</span>
         </div>
         <div className="flex justify-between mb-2 text-gray-600">
           <span>Shipping Charge</span>
-          <span>${Number(order.totalShippingFee).toLocaleString()}</span>
+          <span>${Number(order.totalShippingFee || 0).toLocaleString()}</span>
         </div>
         <div className="flex justify-between mb-2 text-gray-600">
           <span>Tax Fee</span>
@@ -209,9 +213,9 @@ export default function OrderDetail() {
       <div className="mt-10">
         <h3 className="text-lg font-semibold mb-3">Delivery Address</h3>
         <div className="bg-gray-50 p-4 rounded-lg border">
-          <p>{order.deliveryAddress?.fullName}</p>
-          <p>{order.deliveryAddress?.line1}</p>
-          <p>{order.deliveryAddress?.phone}</p>
+          <p>{order.deliveryAddress?.fullName || "-"}</p>
+          <p>{order.deliveryAddress?.line1 || "-"}</p>
+          <p>{order.deliveryAddress?.phone || "-"}</p>
         </div>
       </div>
 
@@ -221,17 +225,17 @@ export default function OrderDetail() {
           <h4 className="font-semibold text-[#0F74C7] mb-2">
             Buyer Information
           </h4>
-          <p>{order.buyer?.fullName}</p>
-          <p>{order.buyer?.phone}</p>
-          <p>{order.buyer?.email}</p>
+          <p>{order.buyer?.fullName || "-"}</p>
+          <p>{order.buyer?.phone || "-"}</p>
+          <p>{order.buyer?.email || "-"}</p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg border">
           <h4 className="font-semibold text-[#0F74C7] mb-2">
             Seller Information
           </h4>
-          <p>{seller?.fullName}</p>
-          <p>{seller?.phone}</p>
-          <p>{seller?.email}</p>
+          <p>{seller?.fullName || "-"}</p>
+          <p>{seller?.phone || "-"}</p>
+          <p>{seller?.email || "-"}</p>
         </div>
       </div>
 
