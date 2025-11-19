@@ -2,7 +2,7 @@ import Select from "@/app/components/Table/Select";
 import {
   Search,
   Filter,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 
 interface StatusOption {

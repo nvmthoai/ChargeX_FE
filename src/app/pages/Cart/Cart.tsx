@@ -15,9 +15,9 @@ export default function CartPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchDataAPI = async () => {
+    (async () => {
       setLoading(true);
-  const token = localStorage.getItem('token') || '';
+      const token = localStorage.getItem('token') || '';
       try {
         const ItemsResponse = await fetchData(`/orders${getQueryString({ page: 1, limit: 1000 })}`, token);
         const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub);
@@ -29,14 +29,12 @@ export default function CartPage() {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchDataAPI();
+    })();
   }, [refresh, user]);
 
   const removeItem = async (orderId: number) => {
     setLoading(true);
-  const token = localStorage.getItem('token') || '';
+    const token = localStorage.getItem('token') || '';
     try {
       await deleteData(`/orders/${orderId}`, token);
     } catch (error) {
@@ -132,7 +130,7 @@ export default function CartPage() {
                 <Link
                   to="/"
                   className="inline-block px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-                  style={{color: '#fff'}}
+                  style={{ color: '#fff' }}
                 >
                   Continue Shopping
                 </Link>
