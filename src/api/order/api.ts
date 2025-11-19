@@ -4,7 +4,6 @@ import type {
   CreateOrderRequest,
   UpdateOrderRequest,
   GetOrdersParams,
-  PaginatedOrders,
   GetOrdersResponse,
 } from "./type";
 
