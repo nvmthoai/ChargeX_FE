@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, Input, InputNumber, Select, message } from "antd";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import type { ResolvePayload } from "../../../models/dispute.model";
@@ -35,6 +35,19 @@ export const ResolveReportModal: React.FC<ResolveReportModalProps> = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const { handleResolve } = useDisputes();
+
+  // Prefill refundAmount when modal opens or grandTotal changes
+  useEffect(() => {
+    if (visible) {
+      const amount = Number.parseFloat(grandTotal || "0") || 0;
+      form.setFieldsValue({ refundAmount: amount });
+      // also reset status default to resolved unless already set
+      const currentStatus = form.getFieldValue("status");
+      if (!currentStatus) form.setFieldsValue({ status: "resolved" });
+    } else {
+      form.resetFields();
+    }
+  }, [visible, grandTotal, form]);
 
   const handleSubmit = async (values: any) => {
     try {

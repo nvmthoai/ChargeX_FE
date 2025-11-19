@@ -12,12 +12,12 @@ import type { OrderEvent } from "../../../api/orderevent/type";
 import { Spin, Button, message } from "antd";
 import {
   ArrowLeftOutlined,
-  PrinterOutlined
+  PrinterOutlined,
+  CheckCircleFilled,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { orderActions } from "../../config/order-status-config";
 import OrderTracking from "./component/OrderTracking";
-// import OrderStatusActions from "./component/OrderStatusActions";
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
@@ -26,19 +26,23 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // 🧩 Fetch order + events song song
+  // 🧩 Fetch order + events song song and always scroll to top on mount
   useEffect(() => {
     if (!id) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [orderRes, eventRes] = await Promise.all([
           getOrderById(id),
           getOrderEventsByOrderId(id),
         ]);
-        setOrder(orderRes);
-        setEvents(eventRes);
+        setOrder(orderRes || null);
+        setEvents(eventRes || []);
       } catch (err) {
         console.error("❌ Error fetching order or events:", err);
+        setOrder(null);
+        setEvents([]);
       } finally {
         setLoading(false);
       }
@@ -66,13 +70,13 @@ export default function OrderDetail() {
     );
 
   // ✅ Lấy user object từ localStorage
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null") || null;
 
   // ✅ Dùng field 'sub' làm userId
-  const currentUserId = currentUser?.sub;
+  const currentUserId = (currentUser && (currentUser.sub || currentUser.id)) || null;
 
   // ✅ Lấy sellerId từ đơn hàng
-  const sellerId = order.orderShops?.[0]?.seller?.userId;
+  const sellerId = order.orderShops?.[0]?.seller?.userId || null;
 
   // ✅ So sánh để xác định vai trò
   const isSeller = sellerId === currentUserId;
@@ -93,7 +97,7 @@ export default function OrderDetail() {
     if (!action.nextStatus) return;
 
     try {
-      let updatedOrder;
+      let updatedOrder: any = order;
 
       // 📦 Use specialized API for delivery confirmation
       if (key === "markDelivered") {
@@ -105,18 +109,18 @@ export default function OrderDetail() {
       }
       // 📝 Use generic update for other statuses
       else {
-        await updateOrder(order.orderId, {
+        const res = await updateOrder(order.orderId, {
           status: action.nextStatus,
           eventNote: `${action.label} bởi người dùng`,
         });
-        updatedOrder = { ...order, status: action.nextStatus };
+        updatedOrder = res || { ...order, status: action.nextStatus };
       }
 
       setOrder(updatedOrder);
 
       // 🟢 Reload events sau khi update
       const eventRes = await getOrderEventsByOrderId(order.orderId);
-      setEvents(eventRes);
+      setEvents(eventRes || []);
 
       message.success(`✅ ${action.label} thành công`);
     } catch (err) {
@@ -126,185 +130,129 @@ export default function OrderDetail() {
   };
 
 
-  // 🧮 Tính toán dữ liệu cơ bản
-  const total = Number(order.totalPrice) + Number(order.totalShippingFee);
-  const seller = order.orderShops?.[0]?.seller;
-  console.log("here is seller", seller);
-
-  const product = order?.orderShops?.[0]?.orderDetails?.[0]?.product;
-  console.log("here is product", product);
+  // 🧮 Tính toán dữ liệu cơ bản with safe defaults
+  const total = Number(order.totalPrice || 0) + Number(order.totalShippingFee || 0);
+  const seller = order.orderShops?.[0]?.seller ?? null;
+  const product = order.orderShops?.[0]?.orderDetails?.[0]?.product ?? null;
 
   return (
-    <div className="max-w-4xl mx-auto p-16 my-10 space-y-6 border border-gray-200 rounded-2xl bg-white">
-
-      {/* 🔙 Back */}
-      <Button
-        icon={<ArrowLeftOutlined />}
-        type="link"
-        onClick={() => navigate(-1)}
-      >
-        Back to Orders
-      </Button>
-
+    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md my-10 p-10 border border-gray-200 relative">
       {/* Header */}
-      <div className=" p-8 ">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Order #{order.orderId}
-            </h1>
-
-            <p className="text-gray-500 mt-1">
-              {dayjs(order.createdAt).format("DD MMM, YYYY")}
-            </p>
-
-            <div className="mt-2">
-              <span className="font-medium text-gray-600">Status: </span>
-              <span className="capitalize text-blue-600 font-semibold">
-                {order.status}
-              </span>
-            </div>
-          </div>
-
-          <Button
-            icon={<PrinterOutlined />}
-            className="bg-black text-white rounded-lg px-5 py-2"
-            onClick={() => window.print()}
-          >
-            Print Invoice
-          </Button>
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[#0F74C7]">
+            Order #{order.orderId}
+          </h1>
+          <p className="text-gray-500">
+            {order.createdAt ? dayjs(order.createdAt).format("DD MMM, YYYY") : "-"}
+          </p>
+          <p className="text-sm mt-1">
+            <span className="font-semibold">Status:</span>{" "}
+            <span className="capitalize">{order.status || "-"}</span>
+          </p>
         </div>
+
+        <Button
+          icon={<PrinterOutlined />}
+          className="bg-[#0F74C7] text-white hover:bg-blue-600"
+          onClick={() => window.print()}
+        >
+          Print Invoice
+        </Button>
       </div>
 
       {/* ✅ Order Tracking (dựa theo OrderEvent) */}
       <OrderTracking events={events} />
 
-      {/* 📦 Order Status Actions */}
-      {/* <OrderStatusActions
-        order={order}
-        role={role}
-        onStatusChange={handleAction}
-        loading={loading}
-      /> */}
+      {/* NOTE: OrderStatusActions removed to avoid duplicate English buttons. */}
 
-      {/* 🛒 Products */}
-      <div className="p-8 border-b border-gray-200">
-        <h3 className="text-lg font-semibold mb-6">Products</h3>
-
-
-        <div className="space-y-6">
-          {order.orderShops?.[0]?.orderDetails?.map((detail) => (
-        <div
-          key={detail.orderDetailId}
-          className="flex justify-between items-center border-b pb-6 last:border-b-0 last:pb-0"
-        >
-          <div className="flex gap-4">
-            <img
-          src={detail.product?.imageUrl?.[0]}
-          alt={detail.product?.name}
-          className="w-20 h-20 object-cover rounded-md border"
-            />
-
-                <div>
-                  <h4 className="font-medium text-gray-800">
-                    {detail.product?.name}
-                  </h4>
-                  <p className="text-gray-500 text-sm line-clamp-2">
-                    {detail.product?.description}
-                  </p>
-
-                  <p className="text-sm mt-1 text-gray-600">
-                    Qty: {detail.quantity}
-                  </p>
-                </div>
-              </div>
-
-              <div className="text-right font-medium text-gray-800">
-                {Number(detail.price).toLocaleString()} VNDz
+      {/* Order Items */}
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-4">Order Items</h3>
+        <div className="divide-y divide-gray-200">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex gap-4">
+              <img
+                src={product?.imageUrl?.[0] || "/default_product.png"}
+                alt={product?.name || "Product"}
+                className="w-20 h-20 object-cover rounded-md border"
+              />
+              <div>
+                <h4 className="font-medium text-gray-800">{product?.name || "-"}</h4>
+                <p className="text-sm text-gray-500">{product?.description || "-"}</p>
               </div>
             </div>
-          ))}
+            <p className="font-medium text-gray-700 text-right">
+              ${Number(order.totalPrice || 0).toLocaleString()}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* 🧾 Shipping Information */}
-      <div className="p-8 border-b border-gray-200">
-        <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
-
-        <div className="grid grid-cols-2 gap-8">
-
-          <div>
-            <p className="text-gray-500 text-sm">Recipient Name</p>
-            <p className="font-medium">{order?.receiverName}</p>
-
-            <p className="text-gray-500 text-sm mt-4">Phone Number</p>
-            <p className="font-medium">{order?.receiverPhone}</p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 text-sm">Shipping Address</p>
-            <p className="font-medium">{order.deliveryAddress?.line1}</p>
-
-            <p className="text-gray-500 text-sm mt-4">Shipping Method</p>
-            <p className="font-medium">Standard Shipping (3–5 days)</p>
-          </div>
-
+      {/* Payment Summary */}
+      <div className="border-t pt-5">
+        <div className="flex justify-between mb-2 text-gray-600">
+          <span>Subtotal</span>
+          <span>${Number(order.totalPrice || 0).toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between mb-2 text-gray-600">
+          <span>Shipping Charge</span>
+          <span>${Number(order.totalShippingFee || 0).toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between mb-2 text-gray-600">
+          <span>Tax Fee</span>
+          <span>$0</span>
+        </div>
+        <div className="flex justify-between text-lg font-semibold mt-3 border-t pt-3">
+          <span>Total</span>
+          <span className="text-green-600">${total.toLocaleString()}</span>
         </div>
       </div>
 
-      {/* 💳 Payment Details */}
-      <div className="p-8 border-b border-gray-200">
-        <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
-
-        <div className="grid grid-cols-2 gap-8">
-
-          <div>
-            <p className="text-gray-500 text-sm">Payment Method</p>
-            <p className="font-medium">COD</p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 text-sm">Billing Address</p>
-            <p className="font-medium">{order.deliveryAddress?.line1}</p>
-          </div>
-
+      {/* Delivery Info */}
+      <div className="mt-10">
+        <h3 className="text-lg font-semibold mb-3">Delivery Address</h3>
+        <div className="bg-gray-50 p-4 rounded-lg border">
+          <p>{order.deliveryAddress?.fullName || "-"}</p>
+          <p>{order.deliveryAddress?.line1 || "-"}</p>
+          <p>{order.deliveryAddress?.phone || "-"}</p>
         </div>
       </div>
 
-      {/* 💵 Order Summary */}
-      <div className="p-8">
-          <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
-
-        <div className="space-y-3 text-gray-700">
-
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>{Number(order.totalPrice).toLocaleString()} VND</span>
-          </div>
-
-          <div className="flex justify-between">
-            <span>Shipping Fee</span>
-            <span>{Number(order.totalShippingFee).toLocaleString()} VND</span>
-          </div>
-
-          <div className="flex justify-between font-semibold border-t border-gray-300 pt-4 text-lg">
-            <span>Total</span>
-            <span className="text-green-600">{total.toLocaleString()} VND</span>
-          </div>
-
+      {/* Buyer / Seller Info */}
+      <div className="grid grid-cols-2 gap-6 mt-8">
+        <div className="bg-gray-50 p-4 rounded-lg border">
+          <h4 className="font-semibold text-[#0F74C7] mb-2">
+            Buyer Information
+          </h4>
+          <p>{order.buyer?.fullName || "-"}</p>
+          <p>{order.buyer?.phone || "-"}</p>
+          <p>{order.buyer?.email || "-"}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg border">
+          <h4 className="font-semibold text-[#0F74C7] mb-2">
+            Seller Information
+          </h4>
+          <p>{seller?.fullName || "-"}</p>
+          <p>{seller?.phone || "-"}</p>
+          <p>{seller?.email || "-"}</p>
         </div>
       </div>
 
-      {/* 🟡 Action Buttons */}
+      {/* Action Buttons */}
       {actions.length > 0 && (
-        <div className="flex justify-center gap-4 mt-6">
+        <div className="mt-10 flex justify-center gap-4 flex-wrap">
           {actions.map((a) => (
             <Button
               key={a.key}
               type={a.variant === "primary" ? "primary" : "default"}
               danger={a.variant === "danger"}
+              icon={
+                a.key === "confirmReceived" ? (
+                  <CheckCircleFilled />
+                ) : undefined
+              }
               onClick={() => handleAction(a.key)}
-              className="px-6 py-2 rounded-lg"
             >
               {a.label}
             </Button>
@@ -312,7 +260,30 @@ export default function OrderDetail() {
         </div>
       )}
 
+      {/* Footer */}
+      <div className="text-center mt-10 text-gray-500 text-sm">
+        <p>
+          Contract:{" "}
+          <a
+            href={order.contract_url ?? "#"}
+            className="text-[#0F74C7] hover:underline"
+          >
+            View contract
+          </a>
+        </p>
+        <p className="mt-2">
+          This invoice was automatically generated by the FoundersHub system.
+        </p>
+        <div className="mt-6">
+          <Button
+            icon={<ArrowLeftOutlined />}
+            onClick={() => navigate(-1)}
+            className="rounded-full px-6 py-2"
+          >
+            Back to Profile
+          </Button>
+        </div>
+      </div>
     </div>
   );
-
 }
