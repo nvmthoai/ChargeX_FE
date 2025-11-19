@@ -2,6 +2,8 @@ import { useState } from "react";
 import disputesService from "../services/DisputesService";
 import { App } from "antd";
 import type { Report } from "../models/dispute.model";
+import { updateOrder } from "../../api/order/api";
+import { OrderStatus } from "../../api/order/type";
 
 const useDisputes = () => {
     const [disputes, setDisputes] = useState<Report[]>([])
@@ -12,6 +14,13 @@ const useDisputes = () => {
         const response = await createDisputes(orderId, values);
         if (response) {
             message.success('Create disputes successfully!')
+            try {
+                // Update order status to 'disputed' so UI and backend are in sync
+                await updateOrder(orderId, { status: OrderStatus.DISPUTED, eventNote: 'User opened dispute' });
+            } catch (err) {
+                // Log but do not block — it's safe to continue even if this update fails
+                console.error('Failed to update order status to disputed:', err);
+            }
             return response
         }
         return null;
