@@ -229,7 +229,7 @@ export default function PaymentPage() {
               <div className="flex-1">
                 <p className="font-semibold text-gray-900 text-lg">{product.name}</p>
                 <p className="text-sm text-gray-500 line-clamp-2">{product.description || "Không có mô tả"}</p>
-                <p className="font-semibold text-[#0F74C7] mt-1">${Number(order.totalPrice).toLocaleString()}</p>
+                <p className="font-semibold text-[#0F74C7] mt-1">{Number(order.totalPrice).toLocaleString()} VND</p>
               </div>
             </div>
           )}
