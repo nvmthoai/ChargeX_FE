@@ -73,7 +73,7 @@ export default function CartPage() {
             onClick={() => { setRefresh(p => p + 1); setError(''); }}
             className="px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
-            Try Again
+            Thử lại
           </button>
         </div>
       </div>
@@ -101,13 +101,13 @@ export default function CartPage() {
               <ShoppingCart className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent h-14">
-              Your Shopping Cart
+              Giỏ hàng
             </h1>
           </div>
           <p className="text-dark-800 text-lg font-medium">
             {items.length > 0
-              ? `${items.length} item${items.length !== 1 ? 's' : ''} in your cart`
-              : 'Your cart is empty'}
+              ? `Có ${items.length} sản phẩm trong giỏ hàng của bạn`
+              : 'Giỏ hàng của bạn đang trống'}
           </p>
         </div>
 
@@ -126,14 +126,14 @@ export default function CartPage() {
                 <div className="w-24 h-24 bg-gradient-to-r from-ocean-100 to-energy-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <ShoppingCart className="w-12 h-12 text-ocean-500" />
                 </div>
-                <h3 className="text-2xl font-bold text-dark-900 mb-2">Your cart is empty</h3>
-                <p className="text-dark-800 mb-6 font-medium">Start shopping to add items to your cart</p>
+                <h3 className="text-2xl font-bold text-dark-900 mb-2">Giỏ hàng của bạn đang trống</h3>
+                <p className="text-dark-800 mb-6 font-medium">Bắt đầu mua sắm để thêm mặt hàng vào giỏ hàng của bạn</p>
                 <Link
                   to="/"
                   className="inline-block px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
                   style={{ color: '#fff' }}
                 >
-                  Continue Shopping
+                  Tiếp tục mua sắm
                 </Link>
               </div>
             )}

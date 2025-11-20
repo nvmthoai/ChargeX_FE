@@ -154,7 +154,7 @@ export default function Header() {
                   icon={<WalletOutlined className="text-blue-500" />}
                   className="text-sm font-semibold text-gray-700 hover:bg-white/60"
                 >
-                  ${myWallet && myWallet.available}
+                  {myWallet && `${Number(myWallet.available || 0)?.toLocaleString()} VND`}
                 </Button>
               </Dropdown>
 

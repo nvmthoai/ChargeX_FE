@@ -57,7 +57,7 @@ export default function CartItemsList({
                   {item.orderShops?.[0]?.orderDetails?.[0]?.product?.description || 'No description'}
                 </p>
                 <h4 className="text-dark-900 line-clamp-2">
-                  Seller: {item.orderShops?.[0]?.seller?.fullName || 'Unknown'}
+                  Người bán: {item.orderShops?.[0]?.seller?.fullName || 'Unknown'}
                 </h4>
                 <div className="flex items-center gap-4">
                   <span className="text-lg font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
@@ -66,7 +66,7 @@ export default function CartItemsList({
                   <span className="text-sm text-dark-800 font-medium"
                     // style={{ backgroundColor: item.status == "PENDING" ? "#ffc107" : "#28a745" }}
                   >
-                    Qty: {item.orderShops?.[0]?.orderDetails?.[0]?.quantity || 1}
+                    Số lượng: {item.orderShops?.[0]?.orderDetails?.[0]?.quantity || 1}
                   </span>
                 </div>
               </div>
