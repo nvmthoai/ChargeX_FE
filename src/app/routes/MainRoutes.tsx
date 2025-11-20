@@ -41,6 +41,8 @@ import ForgotPassword from "../pages/Forgot-Password/inde";
 import ResetPassword from "../pages/Reset-Password";
 import AdminDashboard from "../pages/Admin/Dashboard/Dashboard";
 import AuctionManager from "../pages/Shop/component/AuctionManager";
+import ShopDashboard from "../pages/Shop/dashboard/ShopDashboard";
+import AuctionHistory from "../pages/Shop/auction/AuctionHistory";
 
 // Lazy-load heavier pages to improve initial bundle size
 const Home = lazy(() => import("../pages/Home/Home"));
@@ -92,10 +94,15 @@ function RoutesContent() {
 
             <Route path="/shop" element={<Shop />} >
               <Route index element={<Navigate to="products" />} />
+              <Route path="dashboard" element={<ShopDashboard />} />
               <Route path="products" element={<ProductManager />} />
               <Route path="history" element={<TransactionHistory />} />
-              <Route path="auction" element={<AuctionManager />} />
+              <Route path="auction" element={<AuctionManager />} >
+                <Route index element={<AuctionManager />} />
+                <Route path="history" element={<AuctionHistory />} />
+              </Route>
               <Route path="productdetail/:id" element={<ProductDetailShop />} />
+              
             </Route>
           </Route>
 

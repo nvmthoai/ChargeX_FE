@@ -67,7 +67,7 @@ export interface PaginatedAuctions {
   };
 }
 
-// API Functions
+// Consolidated API client for auction endpoints
 export const auctionApi = {
   // Seller requests auction
   requestAuction: async (sellerId: string, data: RequestAuctionDto) => {
@@ -125,7 +125,7 @@ export const auctionApi = {
     return response.data;
   },
 
-  // Get all auction IDs
+  // Get all auction IDs / summaries
   getAllAuctionIds: async () => {
     const response = await axiosInstance.get(`/auction/ids`);
     return response.data;
@@ -144,17 +144,17 @@ export const auctionApi = {
 
     const url = `/auction/joinable?${params.toString()}`;
     console.log("🔗 [API] Requesting URL:", url);
-    
+
     try {
       const response = await axiosInstance.get(url);
-      
+
       console.log("📦 [API] Full response:", response);
       console.log("📊 [API] Response status:", response.status);
       console.log("📋 [API] Response headers:", response.headers);
       console.log("📄 [API] Response data:", response.data);
       console.log("🔍 [API] Data type:", typeof response.data);
       console.log("🗂️ [API] Data keys:", response.data ? Object.keys(response.data) : null);
-      
+
       // Handle case where API returns empty response or null
       if (!response.data) {
         console.warn("⚠️ [API] Empty response data, returning default structure");
@@ -167,20 +167,20 @@ export const auctionApi = {
           }
         };
       }
-      
+
       // Handle case where API doesn't return expected structure
       if (!response.data.items && !response.data.meta) {
         console.warn("⚠️ [API] Unexpected response structure, attempting to adapt:", response.data);
-        
+
         // Check if response.data has a nested data property (NestJS standard response)
         if (response.data.data && typeof response.data.data === 'object') {
           console.log("✅ [API] Found nested data property, extracting...");
           const nestedData = response.data.data;
-          
+
           if (nestedData.items && Array.isArray(nestedData.items)) {
             return nestedData;
           }
-          
+
           // If nested data is an array, assume it's the items
           if (Array.isArray(nestedData)) {
             return {
@@ -193,7 +193,7 @@ export const auctionApi = {
             };
           }
         }
-        
+
         // If response.data is an array, assume it's the items array
         if (Array.isArray(response.data)) {
           return {
@@ -205,15 +205,15 @@ export const auctionApi = {
             }
           };
         }
-        
+
         // If response.data has a different structure, log it and use mock data
         console.warn("⚠️ [API] Cannot adapt response structure, using mock data");
-        
+
         // Return mock data for development
         const mockItems = [
           {
             auctionId: "mock-auction-1",
-            productId: "mock-product-1", 
+            productId: "mock-product-1",
             title: "Tesla Battery 100kWh - Mock Data (No Real Auctions)",
             status: "live" as const,
             startTime: new Date(Date.now() - 3600000).toISOString(),
@@ -224,7 +224,7 @@ export const auctionApi = {
           {
             auctionId: "mock-auction-2",
             productId: "mock-product-2",
-            title: "BMW Battery 80kWh - Mock Data (No Real Auctions)", 
+            title: "BMW Battery 80kWh - Mock Data (No Real Auctions)",
             status: "scheduled" as const,
             startTime: new Date(Date.now() + 3600000).toISOString(),
             endTime: new Date(Date.now() + 10800000).toISOString(),
@@ -232,7 +232,7 @@ export const auctionApi = {
             minBidIncrement: 500000
           }
         ];
-        
+
         return {
           items: mockItems,
           meta: {
@@ -242,24 +242,24 @@ export const auctionApi = {
           }
         };
       }
-      
+
       return response.data;
-      
+
     } catch (error: unknown) {
       console.error("❌ [API] Request failed:", error);
-      
+
       // If 401 Unauthorized or other auth errors, return mock data for development
       const isAxiosError = error && typeof error === 'object' && 'response' in error;
       if (isAxiosError) {
         const axiosError = error as { response: { status: number } };
         if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
           console.warn("⚠️ [API] Authentication required, using mock data for development");
-          
+
           // Generate mock auction data
           const allMockItems = [
             {
               auctionId: "mock-auction-1",
-              productId: "mock-product-1", 
+              productId: "mock-product-1",
               title: "Tesla Battery 100kWh - Mock Data",
               status: "live" as const,
               startTime: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
@@ -270,7 +270,7 @@ export const auctionApi = {
             {
               auctionId: "mock-auction-2",
               productId: "mock-product-2",
-              title: "BMW Battery 80kWh - Mock Data", 
+              title: "BMW Battery 80kWh - Mock Data",
               status: "scheduled" as const,
               startTime: new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
               endTime: new Date(Date.now() + 10800000).toISOString(), // 3 hours from now
@@ -288,9 +288,9 @@ export const auctionApi = {
               minBidIncrement: 2000000
             }
           ];
-          
+
           const mockItems = allMockItems.filter(item => !status || item.status === status);
-          
+
           return {
             items: mockItems.slice(0, pageSize),
             meta: {
@@ -301,7 +301,7 @@ export const auctionApi = {
           };
         }
       }
-      
+
       // Re-throw other errors
       throw error;
     }
@@ -312,7 +312,7 @@ export const auctionApi = {
     try {
       const response = await axiosInstance.get(`/auction/${auctionId}`);
       console.log("📦 [API] getAuctionById raw response:", response.data);
-      
+
       // Unwrap NestJS response format: {success, statusCode, data}
       let auctionData = response.data;
       if (auctionData && typeof auctionData === 'object') {
@@ -321,19 +321,19 @@ export const auctionApi = {
           auctionData = auctionData.data;
         }
       }
-      
+
       console.log("📦 [API] getAuctionById parsed data:", auctionData);
       return auctionData;
     } catch (error: unknown) {
       console.error("❌ [API] getAuctionById failed:", error);
-      
+
       // Return mock data if API fails
       const isAxiosError = error && typeof error === 'object' && 'response' in error;
       if (isAxiosError) {
         const axiosError = error as { response: { status: number } };
         if (axiosError.response?.status === 401 || axiosError.response?.status === 403 || axiosError.response?.status === 404) {
           console.warn("⚠️ [API] Using mock auction detail for development");
-          
+
           return {
             auctionId: auctionId,
             productId: `product-${auctionId}`,
@@ -357,7 +357,7 @@ export const auctionApi = {
           };
         }
       }
-      
+
       throw error;
     }
   },
@@ -380,6 +380,27 @@ export const auctionApi = {
     return response.data;
   },
 
+  // Get user's complete auction history (won and lost)
+  getUserAuctionHistory: async (userId: string, page: number = 1, pageSize: number = 20, status?: string) => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('pageSize', pageSize.toString());
+    if (status) params.append('status', status);
+    const url = `/auction/user/${userId}/auction-history?${params.toString()}`;
+    const response = await axiosInstance.get(url);
+    return response.data;
+  },
+
+  // Get auctions for seller (management view)
+  getSellerAuctions: async (sellerId: string, page: number = 1, pageSize: number = 20) => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('pageSize', pageSize.toString());
+    const url = `/auction/seller/${sellerId}/managed?${params.toString()}`;
+    const response = await axiosInstance.get(url);
+    return response.data;
+  },
+
   // Get auctions won by user with payment information
   getWonAuctionsWithPayments: async (userId: string, page: number = 1, pageSize: number = 20) => {
     const params = new URLSearchParams();
@@ -391,38 +412,24 @@ export const auctionApi = {
 
   // Get order created for ended auction
   getOrderByAuctionId: async (auctionId: string) => {
-    try {
-      const response = await axiosInstance.get(`/auction/${auctionId}/order`);
-      console.log('📦 [API] getOrderByAuctionId response:', response.data);
+    const response = await axiosInstance.get(`/auction/${auctionId}/order`);
+    let data = response.data;
+    if (data && typeof data === 'object' && 'data' in data && 'success' in data) data = data.data;
+    return data;
+  },
 
-      // Handle NestJS response format
-      let data = response.data;
-      if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
-        data = data.data;
-      }
-
-      return data;
-    } catch (error: unknown) {
-      console.error('❌ [API] getOrderByAuctionId failed:', error);
-      throw error;
-    }
+  // Seller accepts an ended auction that didn't meet reserve (create order)
+  sellerAccept: async (auctionId: string, sellerId?: string) => {
+    const body = sellerId ? { sellerId } : {}
+    const response = await axiosInstance.post(`/auction/${auctionId}/seller-accept`, body)
+    return response.data
   },
 
   // Debug endpoint - check auction and order status
   getAuctionDebug: async (auctionId: string) => {
-    try {
-      const response = await axiosInstance.get(`/auction/${auctionId}/debug`);
-      console.log('🔍 [API] getAuctionDebug response:', response.data);
-
-      let data = response.data;
-      if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
-        data = data.data;
-      }
-
-      return data;
-    } catch (error: unknown) {
-      console.error('❌ [API] getAuctionDebug failed:', error);
-      throw error;
-    }
-  },
-};
+    const response = await axiosInstance.get(`/auction/${auctionId}/debug`);
+    let data = response.data;
+    if (data && typeof data === 'object' && 'data' in data && 'success' in data) data = data.data;
+    return data;
+  }
+}

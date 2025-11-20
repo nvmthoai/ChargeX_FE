@@ -19,6 +19,7 @@ export interface UseAuctionReturn {
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
+  pendingBid: number | null;
 
   // Actions
   placeBid: (amount: number) => void;
@@ -39,6 +40,7 @@ export function useAuction({
   const [auctionDetail, setAuctionDetail] = useState<AuctionDetail | null>(
     null
   );
+  const [pendingBid, setPendingBid] = useState<number | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,9 +59,10 @@ export function useAuction({
         setAuctionDetail(detail);
         setError(null);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
       if (mountedRef.current) {
-        setError(err.message || "Failed to fetch auction");
+        setError(msg || "Failed to fetch auction");
       }
     } finally {
       if (mountedRef.current) {
@@ -74,8 +77,9 @@ export function useAuction({
       auctionSocket.connect(userId);
       setIsConnected(true);
       setError(null);
-    } catch (err: any) {
-      setError(err.message || "Failed to connect");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg || "Failed to connect");
       setIsConnected(false);
     }
   }, [userId]);
@@ -102,13 +106,22 @@ export function useAuction({
         const clientBidId = `bid-${Date.now()}-${Math.random()
           .toString(36)
           .substr(2, 9)}`;
+        // set optimistic pending state to disable UI and show spinner
+        setPendingBid(amount);
+        setError(null);
         auctionSocket.placeBid({
           auctionId,
           amount,
           clientBidId,
         });
-      } catch (err: any) {
-        setError(err.message || "Failed to place bid");
+
+        // fallback: clear pending after 8s if no update received
+        setTimeout(() => {
+          setPendingBid((prev) => (prev === amount ? null : prev));
+        }, 8000);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(msg || "Failed to place bid");
       }
     },
     [auctionId]
@@ -189,6 +202,15 @@ export function useAuction({
               }
             : null
         );
+
+        // If we had a pending bid that is covered by this update, clear it
+        setPendingBid((pending) => {
+          if (pending == null) return pending;
+          if (update.currentPrice >= pending) return null;
+          // if winner changed and it's not us, clear pending
+          if (update.winnerId && update.winnerId !== userId) return null;
+          return pending;
+        });
       }
     };
 
@@ -238,7 +260,7 @@ export function useAuction({
       auctionSocket.off("auction:extended", handleAuctionExtended as any);
       auctionSocket.off("auction:error", handleError as any);
     };
-  }, [isConnected, auctionId]);
+  }, [isConnected, auctionId, userId]);
 
   // Auto connect and fetch data on mount
   useEffect(() => {
@@ -266,6 +288,7 @@ export function useAuction({
     isLoading,
     error,
     placeBid,
+    pendingBid,
     buyNow,
     refresh,
     connect,

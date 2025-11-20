@@ -8,21 +8,27 @@ export default function Shop() {
   const menuItems = [
     {
       to: "products",
-      label: "Sản phẩm bán",
+      label: "Products for Sale",
       icon: ShoppingBag,
       isActive: path.includes("/shop/products") || path.includes("/shop/productdetail"),
     },
     {
       to: "history",
-      label: "Lịch sử mua bán",
+      label: "Transaction History",
       icon: History,
       isActive: path.includes("/shop/history"),
     },
     {
       to: "auction",
-      label: "Quản lý đấu giá",
+      label: "Auction Management",
       icon: Gavel,
       isActive: path.includes("/shop/auction"),
+    },
+    {
+      to: "dashboard",
+      label: "Shop Dashboard",
+      icon: ShoppingBag,
+      isActive: path.includes("/shop/dashboard"),
     },
   ];
 
@@ -43,7 +49,7 @@ export default function Shop() {
                     : "hover:bg-blue-50 text-gray-700"
                 }`}
               >
-                {/* Thanh active bên trái */}
+                {/* Active left bar */}
                 {item.isActive && (
                   <span className="absolute left-0 top-0 h-full w-[4px] bg-blue-400 rounded-r-md"></span>
                 )}
@@ -76,9 +82,16 @@ export default function Shop() {
       {/* Main content */}
       <main className="ml-64 flex-1 h-[calc(100vh-5rem)] overflow-y-auto p-8 scrollbar-hide">
         <div className="max-w-6xl mx-auto">
+          {/* Fee notice banner */}
+          <div className="mb-4 p-3 rounded-md bg-yellow-50 border border-yellow-200 text-sm text-yellow-800">
+            Note: A platform fee of 10% will be charged for each order placed through this shop.
+          </div>
+
           <Outlet />
         </div>
       </main>
     </div>
   );
 }
+
+
