@@ -62,6 +62,7 @@ const AddressManagement: React.FC = () => {
       await handleDeleteAddress(deletingAddressId);
       setShowDeleteModal(false);
       setDeletingAddressId(null);
+      message.success("Address deleted successfully");
     } catch (error) {
       message.error("Failed to delete address");
     } finally {
@@ -127,10 +128,19 @@ const AddressManagement: React.FC = () => {
       {/* Address Form Modal */}
       {showModal && (
         <AddressFormModal
-          address={editingAddress}
-          onClose={() => setShowModal(false)}
-          onSuccess={() => {
+          address={editingAddress || undefined} // <-- fix lỗi TypeScript null
+          onClose={() => {
             setShowModal(false);
+            setEditingAddress(null);
+          }}
+          onSuccess={() => {
+            message.success(
+              editingAddress
+                ? "Address updated successfully"
+                : "New address added successfully"
+            );
+            setShowModal(false);
+            setEditingAddress(null);
           }}
           handleCreateAddress={handleCreateAddress}
           handleUpdateAddress={handleUpdateAddress}
