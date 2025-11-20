@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createProduct } from "../../../../api/product/api";
 import ProductForm from "./ProductForm";
 
-export default function AddProduct({ onClose }: { onClose?: () => void }) {
+export default function AddProduct({ onClose, onCreated }: { onClose?: () => void; onCreated?: () => void }) {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
@@ -10,6 +10,7 @@ export default function AddProduct({ onClose }: { onClose?: () => void }) {
     try {
       await createProduct(formData);
       alert("✅ Thêm sản phẩm thành công!");
+      onCreated?.();
       onClose?.();
     } catch (err) {
       console.error(err);

@@ -67,6 +67,16 @@ const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
   // 🔁 Tự fetch khi page, keyword, status, sort đổi
   useEffect(() => {
     fetchProducts();
+
+    // Refresh when a new product is created elsewhere (ProductManager dispatches event)
+    const onProductCreated = () => {
+      fetchProducts();
+    };
+    window.addEventListener('product:created', onProductCreated as EventListener);
+
+    return () => {
+      window.removeEventListener('product:created', onProductCreated as EventListener);
+    };
   }, [page, appliedKeyword, appliedStatus, appliedSort]);
 
   // 🟨 Đổi trạng thái

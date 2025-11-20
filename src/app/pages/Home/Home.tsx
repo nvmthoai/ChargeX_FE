@@ -60,10 +60,16 @@ export default function EVMarketplace() {
   };
 
   const getDisplayPrice = (product: (typeof products)[0]) => {
-    if (product.price_now) return `${Number(product.price_now || 0)?.toLocaleString()} VND`;
-    if (product.price_buy_now)
-      return `${Number(product.price_buy_now || 0)?.toLocaleString()} VND`;
-    return `${Number(product.price_start || 0)?.toLocaleString()} VND`;
+    // For auction products, show current price if available, otherwise show start price
+    if (product.is_auction) {
+      if (product.price_now != null) return `${Number(product.price_now || 0).toLocaleString()} VND`;
+      return `${Number(product.price_start || 0).toLocaleString()} VND`;
+    }
+
+    // For non-auction (buy-now) products prefer price_buy_now, then price_now, then price_start
+    if (product.price_buy_now != null) return `${Number(product.price_buy_now || 0).toLocaleString()} VND`;
+    if (product.price_now != null) return `${Number(product.price_now || 0).toLocaleString()} VND`;
+    return `${Number(product.price_start || 0).toLocaleString()} VND`;
   };
 
   const getCondition = (product: (typeof products)[0]) => {

@@ -3,6 +3,7 @@ import { Plus, X } from "lucide-react";
 import AddProduct from "../product/AddProduct";
 import AllProduct from "../product/AllProduct";
 import { addressApi } from "../../../../api/address/api";
+import { message } from 'antd';
 
 export default function ProductManager() {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -17,7 +18,7 @@ export default function ProductManager() {
       const userId = localUser?.sub;
 
       if (!userId) {
-        alert("❌ Không lấy được thông tin người dùng. Vui lòng đăng nhập lại.");
+        message.error("❌ Không lấy được thông tin người dùng. Vui lòng đăng nhập lại.");
         setCheckingAddress(false);
         return;
       }
@@ -31,7 +32,7 @@ export default function ProductManager() {
           : [];
 
       if (!addressList || addressList.length === 0) {
-        alert("❗ Bạn chưa có địa chỉ nào. Hãy thêm địa chỉ trước khi đăng sản phẩm!");
+        message.warning("❗ Bạn chưa có địa chỉ nào. Hãy thêm địa chỉ trước khi đăng sản phẩm!");
         setCheckingAddress(false);
         return;
       }
@@ -40,7 +41,7 @@ export default function ProductManager() {
       setShowAddModal(true);
     } catch (err) {
       console.error("❌ Lỗi kiểm tra địa chỉ:", err);
-      alert("❌ Không kiểm tra được địa chỉ. Vui lòng thử lại sau.");
+      message.error("❌ Không kiểm tra được địa chỉ. Vui lòng thử lại sau.");
     } finally {
       setCheckingAddress(false);
     }
@@ -84,7 +85,10 @@ export default function ProductManager() {
 
             {/* Nội dung form */}
             <div className="p-6 overflow-y-auto max-h-[80vh]">
-              <AddProduct onClose={() => setShowAddModal(false)} />
+              <AddProduct onClose={() => setShowAddModal(false)} onCreated={() => {
+                // Refresh list in AllProduct by triggering a custom event
+                window.dispatchEvent(new CustomEvent('product:created'));
+              }} />
             </div>
           </div>
         </div>
