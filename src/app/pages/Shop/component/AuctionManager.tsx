@@ -1,7 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { Table, Tag, Spin, Button, Modal, Descriptions, message } from "antd";
 import { EyeOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { auctionApi } from "../../../../api/auction";
+import { useNavigate } from 'react-router-dom';
 
 interface AuctionInfo {
   auctionId: string;
@@ -24,6 +27,7 @@ interface AuctionInfo {
 }
 
 export default function AuctionManager() {
+  const navigate = useNavigate();
   const [auctions, setAuctions] = useState<AuctionInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAuction, setSelectedAuction] = useState<AuctionInfo | null>(null);
@@ -46,18 +50,15 @@ export default function AuctionManager() {
         return;
       }
 
-      // Call backend API
+      // Call backend API via auctionApi
       try {
-        const res = await fetch(`/auction/seller/${sellerId}/managed?page=1&pageSize=20`);
+        const resp = await auctionApi.getSellerAuctions(sellerId, 1, 20);
+        const auctionData = resp?.items || resp?.data?.items || [];
 
-        if (res.ok) {
-          const response = await res.json();
-          const auctionData = response.items || [];
-
-          if (auctionData.length > 0) {
-            setAuctions(auctionData);
-            return;
-          }
+        if (auctionData.length > 0) {
+          setAuctions(auctionData);
+          setLoading(false);
+          return;
         }
       } catch (apiError) {
         console.warn("API call failed, using mock data:", apiError);
@@ -187,7 +188,7 @@ export default function AuctionManager() {
 
   const columns: ColumnsType<AuctionInfo> = [
     {
-      title: "Sản phẩm",
+      title: "Product",
       key: "productName",
       render: (_, record) => (
         <div className="flex items-center gap-2">
@@ -205,13 +206,13 @@ export default function AuctionManager() {
       width: 280
     },
     {
-      title: "Trạng thái",
+      title: "Status",
       key: "status",
       render: (_, record) => getStatusTag(record.status),
       width: 140
     },
     {
-      title: "Giá hiện tại",
+      title: "Current Price",
       key: "currentBid",
       render: (_, record) => (
         <div>
@@ -222,7 +223,7 @@ export default function AuctionManager() {
       width: 130
     },
     {
-      title: "Lượt đấu",
+      title: "Bids",
       key: "totalBids",
       render: (_, record) => (
         <span className="text-gray-700 font-semibold">{record.totalBids}</span>
@@ -230,7 +231,7 @@ export default function AuctionManager() {
       width: 80
     },
     {
-      title: "Thời gian",
+      title: "Time",
       key: "endTime",
       render: (_, record) => {
         const timeLeft = calculateTimeLeft(record.endTime);
@@ -247,7 +248,7 @@ export default function AuctionManager() {
       width: 150
     },
     {
-      title: "Người thắng",
+      title: "Winner",
       key: "winner",
       render: (_, record) => {
         if (record.status === "sold" && record.currentWinner) {
@@ -273,7 +274,7 @@ export default function AuctionManager() {
       width: 160
     },
     {
-      title: "Thao tác",
+      title: "Action",
       key: "action",
       render: (_, record) => (
         <Button
@@ -285,7 +286,7 @@ export default function AuctionManager() {
             setDetailModalOpen(true);
           }}
         >
-          Chi tiết
+          Details
         </Button>
       ),
       width: 100
@@ -304,6 +305,14 @@ export default function AuctionManager() {
 
   return (
     <div>
+      <div className="flex justify-end mb-4">
+        <Button
+          onClick={() => navigate('/shop/auction/history')}
+          type="default"
+        >
+          View Auction History
+        </Button>
+      </div>
       <div className="border border-dashed border-gray-300 rounded-xl p-8 bg-white text-gray-500 text-center shadow-sm">
         {auctions.length > 0 ? (
           <div className="text-left">

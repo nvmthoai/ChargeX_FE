@@ -23,6 +23,7 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
     placeBid,
     buyNow,
     refresh,
+    pendingBid,
   } = useAuction({
     auctionId,
     userId,
@@ -174,11 +175,23 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
     }
   };
 
-  const handleBuyNow = async () => {
-    if (window.confirm("Bạn có chắc muốn mua ngay sản phẩm này?")) {
-      await buyNow();
+  // Seller accept handler (for auctions ended but reserve not met)
+  const handleSellerAccept = async () => {
+    if (!auctionDetail?.auctionId) return;
+    try {
+      const sellerId = auctionDetail.sellerId || auctionDetail.product.sellerId;
+      const res = await auctionApi.sellerAccept(auctionDetail.auctionId, sellerId);
+      if (res && res.orderId) {
+        // navigate to payment
+        navigate(`/payment/${res.orderId}`, { state: { auctionId: auctionDetail.auctionId, amount: currentPrice } });
+      } else {
+        alert('Chấp nhận thất bại hoặc không trả về orderId');
+      }
+    } catch (e: any) {
+      console.error('sellerAccept failed', e)
+      alert('Chấp nhận thất bại: ' + (e?.message || 'Vui lòng thử lại'))
     }
-  };
+  }
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -218,6 +231,9 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
   const currentPrice = auctionState?.currentPrice ?? auctionDetail.currentPrice;
   const isLive = auctionDetail.status === "live";
   const hasEnded = auctionDetail.status === "ended";
+  const reservePrice = (auctionDetail as any).reservePrice ?? 0
+  const reserveMet = Number(currentPrice || 0) >= Number(reservePrice || 0)
+  const isPending = pendingBid != null
 
   return (
     <div className="auction-room-container">
@@ -301,6 +317,36 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
         </div>
       </div>
 
+      {/* Buy Now row - always visible if buyNowPrice exists, disabled unless live */}
+      {auctionDetail.buyNowPrice && (
+        <div className="buy-now-global" style={{ marginTop: 16 }}>
+          <button
+            className="buy-now-global-button"
+            onClick={async () => {
+              if (!isLive) {
+                alert('Mua ngay chỉ khả dụng khi phiên đang diễn ra')
+                return
+              }
+              if (window.confirm('Bạn có chắc muốn mua ngay sản phẩm này?')) {
+                await buyNow()
+              }
+            }}
+            disabled={!isLive}
+            style={{
+              backgroundColor: isLive ? '#ff6b6b' : '#ccc',
+              color: isLive ? 'white' : '#666',
+              padding: '10px 16px',
+              border: 'none',
+              borderRadius: 6,
+              cursor: isLive ? 'pointer' : 'not-allowed',
+              fontWeight: '600'
+            }}
+          >
+            {isLive ? `Mua ngay - ${formatPrice(auctionDetail.buyNowPrice)}` : `Mua ngay (chỉ khi đang diễn ra)`}
+          </button>
+        </div>
+      )}
+
       {/* Bidding Panel */}
       {isLive && !hasEnded && (
         <div className="bidding-panel">
@@ -315,9 +361,10 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
               )}`}
               min={currentPrice + auctionDetail.minBidIncrement}
               step={auctionDetail.minBidIncrement}
+              disabled={!isConnected || isPending}
             />
-            <button onClick={handlePlaceBid} disabled={!isConnected}>
-              Đặt giá
+            <button onClick={handlePlaceBid} disabled={!isConnected || isPending}>
+              {isPending ? 'Đang chờ...' : 'Đặt giá'}
             </button>
           </div>
 
@@ -350,14 +397,6 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
               +{formatPrice(auctionDetail.minBidIncrement * 5)}
             </button>
           </div>
-
-          {auctionDetail.buyNowPrice && (
-            <div className="buy-now-section">
-              <button className="buy-now-button" onClick={handleBuyNow}>
-                Mua ngay - {formatPrice(auctionDetail.buyNowPrice)}
-              </button>
-            </div>
-          )}
         </div>
       )}
 
@@ -368,30 +407,53 @@ export const AuctionRoom: React.FC<AuctionRoomProps> = ({
           <p>Người thắng: {winnerName || "Đang tải..."}</p>
           <p>Giá cuối: {formatPrice(currentPrice)}</p>
 
-          {/* Payment button if current user won */}
+          {/* Payment / reserve-not-met handling */}
           {auctionDetail.winnerId === userId && (
-            <div className="payment-section" style={{ marginTop: '15px' }}>
+            <div style={{ marginTop: '15px' }}>
+              {!reserveMet ? (
+                <div style={{ padding: 12, background: '#fff4e5', borderRadius: 6 }}>
+                  <strong>ℹ️ Bạn có giá cao nhất nhưng chưa đạt giá dự trữ.</strong>
+                  <p style={{ margin: '8px 0 0' }}>
+                    Người bán có thể chấp nhận bán. Nếu người bán chấp nhận, bạn sẽ nhận được đơn hàng để thanh toán.
+                  </p>
+                </div>
+              ) : (
+                <div className="payment-section">
+                  <button
+                    onClick={handlePayment}
+                    disabled={fetchingOrder}
+                    style={{
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      padding: '10px 20px',
+                      border: 'none',
+                      borderRadius: '5px',
+                      cursor: fetchingOrder ? 'not-allowed' : 'pointer',
+                      opacity: fetchingOrder ? 0.6 : 1,
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      width: '100%'
+                    }}
+                  >
+                    {fetchingOrder ? 'Đang tải...' : '💳 Thanh toán ngay'}
+                  </button>
+                  <p style={{ color: '#666', fontSize: '14px', marginTop: '10px' }}>
+                    Vui lòng hoàn tất thanh toán để nhận sản phẩm
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Seller accept button when ended, reserve not met, and current user is seller */}
+          {hasEnded && !reserveMet && (auctionDetail.sellerId || auctionDetail.product.sellerId) === userId && (
+            <div style={{ marginTop: 12 }}>
               <button
-                onClick={handlePayment}
-                disabled={fetchingOrder}
-                style={{
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  padding: '10px 20px',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: fetchingOrder ? 'not-allowed' : 'pointer',
-                  opacity: fetchingOrder ? 0.6 : 1,
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  width: '100%'
-                }}
+                onClick={handleSellerAccept}
+                style={{ backgroundColor: '#007bff', color: 'white', padding: '10px 16px', border: 'none', borderRadius: 6 }}
               >
-                {fetchingOrder ? 'Đang tải...' : '💳 Thanh toán ngay'}
+                Chấp nhận bán
               </button>
-              <p style={{ color: '#666', fontSize: '14px', marginTop: '10px' }}>
-                Vui lòng hoàn tất thanh toán để nhận sản phẩm
-              </p>
             </div>
           )}
         </div>

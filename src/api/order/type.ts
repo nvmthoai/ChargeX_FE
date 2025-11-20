@@ -143,7 +143,9 @@ export interface GetOrdersParams {
   limit?: number;
   sortBy?: string;
   sortOrder?: "ASC" | "DESC";
-  search?: string; // 🟢 thêm dòng này
+  search?: string;
+  excludeStatus?: string;       
+  excludeStatuses?: string;
 }
 
 export interface PaginatedOrders {
