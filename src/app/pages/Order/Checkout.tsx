@@ -71,7 +71,7 @@ export default function Checkout() {
         receiverAddress: selectedAddress.line1,
         receiverDistrictId: selectedAddress.districtId,
         receiverWardCode: selectedAddress.wardCode,
-
+        receiverAddressId: selectedAddress.addressId, // ✅ chỉ truyền ID
         orderShops: [
           {
             sellerId: product.seller.userId,
@@ -109,7 +109,7 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        
+
         {/* --------------------------- */}
         {/* Cột trái: Thông tin giao hàng */}
         {/* --------------------------- */}
@@ -119,7 +119,7 @@ export default function Checkout() {
               <span className="text-[#0F74C7]">1.</span> Delivery Address
             </h2>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => { setEditingAddress(null); setShowModal(true); }}
               className="bg-[#0F74C7] hover:bg-[#3888ca] text-white px-4 py-2 rounded-md shadow-sm transition"
             >
               + Add New
@@ -142,8 +142,8 @@ export default function Checkout() {
                 }}
                 onSelect={(id) => setSelectedAddressId(id)}
                 selectedAddressId={selectedAddressId}
-                onDelete={() => {}}
-                onSetDefault={() => {}}
+                onDelete={() => { }}
+                onSetDefault={() => { }}
               />
             )}
           </div>
@@ -199,9 +199,8 @@ export default function Checkout() {
               <button
                 onClick={handleConfirmPayment}
                 disabled={confirming}
-                className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${
-                  confirming ? "bg-gray-400 cursor-not-allowed" : "bg-[#0F74C7] hover:bg-[#3888ca]"
-                }`}
+                className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${confirming ? "bg-gray-400 cursor-not-allowed" : "bg-[#0F74C7] hover:bg-[#3888ca]"
+                  }`}
               >
                 {confirming ? "Đang xử lý..." : "Xác nhận thanh toán"}
               </button>

@@ -39,6 +39,7 @@ const UserManagement = () => {
                     order: selectedOrder || undefined,
                 };
                 const PageUsersResponse = await fetchData(`/users${getQueryString(queryParams)}`, token);
+                console.log("PageUsersResponse.data", PageUsersResponse.data.data);
                 setUSERs(PageUsersResponse.data);
             } catch (error) {
                 setError('Error');
@@ -68,7 +69,7 @@ const UserManagement = () => {
             emailVerified: value == 'true' ? true : false
         }
         try {
-            await patchData(`/users/${id}`, EmailVerifieData, token);
+            await patchData(`/users/${id}/admin-update`, EmailVerifieData, token);
         } catch (error) {
             console.error(error);
             setError('Error');
@@ -85,7 +86,7 @@ const UserManagement = () => {
             isActive: value == 'true' ? true : false
         }
         try {
-            await patchData(`/users/${id}`, IsActiveData, token);
+            await patchData(`/users/${id}/admin-update`, IsActiveData, token);
         } catch (error) {
             console.error(error);
             setError('Error');
@@ -190,7 +191,7 @@ const UserManagement = () => {
                         className="w-10 h-10 rounded-full object-cover"
                     />
                     <div>
-                        <div className="font-medium text-dark-800 dark:text-dark-200">{customer.fullName}</div>
+                        <div className="font-medium text-white dark:text-dark-200">{customer.fullName}</div>
                         <div className="text-xs text-muted-foreground">{customer.role}</div>
                     </div>
                 </div>
@@ -274,6 +275,8 @@ const UserManagement = () => {
             ),
         },
     ];
+
+    console.log("Rerender");
 
     if (loading) return <div className="p-8 text-center">Loading...</div>;
     if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>;
