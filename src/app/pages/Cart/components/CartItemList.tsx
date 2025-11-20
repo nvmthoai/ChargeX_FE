@@ -23,12 +23,14 @@ export default function CartItemsList({
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             {/* Checkbox & Image */}
-            <div className="flex items-center gap-4 flex-1 w-full sm:w-auto">
+            <div className="flex items-center gap-4 flex-1 w-full sm:w-auto cursor-pointer" onClick={() => onCheck(item.orderId)}>
               <input
                 type="checkbox"
                 checked={selectedItems.includes(item.orderId)}
-                onChange={() => onCheck(item.orderId)}
-                className="w-5 h-5 text-ocean-600 border-ocean-300 rounded focus:ring-ocean-500 focus:ring-2 cursor-pointer"
+                // onChange={() => onCheck(item.orderId)}
+                onChange={() => { }}
+                className="w-5 h-5 text-ocean-600 border-ocean-300 rounded cursor-pointer"
+                style={{ outline: 'none' }}
               />
               <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-ocean-100 to-energy-100 flex-shrink-0">
                 {item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] ? (
@@ -48,17 +50,22 @@ export default function CartItemsList({
 
               {/* Product Info */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg text-dark-900 mb-1 line-clamp-2 group-hover:text-ocean-600 transition-colors">
+                <h3 className="font-bold text-lg text-dark-900 line-clamp-2 group-hover:text-ocean-600 transition-colors">
                   {item.orderShops?.[0]?.orderDetails?.[0]?.product?.title || 'Product'}
                 </h3>
-                <p className="text-sm text-dark-800 line-clamp-2 mb-2 font-medium">
+                <p className="text-sm text-gray-500 line-clamp-2 mb-1 font-medium">
                   {item.orderShops?.[0]?.orderDetails?.[0]?.product?.description || 'No description'}
                 </p>
+                <h4 className="text-dark-900 line-clamp-2">
+                  Seller: {item.orderShops?.[0]?.seller?.fullName || 'Unknown'}
+                </h4>
                 <div className="flex items-center gap-4">
                   <span className="text-lg font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
-                    ${(item.orderShops?.[0]?.orderDetails?.[0]?.price || 0).toLocaleString()}
+                    {Number(item.orderShops?.[0]?.orderDetails?.[0]?.price || 0).toLocaleString()} VND
                   </span>
-                  <span className="text-sm text-dark-800 font-medium">
+                  <span className="text-sm text-dark-800 font-medium"
+                    // style={{ backgroundColor: item.status == "PENDING" ? "#ffc107" : "#28a745" }}
+                  >
                     Qty: {item.orderShops?.[0]?.orderDetails?.[0]?.quantity || 1}
                   </span>
                 </div>
@@ -76,7 +83,7 @@ export default function CartItemsList({
 
               {/* Remove Button */}
               <button
-                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all hover:scale-110"
+                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all hover:scale-110 cursor-pointer"
                 onClick={() => onRemove(item.orderId)}
                 title="Remove item"
               >

@@ -222,14 +222,14 @@ export default function PaymentPage() {
           {product && (
             <div className="flex items-center gap-4 bg-[#f7faff] rounded-2xl p-4 border border-[#dce9ff]">
               <img
-                src={product.imageUrls?.[0] || "/no-image.png"}
-                alt={product.title}
+                src={product.imageUrl?.[0] || "/no-image.png"}
+                alt={product.name}
                 className="w-20 h-20 rounded-xl object-cover border"
               />
               <div className="flex-1">
-                <p className="font-semibold text-gray-900 text-lg">{product.title}</p>
+                <p className="font-semibold text-gray-900 text-lg">{product.name}</p>
                 <p className="text-sm text-gray-500 line-clamp-2">{product.description || "Không có mô tả"}</p>
-                <p className="font-semibold text-[#0F74C7] mt-1">${Number(order.totalPrice).toLocaleString()}</p>
+                <p className="font-semibold text-[#0F74C7] mt-1">{Number(order.totalPrice).toLocaleString()} VND</p>
               </div>
             </div>
           )}
