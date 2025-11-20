@@ -1,4 +1,4 @@
-import { Card, Image, Tag, Space, Button, Badge } from "antd";
+import { Image, Tag, Button } from "antd";
 import { ShoppingCart, Eye, Gavel, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

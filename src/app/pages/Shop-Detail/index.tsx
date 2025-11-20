@@ -1,17 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Tabs, Empty, Spin } from "antd";
+import { Tabs, Spin } from "antd";
 import { 
   Store, 
   Package, 
   MapPin, 
-  Star, 
-  Phone, 
-  Mail, 
-  Calendar,
-  TrendingUp,
-  Users,
-  Award
+  Star
 } from "lucide-react";
 import ShopHeader from "./ShopHeader";
 import ShopProductCard from "./ShopProductCard";
@@ -154,24 +148,26 @@ const ShopDetailPage = () => {
         </div>
       </div>
 
-      <style jsx>{`
-        :global(.shop-detail-tabs .ant-tabs-tab) {
-          padding: 16px 24px !important;
-          font-weight: 500;
-          color: #64748b;
-          transition: all 0.3s;
-        }
-        :global(.shop-detail-tabs .ant-tabs-tab:hover) {
-          color: #3b82f6;
-        }
-        :global(.shop-detail-tabs .ant-tabs-tab-active) {
-          color: #3b82f6;
-        }
-        :global(.shop-detail-tabs .ant-tabs-ink-bar) {
-          background: linear-gradient(to right, #3b82f6, #8b5cf6);
-          height: 3px;
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .shop-detail-tabs .ant-tabs-tab {
+            padding: 16px 24px !important;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s;
+          }
+          .shop-detail-tabs .ant-tabs-tab:hover {
+            color: #3b82f6;
+          }
+          .shop-detail-tabs .ant-tabs-tab-active {
+            color: #3b82f6;
+          }
+          .shop-detail-tabs .ant-tabs-ink-bar {
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            height: 3px;
+          }
+        `
+      }} />
     </div>
   );
 };
