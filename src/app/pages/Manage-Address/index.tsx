@@ -62,9 +62,9 @@ const AddressManagement: React.FC = () => {
       await handleDeleteAddress(deletingAddressId);
       setShowDeleteModal(false);
       setDeletingAddressId(null);
-      message.success("Address deleted successfully");
+      message.success("Xóa địa chỉ thành công!");
     } catch (error) {
-      message.error("Failed to delete address");
+      message.error("Xóa địa chỉ thất bại");
     } finally {
       setDeleteLoading(false);
     }
@@ -87,10 +87,12 @@ const AddressManagement: React.FC = () => {
       <div className="w-[800px] mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Addresses</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+            Địa chỉ của tôi
+          </h1>
           <button
             onClick={handleAddAddress}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            className="flex items-center gap-2 bg-gradient-to-r from-ocean-500 to-energy-500 hover:from-ocean-600 hover:to-energy-600 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl"
           >
             <svg
               className="w-5 h-5"
@@ -105,14 +107,14 @@ const AddressManagement: React.FC = () => {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Add New Address
+            Thêm địa chỉ mới
           </button>
         </div>
 
         {/* Address List */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Addresses</h2>
+        <div className="bg-white rounded-2xl shadow-lg border border-ocean-200/30">
+          <div className="p-6 border-b border-ocean-200/30">
+            <h2 className="text-xl font-semibold text-gray-900">Danh sách địa chỉ</h2>
           </div>
 
           <AddressList
@@ -136,8 +138,8 @@ const AddressManagement: React.FC = () => {
         onSuccess={() => {
           message.success(
             editingAddress
-              ? "Address updated successfully"
-              : "New address added successfully"
+              ? "Cập nhật địa chỉ thành công!"
+              : "Thêm địa chỉ mới thành công!"
           );
           setShowModal(false);
           setEditingAddress(null);

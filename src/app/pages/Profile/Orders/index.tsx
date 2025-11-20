@@ -315,10 +315,10 @@ export default function OrderManagement() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-ocean-500 to-energy-500 bg-clip-text text-transparent">
-          Order History
+          Lịch sử đặt hàng
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          View and manage your order history
+          Xem và quản lý lịch sử đặt hàng của bạn
         </p>
       </div>
 
@@ -357,7 +357,7 @@ export default function OrderManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-ocean-700">
             <Package className="w-5 h-5 text-ocean-600" />
-            Orders ({filteredOrders.length})
+            Đơn hàng ({filteredOrders.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -367,7 +367,7 @@ export default function OrderManagement() {
                 <div className="w-16 h-16 rounded-full bg-ocean-100 flex items-center justify-center">
                   <Package className="w-8 h-8 text-ocean-500" />
                 </div>
-                <p className="text-base font-medium">No orders found</p>
+                <p className="text-base font-medium">Không có đơn hàng nào</p>
               </div>
             </div>
           ) : (

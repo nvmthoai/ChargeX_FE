@@ -79,7 +79,7 @@ export default function ProfileDetail() {
       label: (
         <span className="flex items-center gap-2">
           <User className="w-4 h-4" />
-          Personal Information
+          Thông tin cá nhân
         </span>
       ),
       children: (
@@ -105,7 +105,7 @@ export default function ProfileDetail() {
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h3 className="text-xl font-bold text-dark-900 mb-2">
-                  Profile Picture
+                  Ảnh đại diện
                 </h3>
                 <Upload
                   beforeUpload={handleAvatarUpload}
@@ -117,7 +117,7 @@ export default function ProfileDetail() {
                     icon={<CameraOutlined />}
                     className="bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 border-0 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all"
                   >
-                    Upload Avatar
+                    Tải ảnh lên
                   </Button>
                 </Upload>
                 <p className="text-sm text-dark-800 font-medium mt-2">
@@ -143,7 +143,7 @@ export default function ProfileDetail() {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Form.Item
-                label={<span className="font-bold text-dark-900">Full Name</span>}
+                label={<span className="font-bold text-dark-900">Tên</span>}
                 name="fullName"
                 rules={[{ required: true, message: "Please enter full name" }]}
               >
@@ -172,7 +172,7 @@ export default function ProfileDetail() {
               </Form.Item>
 
               <Form.Item
-                label={<span className="font-semibold text-dark-700">Phone Number</span>}
+                label={<span className="font-semibold text-dark-700">Số điện thoại</span>}
                 name="phone"
                 rules={[
                   { required: true, message: "Please enter phone number" },
@@ -186,7 +186,7 @@ export default function ProfileDetail() {
                 />
               </Form.Item>
 
-              <Form.Item label={<span className="font-semibold text-dark-700">Role</span>}>
+              <Form.Item label={<span className="font-semibold text-dark-700">Chức vụ</span>}>
                 <Tag 
                   color="blue"
                   className="px-3 py-1 rounded-full text-sm font-semibold"
@@ -195,29 +195,29 @@ export default function ProfileDetail() {
                 </Tag>
               </Form.Item>
 
-              <Form.Item label={<span className="font-semibold text-dark-700">Email Verified</span>}>
+              <Form.Item label={<span className="font-semibold text-dark-700">Email xác minh</span>}>
                 <Tag 
                   color={userDetail.user.emailVerified ? "green" : "red"}
                   className="px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 w-fit"
                 >
                   {userDetail.user.emailVerified ? (
                     <>
-                      <CheckCircleOutlined /> Verified
+                      <CheckCircleOutlined /> Đã xác minh
                     </>
                   ) : (
                     <>
-                      <CloseCircleOutlined /> Not Verified
+                      <CloseCircleOutlined /> Chưa xác minh
                     </>
                   )}
                 </Tag>
               </Form.Item>
 
-              <Form.Item label={<span className="font-semibold text-dark-700">Account Status</span>}>
+              <Form.Item label={<span className="font-semibold text-dark-700">Trạng thái tài khoản</span>}>
                 <Tag 
                   color={userDetail.user.isActive ? "green" : "orange"}
                   className="px-3 py-1 rounded-full text-sm font-semibold"
                 >
-                  {userDetail.user.isActive ? "Active" : "Inactive"}
+                  {userDetail.user.isActive ? "Hoạt động" : "Không hoạt động"}
                 </Tag>
               </Form.Item>
             </div>
@@ -232,13 +232,13 @@ export default function ProfileDetail() {
                 size="large"
                 className="bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 border-0 rounded-xl font-semibold shadow-lg shadow-ocean-500/30 hover:shadow-xl hover:scale-105 transition-all px-8"
               >
-                Update Profile
+                Cập nhật tài khoản
               </Button>
               <Button 
                 size="large"
                 className="rounded-xl border-ocean-200 text-ocean-700 hover:bg-ocean-50"
               >
-                Cancel
+                Hủy
               </Button>
             </div>
           </Form>
@@ -250,7 +250,7 @@ export default function ProfileDetail() {
       label: (
         <span className="flex items-center gap-2">
           <MapPin className="w-4 h-4" />
-          Addresses ({userDetail.addresses.length})
+          Địa chỉ ({userDetail.addresses.length})
         </span>
       ),
       children: (
@@ -271,24 +271,24 @@ export default function ProfileDetail() {
                       </span>
                       {addr.isDefault && (
                         <Tag color="blue" className="rounded-full">
-                          Default
+                          Mặc định
                         </Tag>
                       )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
                       <div>
-                        <span className="text-dark-800 font-medium">Name:</span>
+                        <span className="text-dark-800 font-medium">Tên:</span>
                         <p className="font-semibold text-dark-900">{addr.fullName}</p>
                       </div>
                       <div>
-                        <span className="text-dark-600">Phone:</span>
+                        <span className="text-dark-600">Số điện thoại:</span>
                         <p className="font-semibold text-dark-900">{addr.phone}</p>
                       </div>
                     </div>
 
                     <div className="mt-3">
-                      <span className="text-dark-600 text-sm">Address:</span>
+                      <span className="text-dark-600 text-sm">Địa chỉ:</span>
                       <p className="font-semibold text-dark-900">
                         {addr.line1}
                       </p>
@@ -296,7 +296,7 @@ export default function ProfileDetail() {
 
                     {addr.note && (
                       <div className="mt-2">
-                        <span className="text-dark-600 text-sm">Note:</span>
+                        <span className="text-dark-600 text-sm">Ghi chú:</span>
                         <p className="text-dark-800 text-sm font-medium">{addr.note}</p>
                       </div>
                     )}
@@ -345,16 +345,16 @@ export default function ProfileDetail() {
                 <WalletOutlined className="text-white text-xl" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-dark-900">Available Balance</h3>
-                <p className="text-dark-800 font-medium">Your current wallet balance</p>
+                <h3 className="text-lg font-bold text-dark-900">Số dư khả dụng</h3>
+                <p className="text-dark-800 font-medium">Số dư ví hiện tại của bạn</p>
               </div>
             </div>
             
             <Row gutter={32}>
               <Col xs={24} sm={12} md={8}>
                 <Statistic
-                  title={<span className="text-dark-800 font-medium">Balance</span>}
-                  value={Number.parseFloat(userDetail.wallet.balance)}
+                  title={<span className="text-dark-800 font-medium">Số dư</span>}
+                  value={Number(userDetail?.wallet?.balance || 0).toLocaleString("vi-VN")}
                   prefix={<WalletOutlined className="text-energy-600" />}
                   precision={2}
                   suffix="VND"
@@ -376,13 +376,13 @@ export default function ProfileDetail() {
                 className="bg-gradient-to-r from-energy-500 to-energy-600 hover:from-energy-600 hover:to-energy-700 border-0 rounded-xl font-semibold shadow-lg shadow-energy-500/30 hover:shadow-xl hover:scale-105 transition-all"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Deposit
+                Nạp tiền
               </Button>
               <Button 
                 size="large"
                 className="rounded-xl border-ocean-200 text-ocean-700 hover:bg-ocean-50"
               >
-                Withdraw
+                Rút tiền
               </Button>
             </div>
           </Card>
@@ -395,10 +395,10 @@ export default function ProfileDetail() {
     <div>
       <div className="mb-6">
         <h2 className="text-3xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent mb-2">
-          Profile Details
+          Chi tiết hồ sơ
         </h2>
         <p className="text-dark-800 font-medium">
-          Manage your personal information and preferences
+          Quản lý thông tin cá nhân và cài đặt của bạn
         </p>
       </div>
 

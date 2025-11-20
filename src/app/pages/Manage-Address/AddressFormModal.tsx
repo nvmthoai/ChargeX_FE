@@ -1,8 +1,7 @@
 // src/app/pages/Manage-Address/AddressFormModal.tsx
 import React, { useState, useEffect } from "react";
 import { Form, Input, Select, Checkbox, Button, message } from "antd";
-import { MapPin, Home, Building2 } from "lucide-react";
-import useProvinces from "../../hooks/useProvinces";
+import { MapPin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,9 +10,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import useProvinces from "../../hooks/useProvinces";
 
 interface AddressFormModalProps {
-  open: boolean;
   address?: {
     addressId?: string;
     fullName: string;
@@ -26,6 +25,7 @@ interface AddressFormModalProps {
     isDefault?: boolean;
     label?: string;
   };
+  open?: boolean;
   onClose: () => void;
   onSuccess?: (newAddress: any) => void;
   handleCreateAddress?: (address: any) => Promise<any>;
@@ -33,8 +33,8 @@ interface AddressFormModalProps {
 }
 
 const AddressFormModal: React.FC<AddressFormModalProps> = ({
-  open,
   address,
+  open = true,
   onClose,
   onSuccess,
   handleCreateAddress,
@@ -117,40 +117,48 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && !loading && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent flex items-center gap-2">
             <MapPin className="w-6 h-6 text-ocean-600" />
             {address ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới"}
           </DialogTitle>
           <DialogDescription>
-            {address
-              ? "Cập nhật thông tin địa chỉ của bạn"
+            {address 
+              ? "Cập nhật thông tin địa chỉ của bạn" 
               : "Thêm địa chỉ mới để nhận hàng"}
           </DialogDescription>
         </DialogHeader>
 
         <Form form={form} layout="vertical" onFinish={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Form.Item
-              name="fullName"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Form.Item 
+              name="fullName" 
               label={<span className="font-medium text-dark-800 dark:text-dark-200">Họ và tên</span>}
               rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
             >
-              <Input size="large" placeholder="Nguyễn Văn A" className="rounded-lg" />
+              <Input 
+                size="large" 
+                placeholder="Nguyễn Văn A" 
+                className="rounded-lg border-ocean-200 focus:border-ocean-500"
+              />
             </Form.Item>
-            <Form.Item
-              name="phone"
+            <Form.Item 
+              name="phone" 
               label={<span className="font-medium text-dark-800 dark:text-dark-200">Số điện thoại</span>}
               rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
             >
-              <Input size="large" placeholder="0901234567" className="rounded-lg" />
+              <Input 
+                size="large" 
+                placeholder="0901234567" 
+                className="rounded-lg border-ocean-200 focus:border-ocean-500"
+              />
             </Form.Item>
           </div>
 
-          <Form.Item
-            name="provinceId"
+          <Form.Item 
+            name="provinceId" 
             label={<span className="font-medium text-dark-800 dark:text-dark-200">Tỉnh/Thành phố</span>}
             rules={[{ required: true, message: "Vui lòng chọn tỉnh/thành phố" }]}
           >
@@ -171,8 +179,8 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="districtId"
+          <Form.Item 
+            name="districtId" 
             label={<span className="font-medium text-dark-800 dark:text-dark-200">Quận/Huyện</span>}
             rules={[{ required: true, message: "Vui lòng chọn quận/huyện" }]}
           >
@@ -193,8 +201,8 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="wardCode"
+          <Form.Item 
+            name="wardCode" 
             label={<span className="font-medium text-dark-800 dark:text-dark-200">Phường/Xã</span>}
             rules={[{ required: true, message: "Vui lòng chọn phường/xã" }]}
           >
@@ -214,83 +222,82 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="line1"
+          <Form.Item 
+            name="line1" 
             label={<span className="font-medium text-dark-800 dark:text-dark-200">Địa chỉ chi tiết</span>}
             rules={[{ required: true, message: "Vui lòng nhập địa chỉ chi tiết" }]}
           >
-            <Input.TextArea
-              rows={3}
-              placeholder="Ví dụ: 123 Đường Láng, Phường Láng Thượng"
-              className="rounded-lg"
+            <Input.TextArea 
+              rows={3} 
+              placeholder="Ví dụ: 123 Đường Láng, Phường Láng Thượng" 
+              className="rounded-lg border-ocean-200 focus:border-ocean-500"
             />
           </Form.Item>
 
-          <Form.Item
-            name="note"
+          <Form.Item 
+            name="note" 
             label={<span className="font-medium text-dark-800 dark:text-dark-200">Ghi chú (tùy chọn)</span>}
           >
-            <Input.TextArea rows={2} className="rounded-lg" />
+            <Input.TextArea 
+              rows={2} 
+              placeholder="Ghi chú thêm về địa chỉ (nếu có)"
+              className="rounded-lg border-ocean-200 focus:border-ocean-500"
+            />
           </Form.Item>
 
-          <div className="p-4 bg-ocean-50 dark:bg-ocean-900/20 rounded-lg">
+          <div className="p-4 bg-ocean-50/50 rounded-xl border border-ocean-200/30">
             <label className="font-medium text-dark-800 dark:text-dark-200 block mb-3">
               Loại địa chỉ
             </label>
             <div className="flex gap-3">
-              <button
-                type="button"
+              <Button
+                type={selectedLabel === "Home" ? "primary" : "default"}
                 onClick={() => setSelectedLabel("Home")}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${
-                  selectedLabel === "Home"
-                    ? "bg-ocean-500 text-white border-ocean-600 shadow-md"
-                    : "bg-white text-ocean-700 border-ocean-200 hover:border-ocean-300"
+                className={`rounded-lg ${
+                  selectedLabel === "Home" 
+                    ? "bg-gradient-to-r from-ocean-500 to-energy-500 border-0" 
+                    : ""
                 }`}
               >
-                <Home className="w-5 h-5" />
-                <span className="font-semibold">Nhà riêng</span>
-              </button>
-              <button
-                type="button"
+                🏠 Nhà riêng
+              </Button>
+              <Button
+                type={selectedLabel === "Office" ? "primary" : "default"}
                 onClick={() => setSelectedLabel("Office")}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${
-                  selectedLabel === "Office"
-                    ? "bg-ocean-500 text-white border-ocean-600 shadow-md"
-                    : "bg-white text-ocean-700 border-ocean-200 hover:border-ocean-300"
+                className={`rounded-lg ${
+                  selectedLabel === "Office" 
+                    ? "bg-gradient-to-r from-ocean-500 to-energy-500 border-0" 
+                    : ""
                 }`}
               >
-                <Building2 className="w-5 h-5" />
-                <span className="font-semibold">Công ty</span>
-              </button>
+                🏢 Công ty
+              </Button>
             </div>
           </div>
 
           <Form.Item name="isDefault" valuePropName="checked">
-            <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-ocean-200/50">
-              <Checkbox className="rounded" />
-              <span className="text-dark-800 dark:text-dark-200 font-medium">
-                Đặt làm địa chỉ mặc định
-              </span>
-            </div>
+            <Checkbox className="text-dark-700">
+              Đặt làm địa chỉ mặc định
+            </Checkbox>
           </Form.Item>
 
           <DialogFooter className="gap-2 sm:gap-0 mt-6">
-            <Button
-              size="large"
+            <Button 
+              size="large" 
               onClick={onClose}
+              className="rounded-lg"
               disabled={loading}
-              className="rounded-xl"
             >
               Hủy
             </Button>
-            <Button
-              size="large"
-              type="primary"
-              htmlType="submit"
+            <Button 
+              size="large" 
+              type="primary" 
+              htmlType="submit" 
               loading={loading}
-              className="bg-gradient-to-r from-ocean-500 to-energy-500 hover:from-ocean-600 hover:to-energy-600 rounded-xl font-semibold"
+              className="bg-gradient-to-r from-ocean-500 to-energy-500 hover:from-ocean-600 hover:to-energy-600 border-0 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
             >
-              {address ? "Cập nhật" : "Thêm địa chỉ"}
+              {address ? "Cập nhật địa chỉ" : "Thêm địa chỉ"}
             </Button>
           </DialogFooter>
         </Form>

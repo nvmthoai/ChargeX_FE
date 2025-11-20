@@ -97,11 +97,11 @@ export default function Bidding() {
   const nextMinBid = currentPrice + minIncrement;
 
   const canBid = useMemo(() => {
-    if (!user) return { ok: false, reason: "Not logged in" };
+    if (!user) return { ok: false, reason: "Vui lòng đăng nhập" };
     if (!user.role || user.role !== "member")
-      return { ok: false, reason: "Insufficient role" };
-    if (!live) return { ok: false, reason: "Auction not live" };
-    if (reconnecting) return { ok: false, reason: "Reconnecting..." };
+      return { ok: false, reason: "Không đủ quyền" };
+    if (!live) return { ok: false, reason: "Phiên đấu giá chưa bắt đầu" };
+    if (reconnecting) return { ok: false, reason: "Đang kết nối lại..." };
     // TODO: check user's balance via wallet API and return false+reason if insufficient
     return { ok: true, reason: "" };
   }, [user, live, reconnecting]);
@@ -116,9 +116,9 @@ export default function Bidding() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(input);
-    if (Number.isNaN(amount)) return toast.error("Invalid amount");
+    if (Number.isNaN(amount)) return toast.error("Số tiền không hợp lệ");
     if (amount < nextMinBid)
-      return toast.error(`Minimum bid is ${formatCurrency(nextMinBid)}`);
+      return toast.error(`Giá đặt tối thiểu là ${formatCurrency(nextMinBid)}`);
     if (!canBid.ok) return toast.error(canBid.reason);
 
     // Check wallet balance and required deposit
@@ -128,11 +128,11 @@ export default function Bidding() {
 
     if (!balanceCheck.sufficient) {
       toast.error(
-        `Insufficient funds. You need ${formatVND(
+        `Số dư không đủ. Bạn cần ${formatVND(
           depositRequired
-        )} deposit, but only have ${formatVND(
+        )} đặt cọc, nhưng chỉ có ${formatVND(
           wallet?.available ?? 0
-        )} available.`
+        )} khả dụng.`
       );
       setShowDepositModal(true);
       return;
@@ -142,7 +142,7 @@ export default function Bidding() {
     try {
       // optimistic UI is handled inside hook via pendingBid
       await placeBid(amount);
-      toast.success("Bid submitted — waiting for confirmation...");
+      toast.success("Đã gửi giá đặt — đang chờ xác nhận...");
       setInput("");
       fetchBalance(); // refresh wallet after bid
     } catch (err: any) {
@@ -152,7 +152,7 @@ export default function Bidding() {
 
       if (isInsufficientFundsError(err)) {
         const required = extractRequiredDeposit(err) ?? depositRequired;
-        toast.error(`${friendlyMessage} Required: ${formatVND(required)}`);
+        toast.error(`${friendlyMessage} Cần: ${formatVND(required)}`);
         setShowDepositModal(true);
       } else {
         toast.error(friendlyMessage);
@@ -174,10 +174,10 @@ export default function Bidding() {
 
     try {
       await deposit(shortfall);
-      toast.success(`Deposited ${formatVND(shortfall)} successfully!`);
+      toast.success(`Đã nạp ${formatVND(shortfall)} thành công!`);
       setShowDepositModal(false);
     } catch (err: any) {
-      toast.error(`Deposit failed: ${err.message}`);
+      toast.error(`Nạp tiền thất bại: ${err.message}`);
     }
   };
 
@@ -187,261 +187,229 @@ export default function Bidding() {
     <div className="space-y-6">
       {/* Place Bid Card */}
       <div
-        className={`bg-gradient-to-br from-white via-ocean-50/30 to-energy-50/20 rounded-2xl border-2 shadow-lg overflow-hidden transition-all ${
-          isFinalSecond
-            ? "border-red-400 animate-pulse shadow-red-200"
-            : "border-ocean-200/50"
+        className={`bg-white rounded-2xl shadow-lg border border-ocean-200/30 p-6 transition-all duration-300 ${
+          isFinalSecond ? "ring-2 ring-red-500 animate-pulse" : ""
         }`}
       >
-        <div className={`p-6 ${
-          isFinalSecond
-            ? "bg-gradient-to-r from-red-500 to-orange-500"
-            : "bg-gradient-to-r from-ocean-500 to-energy-500"
-        } text-white`}>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <span>🔨</span>
-            Place Your Bid
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-ocean-500 to-energy-500 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">₫</span>
+          </div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+            Đặt giá của bạn
           </h2>
         </div>
 
-        <div className="p-6 space-y-4">
-          {/* Current Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/60 rounded-xl p-4 border border-ocean-200/30">
-              <p className="text-sm text-muted-foreground mb-1">Current Price</p>
-              <p className="text-xl font-bold text-ocean-700">
-                {formatCurrency(currentPrice)}
-              </p>
-            </div>
-            <div className="bg-white/60 rounded-xl p-4 border border-ocean-200/30">
-              <p className="text-sm text-muted-foreground mb-1">Min Increment</p>
-              <p className="text-xl font-bold text-energy-600">
-                {formatCurrency(minIncrement)}
-              </p>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gradient-to-r from-ocean-50/50 to-energy-50/50 rounded-xl border border-ocean-200/30">
+          <div className="text-center">
+            <p className="text-sm text-gray-600 mb-1">Giá hiện tại</p>
+            <p className="text-xl font-bold text-ocean-600">
+              {formatCurrency(currentPrice)}
+            </p>
           </div>
-
-          <div className="bg-gradient-to-r from-ocean-100/50 to-energy-100/50 rounded-xl p-4 border border-ocean-300/30">
-            <p className="text-sm text-muted-foreground mb-1">Next Minimum Bid</p>
-            <p className="text-2xl font-bold text-ocean-700">
+          <div className="text-center">
+            <p className="text-sm text-gray-600 mb-1">Bước giá tối thiểu</p>
+            <p className="text-xl font-bold text-energy-600">
+              {formatCurrency(minIncrement)}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-gray-600 mb-1">Giá đặt tối thiểu</p>
+            <p className="text-xl font-bold text-ocean-700">
               {formatCurrency(nextMinBid)}
             </p>
           </div>
+        </div>
 
-          {wallet && (
-            <div className={`rounded-xl p-4 border-2 ${
-              wallet.available >= nextMinBid * 0.1
-                ? "bg-green-50 border-green-200"
-                : "bg-red-50 border-red-200"
-            }`}>
-              <p className="text-sm text-muted-foreground mb-1">💰 Your Balance</p>
-              <p
-                className={`text-xl font-bold ${
+        {wallet && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 flex items-center gap-2">
+                <span className="text-xl">💰</span>
+                <span>Số dư khả dụng:</span>
+              </span>
+              <strong
+                className={`text-lg font-bold ${
                   wallet.available >= nextMinBid * 0.1
-                    ? "text-green-700"
-                    : "text-red-700"
+                    ? "text-green-600"
+                    : "text-red-600"
                 }`}
               >
                 {formatVND(wallet.available)}
+              </strong>
+            </div>
+          </div>
+        )}
+
+        {auction?.status === "ended" ? (
+          <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-200">
+            <p className="text-lg mb-2">
+              Phiên đấu giá đã kết thúc. Giá cuối cùng:{" "}
+              <strong className="text-ocean-600 text-xl">{formatCurrency(currentPrice)}</strong>
+            </p>
+            {auction.winnerId === user?.sub ? (
+              <div className="mt-4">
+                <p className="text-green-600 font-semibold text-lg mb-4">
+                  🎉 Chúc mừng! Bạn đã thắng phiên đấu giá này.
+                </p>
+                <button className="bg-gradient-to-r from-ocean-500 to-energy-500 hover:from-ocean-600 hover:to-energy-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
+                  Thanh toán / Hoàn tất
+                </button>
+              </div>
+            ) : (
+              <p className="text-gray-600 mt-2">
+                Người thắng: <strong>{winnerName || "Đang tải..."}</strong>
+              </p>
+            )}
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Nhập số tiền đặt giá
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold text-lg">
+                  ₫
+                </span>
+                <input
+                  type="number"
+                  value={input}
+                  onChange={(ev) => setInput(ev.target.value)}
+                  placeholder={nextMinBid.toLocaleString('vi-VN')}
+                  className="w-full pl-10 pr-4 py-4 text-lg font-semibold border-2 border-ocean-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-ocean-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  step="1000"
+                  min={nextMinBid}
+                  disabled={!canBid.ok || placing}
+                />
+              </div>
+              <p className="text-sm text-gray-500">
+                {!canBid.ok ? (
+                  <span className="text-red-600">{canBid.reason}</span>
+                ) : (
+                  <>
+                    Giá đặt của bạn sẽ được gửi đến server.{" "}
+                    <span className="font-semibold text-ocean-600">
+                      Đặt cọc cần:{" "}
+                      {input
+                        ? formatVND(
+                            calculateDeposit(
+                              parseFloat(input) || 0,
+                              (auction as any)?.bidDepositPercent ?? 10
+                            )
+                          )
+                        : "—"}
+                    </span>
+                  </>
+                )}
               </p>
             </div>
-          )}
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-ocean-500 to-energy-500 hover:from-ocean-600 hover:to-energy-600 text-white font-semibold py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={!canBid.ok || placing}
+            >
+              {placing ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Đang đặt giá...</span>
+                </>
+              ) : pendingBid ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Đang chờ xác nhận...</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xl">🔨</span>
+                  <span>Đặt giá ngay</span>
+                </>
+              )}
+            </button>
+            {showDepositModal && (
+              <button
+                type="button"
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                onClick={handleDeposit}
+              >
+                <span>💳</span>
+                <span>Nạp tiền vào ví</span>
+              </button>
+            )}
+          </form>
+        )}
 
-          {/* Status Messages */}
-          {reconnecting && (
-            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-3 text-center">
-              <p className="text-yellow-800 font-semibold">
-                ⚠️ Reconnecting... bids are disabled
-              </p>
-            </div>
-          )}
-          {!live && !loading && (
-            <div className="bg-gray-50 border-2 border-gray-300 rounded-xl p-3 text-center">
-              <p className="text-gray-600 font-semibold">⚫ Auction not live</p>
-            </div>
-          )}
-
-          {/* Countdown */}
-          <div className={`text-center p-4 rounded-xl ${
-            isFinalSecond
-              ? "bg-red-100 border-2 border-red-400 animate-pulse"
-              : "bg-ocean-100/50 border border-ocean-200"
-          }`}>
-            <p className="text-sm text-muted-foreground mb-1">Time Remaining</p>
-            <p className={`text-2xl font-bold ${
-              isFinalSecond ? "text-red-700" : "text-ocean-700"
-            }`}>
-              {Math.ceil(countdown / 1000)}s
+        {reconnecting && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+            <p className="text-yellow-800 text-sm">
+              ⚠️ Đang kết nối lại... Tạm thời không thể đặt giá
             </p>
           </div>
-
-          {/* Bid Form or Ended State */}
-          {auction?.status === "ended" ? (
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-gray-300">
-              <div className="text-center space-y-4">
-                <p className="text-lg font-semibold text-gray-700">
-                  Auction ended. Final price:{" "}
-                  <span className="text-2xl font-bold text-ocean-700">
-                    {formatCurrency(currentPrice)}
-                  </span>
-                </p>
-                {auction.winnerId === user?.sub ? (
-                  <div className="space-y-3">
-                    <div className="bg-green-50 border-2 border-green-400 rounded-xl p-4">
-                      <p className="text-green-800 font-bold text-lg">
-                        🎉 You won! Complete payment to claim the item.
-                      </p>
-                    </div>
-                    <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg">
-                      Pay / Complete
-                    </button>
-                  </div>
-                ) : (
-                  <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4">
-                    <p className="text-blue-800 font-semibold">
-                      Auction finished. Winner: {winnerName || "Loading..."}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-ocean-700">
-                  Enter Your Bid Amount
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ocean-600 font-bold text-lg">
-                    ₫
-                  </span>
-                  <input
-                    type="number"
-                    value={input}
-                    onChange={(ev) => setInput(ev.target.value)}
-                    placeholder={nextMinBid.toLocaleString()}
-                    className="w-full pl-10 pr-4 py-4 text-lg font-semibold border-2 border-ocean-300 rounded-xl focus:border-ocean-500 focus:ring-2 focus:ring-ocean-200 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    step="1000"
-                    min={nextMinBid}
-                    disabled={!canBid.ok || placing}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground px-1">
-                  {!canBid.ok ? (
-                    <span className="text-red-600 font-semibold">{canBid.reason}</span>
-                  ) : (
-                    <>
-                      Deposit required:{" "}
-                      <span className="font-semibold text-ocean-700">
-                        {input
-                          ? formatVND(
-                              calculateDeposit(
-                                parseFloat(input) || 0,
-                                (auction as any)?.bidDepositPercent ?? 10
-                              )
-                            )
-                          : "—"}
-                      </span>
-                    </>
-                  )}
-                </p>
-              </div>
-
-              <button
-                type="submit"
-                className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all shadow-lg ${
-                  !canBid.ok || placing
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-gradient-to-r from-ocean-500 to-energy-500 hover:from-ocean-600 hover:to-energy-600 text-white hover:shadow-xl transform hover:scale-[1.02]"
-                }`}
-                disabled={!canBid.ok || placing}
-              >
-                {placing ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Placing...
-                  </span>
-                ) : pendingBid ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Bid Pending...
-                  </span>
-                ) : (
-                  "🔨 Place Bid"
-                )}
-              </button>
-
-              {showDepositModal && (
-                <button
-                  type="button"
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg mt-2"
-                  onClick={handleDeposit}
-                >
-                  💳 Deposit Funds
-                </button>
-              )}
-            </form>
-          )}
-        </div>
+        )}
+        {!live && !loading && (
+          <div className="mt-4 p-3 bg-gray-100 border border-gray-200 rounded-lg text-center">
+            <p className="text-gray-600 text-sm">Phiên đấu giá chưa bắt đầu</p>
+          </div>
+        )}
+        {live && (
+          <div className={`mt-4 p-4 rounded-xl text-center font-bold text-lg ${
+            isFinalSecond 
+              ? "bg-red-100 border-2 border-red-500 text-red-700 animate-pulse" 
+              : "bg-ocean-50 border border-ocean-200 text-ocean-700"
+          }`}>
+            ⏰ Thời gian còn lại: {Math.ceil(countdown / 1000)} giây
+          </div>
+        )}
       </div>
 
-      {/* Bidding History Card */}
-      <div className="bg-gradient-to-br from-white via-ocean-50/30 to-energy-50/20 rounded-2xl border border-ocean-200/50 shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-ocean-500 to-energy-500 p-6 text-white">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <span>📊</span>
-            Bidding History
+      {/* Bidding History */}
+      <div className="bg-white rounded-2xl shadow-lg border border-ocean-200/30 p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-energy-500 to-ocean-500 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">📊</span>
+          </div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+            Lịch sử đặt giá
           </h2>
         </div>
-        <div className="p-6">
+        <div className="space-y-3">
           {auction?.bidHistory && auction.bidHistory.length > 0 ? (
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {auction.bidHistory.map((bid) => (
-                <div
-                  key={bid.bidId}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    bid.isWinning
-                      ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-400 shadow-md"
-                      : bid.userId === user?.sub
-                      ? "bg-gradient-to-r from-blue-50 to-ocean-50 border-blue-300"
-                      : "bg-white border-ocean-200/50 hover:border-ocean-300"
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        {bid.isWinning && (
-                          <span className="text-xl">🏆</span>
-                        )}
-                        <span className="font-bold text-ocean-700">
-                          {bid.userName || "Anonymous"}
+            auction.bidHistory.map((bid) => (
+              <div 
+                key={bid.bidId} 
+                className={`p-4 rounded-xl border transition-all ${
+                  bid.isWinning 
+                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 shadow-md' 
+                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    {bid.isWinning && <span className="text-2xl">🏆</span>}
+                    <div>
+                      <span className="font-semibold text-gray-800">
+                        {bid.userName || 'Người dùng ẩn danh'}
+                      </span>
+                      {bid.userId === user?.sub && (
+                        <span className="ml-2 px-2 py-0.5 text-xs bg-ocean-500 text-white rounded-full font-bold">
+                          (Bạn)
                         </span>
-                        {bid.userId === user?.sub && (
-                          <span className="px-2 py-0.5 bg-ocean-500 text-white text-xs font-bold rounded-full">
-                            You
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(bid.timestamp).toLocaleString("vi-VN")}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-xl font-bold ${
-                        bid.isWinning ? "text-green-700" : "text-ocean-700"
-                      }`}>
-                        {formatCurrency(bid.amount)}
-                      </p>
+                      )}
                     </div>
                   </div>
+                  <span className="font-bold text-xl text-ocean-600">
+                    {formatCurrency(bid.amount)}
+                  </span>
                 </div>
-              ))}
-            </div>
+                <div className="text-xs text-gray-500 mt-2">
+                  {new Date(bid.timestamp).toLocaleString('vi-VN')}
+                </div>
+              </div>
+            ))
           ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground text-lg">
-                No bids yet. Be the first to bid! 🎯
-              </p>
+            <div className="text-center py-8 text-gray-500">
+              <p className="text-lg">Chưa có lượt đặt giá nào.</p>
+              <p className="text-sm mt-1">Hãy là người đầu tiên đặt giá!</p>
             </div>
           )}
         </div>

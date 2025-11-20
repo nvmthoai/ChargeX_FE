@@ -190,10 +190,10 @@ export default function MyAuctions() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
-          My Auctions
+          Đấu giá
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          View auctions you participated in or won
+          Xem các cuộc đấu giá bạn đã tham gia hoặc thắng
         </p>
       </div>
 
@@ -249,7 +249,7 @@ export default function MyAuctions() {
               <div className="w-16 h-16 rounded-full bg-ocean-50 dark:bg-ocean-900/30 flex items-center justify-center">
                 <Gavel className="w-8 h-8 text-ocean-400" />
               </div>
-              <p className="text-base font-medium">No auctions found</p>
+              <p className="text-base font-medium">Không có đấu giá nào</p>
             </div>
           </CardContent>
         </Card>
