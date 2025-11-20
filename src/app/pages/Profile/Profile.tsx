@@ -7,9 +7,9 @@ export default function Profile() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-8">
                     <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-ocean-500 to-energy-500 bg-clip-text text-transparent mb-2">
-                        My Profile
+                        Hồ sơ của tôi
                     </h1>
-                    <p className="text-dark-600 text-lg font-medium">Manage your account settings and preferences</p>
+                    <p className="text-dark-600 text-lg font-medium">Quản lý cài đặt và tùy chọn tài khoản của bạn</p>
                 </div>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

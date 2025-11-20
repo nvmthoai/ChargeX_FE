@@ -46,7 +46,7 @@ const AddressList: React.FC<AddressListProps> = ({
   }
 
   if (addresses.length === 0) {
-    return <div className="p-8 text-center text-gray-500">No addresses yet. Add a new address!</div>
+    return <div className="p-8 text-center text-gray-500">Không có địa chỉ nào, hãy thêm địa chỉ mới!</div>
   }
 
   return (

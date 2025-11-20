@@ -1,103 +1,129 @@
-import { useState, useCallback } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 
 export interface Province {
-    code: number;           // dùng cho AddressFormModal
-    name: string;           // dùng cho AddressFormModal
-    NameExtension?: string[];
-    ProvinceID: number;     // GHN API gốc
-    ProvinceName: string;   // GHN API gốc
+  code: number;
+  name: string;
 }
 
 export interface District {
-    code: number;           // DistrictID
-    name: string;           // DistrictName
-    DistrictID: number;
-    DistrictName: string;
+  code: number;
+  name: string;
 }
 
 export interface Ward {
-    code: string;           // WardCode
-    name: string;           // WardName
-    WardCode: string;
-    WardName: string;
+  code: string;
+  name: string;
 }
 
-const GHN_TOKEN = "your-token";
-const GHN_BASE = "https://online-gateway.ghn.vn/shiip/public-api";
+const GHN_TOKEN = "a6e9f694-b57a-11f0-b040-4e257d8388b4";
+const SHOP_ID = 197845;
+
+const GHN_HEADERS = {
+  "Content-Type": "application/json",
+  token: GHN_TOKEN,
+  ShopId: SHOP_ID.toString(),
+};
 
 export default function useProvinces() {
-    const [provinces, setProvinces] = useState<Province[]>([]);
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    // Fetch provinces
-    const fetchProvinces = useCallback(async () => {
-        try {
-            const res = await axios.get(`${GHN_BASE}/master-data/province`, {
-                headers: { Token: GHN_TOKEN },
-            });
+  // ================= PROVINCES =================
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/province",
+          { headers: GHN_HEADERS }
+        );
 
-            const mapped = res.data.data.map((p: any) => ({
-                code: p.ProvinceID,
-                name: p.ProvinceName,
-                NameExtension: p.NameExtension,
-                ProvinceID: p.ProvinceID,
-                ProvinceName: p.ProvinceName,
-            }));
+        const json = await res.json();
 
-            setProvinces(mapped);
-            return mapped;
-        } catch (err) {
-            console.error("Lỗi tải tỉnh:", err);
-            return [];
-        }
-    }, []);
-
-    // Fetch districts
-    const fetchDistricts = useCallback(async (provinceId: number) => {
-        try {
-            const res = await axios.post(
-                `${GHN_BASE}/master-data/district`,
-                { province_id: provinceId },
-                { headers: { Token: GHN_TOKEN } }
-            );
-
-            return res.data.data.map((d: any): District => ({
-                code: d.DistrictID,
-                name: d.DistrictName,
-                DistrictID: d.DistrictID,
-                DistrictName: d.DistrictName,
-            }));
-        } catch (err) {
-            console.error("Lỗi tải quận/huyện:", err);
-            return [];
-        }
-    }, []);
-
-    // Fetch wards
-    const fetchWards = useCallback(async (districtId: number) => {
-        try {
-            const res = await axios.post(
-                `${GHN_BASE}/master-data/ward`,
-                { district_id: districtId },
-                { headers: { Token: GHN_TOKEN } }
-            );
-
-            return res.data.data.map((w: any): Ward => ({
-                code: w.WardCode,
-                name: w.WardName,
-                WardCode: w.WardCode,
-                WardName: w.WardName,
-            }));
-        } catch (err) {
-            console.error("Lỗi tải phường/xã:", err);
-            return [];
-        }
-    }, []);
-
-    return {
-        provinces,
-        fetchProvinces,
-        fetchDistricts,
-        fetchWards,
+        setProvinces(
+          json.data.map((p: any) => ({
+            code: p.ProvinceID,
+            name: p.ProvinceName,
+          }))
+        );
+      } catch (err) {
+        console.error("GHN Province error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
+
+    fetchProvinces();
+  }, []);
+
+  // ================= DISTRICTS =================
+  const fetchDistricts = async (provinceCode: number) => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${provinceCode}`,
+        {
+          method: "GET",
+          headers: GHN_HEADERS,
+        }
+      );
+
+      const json = await res.json();
+
+      const mapped = json.data.map((d: any) => ({
+        code: d.DistrictID,
+        name: d.DistrictName,
+      }));
+
+      setDistricts(mapped);
+      setWards([]);
+      return mapped;
+    } catch (err) {
+      console.error("GHN District error:", err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ================= WARDS =================
+  const fetchWards = async (districtCode: number) => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${districtCode}`,
+        {
+          method: "POST",
+          headers: GHN_HEADERS,
+          body: JSON.stringify({ district_id: districtCode }),
+        }
+      );
+
+      const json = await res.json();
+
+      const mapped = json.data.map((w: any) => ({
+        code: w.WardCode,
+        name: w.WardName,
+      }));
+
+      setWards(mapped);
+      return mapped;
+    } catch (err) {
+      console.error("GHN Ward error:", err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    provinces,
+    districts,
+    wards,
+    loading,
+    fetchDistricts,
+    fetchWards,
+  };
 }

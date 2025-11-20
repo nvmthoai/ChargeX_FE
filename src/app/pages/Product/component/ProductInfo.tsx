@@ -165,7 +165,7 @@ export default function ProductInfo({ product }: { product: Product }) {
         <Link className="" to={`/shop-detail/${product.seller.userId}`}>
           <div className="bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 space-y-4 cursor-pointer rounded-lg border border-ocean-200/30 p-4">
             <h2 className="text-2xl font-semibold text-gray-900">
-              Seller Information
+              Thông tin người bán
             </h2>
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xl">
@@ -200,20 +200,20 @@ export default function ProductInfo({ product }: { product: Product }) {
         <button
           onClick={handleBuyNow}
           disabled={loading}
-          className={`flex-1 bg-[#0F74C7] text-white px-4 py-2 rounded font-medium transition ${loading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#3888ca]"
+          className={`flex-1 bg-[#0F74C7] text-white px-4 py-2 rounded font-medium transition ${loading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#3888ca] cursor-pointer"
             }`}
         >
           {loading
             ? "Đang xử lý..."
-            : `Buy Now ${Number(product.price_buy_now).toLocaleString()} VND`}
+            : `Mua ngay với ${Number(product.price_buy_now).toLocaleString()} VND`}
         </button>
 
         <button
           onClick={handleAddToCart}
-          className={`flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium ${isInCart ? "opacity-50 cursor-not-allowed" : ""}`}
-          disabled={isInCart}
+          className={`flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium ${isInCart ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          disabled={isInCart || loading}
         >
-          {isInCart ? "Already In Watchlist" : "Add to Watchlist"}
+          {isInCart ? "Đã có trong giỏ hàng" : "Thêm vào giỏ hàng"}
         </button>
       </div>
 
@@ -233,54 +233,54 @@ export default function ProductInfo({ product }: { product: Product }) {
       {/* Specifications */}
       <div className="pt-6">
         <h3 className="text-2xl font-semibold mb-4 text-gray-900">
-          Specifications
+          Thông số kỹ thuật
         </h3>
         <div className="overflow-hidden rounded-lg border border-gray-200">
           <table className="w-full border-collapse">
             <thead className="bg-gray-50">
               <tr>
                 <th className="text-left text-sm font-semibold text-dark-800 px-4 py-3 w-1/2">
-                  Attribute
+                  Thuộc tính
                 </th>
                 <th className="text-left text-sm font-semibold text-dark-800 px-4 py-3 w-1/2">
-                  Value
+                  Giá trị
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-gray-700 text-sm">
               <tr>
-                <td className="px-4 py-2 font-medium">Battery Capacity</td>
+                <td className="px-4 py-2 font-medium">Dung lượng sức khỏe</td>
                 <td className="px-4 py-2">
                   {product.nominal_voltage_v ?? "52"} V
                 </td>
               </tr>
               <tr>
-                <td className="px-4 py-2 font-medium">SOH (State of Health)</td>
+                <td className="px-4 py-2 font-medium">SOH (Tình trạng pin)</td>
                 <td className="px-4 py-2">{product.soh_percent ?? "95"}%</td>
               </tr>
               <tr>
-                <td className="px-4 py-2 font-medium">Cycle Count</td>
-                <td className="px-4 py-2">{product.cycle_count ?? "320"} cycles</td>
+                <td className="px-4 py-2 font-medium">Số chu kỳ</td>
+                <td className="px-4 py-2">{product.cycle_count ?? "320"} chu kỳ</td>
               </tr>
               <tr>
-                <td className="px-4 py-2 font-medium">Weight</td>
+                <td className="px-4 py-2 font-medium">Trọng lượng</td>
                 <td className="px-4 py-2">{product.weight_kg ?? "2"} kg</td>
               </tr>
               <tr>
-                <td className="px-4 py-2 font-medium">Condition</td>
+                <td className="px-4 py-2 font-medium">Tình trạng</td>
                 <td className="px-4 py-2">{product.condition_grade ?? "Excellent"}</td>
               </tr>
               <tr>
-                <td className="px-4 py-2 font-medium">Dimension</td>
+                <td className="px-4 py-2 font-medium">Kích thước</td>
                 <td className="px-4 py-2">{product.dimension ?? "32 × 15 × 10 cm"}</td>
               </tr>
               <tr>
-                <td className="px-4 py-2 font-medium">Estimated Range</td>
-                <td className="px-4 py-2">≈ 60 km per charge</td>
+                <td className="px-4 py-2 font-medium">Quãng đường ước tính</td>
+                <td className="px-4 py-2">≈ 60 km mỗi lần sạc</td>
               </tr>
               <tr>
-                <td className="px-4 py-2 font-medium">Location</td>
-                <td className="px-4 py-2">Ho Chi Minh City, Vietnam</td>
+                <td className="px-4 py-2 font-medium">Vị trí</td>
+                <td className="px-4 py-2">Thành phố Hồ Chí Minh, Việt Nam</td>
               </tr>
             </tbody>
           </table>

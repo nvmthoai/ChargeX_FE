@@ -59,7 +59,7 @@ export default function ProfileWallet() {
           Wallet
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          View your wallet balance and transaction history
+          Xem số dư ví và lịch sử giao dịch của bạn
         </p>
       </div>
 
@@ -69,7 +69,7 @@ export default function ProfileWallet() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-ocean-700">
               <Wallet className="w-5 h-5 text-ocean-600" />
-              Wallet Balance
+              Số dư ví
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -81,7 +81,7 @@ export default function ProfileWallet() {
       {/* Transaction History Card */}
       <Card className="border-ocean-200/30 shadow-sm bg-white">
         <CardHeader>
-          <CardTitle className="text-ocean-700">Transaction History</CardTitle>
+          <CardTitle className="text-ocean-700">Lịch sử giao dịch</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search */}
@@ -166,7 +166,7 @@ export default function ProfileWallet() {
                 <div className="w-16 h-16 rounded-full bg-ocean-100 flex items-center justify-center">
                   <Wallet className="w-8 h-8 text-ocean-500" />
                 </div>
-                <p className="text-base font-medium">No transactions found</p>
+                <p className="text-base font-medium">Không có giao dịch nào</p>
               </div>
             </div>
           )}

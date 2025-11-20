@@ -31,17 +31,26 @@ const useAuction = () => {
   const currentUser = getUserInfo();
 
   const handleSendRequest = async (values: requestCreateAuctionValues) => {
-    console.log("requestCreateAuctionValues: ", values);
-    const response = await sendRequestCreateAuction(
-      values.sellerId,
-      values.productId,
-      values
-    );
-    if (response) {
-      message.success("Auction request submitted successfully!");
-      return response.data;
+    try {
+      const response = await sendRequestCreateAuction(
+        values.sellerId,
+        values.productId,
+        values
+      );
+      
+      if (response) {
+        // Handle both response.data and direct response
+        const responseData = response.data || response;
+        message.success("Auction request submitted successfully!");
+        return responseData;
+      }
+      return null;
+    } catch (error: any) {
+      console.error("Error in handleSendRequest:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to submit auction request";
+      message.error(errorMessage);
+      throw error; // Re-throw để modal có thể catch và xử lý
     }
-    return null;
   };
 
   const getRequestCreateAuction = useCallback(async () => {

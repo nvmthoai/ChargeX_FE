@@ -1,285 +1,308 @@
-import type React from "react";
-import { useState, useEffect } from "react";
+// src/app/pages/Manage-Address/AddressFormModal.tsx
+import React, { useState, useEffect } from "react";
 import { Form, Input, Select, Checkbox, Button, message } from "antd";
+import { MapPin } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import useProvinces from "../../hooks/useProvinces";
 
-interface Address {
-  addressId: string;
-  label: string;
-  fullName: string;
-  phone: string;
-  line1: string;
-  wardCode: string;
-  districtId: number;
-  provinceId: number;
-  note: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface AddressFormData {
-  label: string;
-  fullName: string;
-  phone: string;
-  line1: string;
-  wardCode: string;
-  districtId: number;
-  provinceId: number;
-  note: string;
-  isDefault: boolean;
-}
-
 interface AddressFormModalProps {
-  address: Address | null;
+  address?: {
+    addressId?: string;
+    fullName: string;
+    phone: string;
+    provinceId: number;
+    districtId: number;
+    wardCode: string;
+    line1: string;
+    note?: string;
+    isDefault?: boolean;
+    label?: string;
+  };
+  open?: boolean;
   onClose: () => void;
-  onSuccess: () => void;
-  handleCreateAddress: (address: AddressFormData) => Promise<void>;
-  handleUpdateAddress: (addressId: string, address: AddressFormData) => Promise<void>;
+  onSuccess?: (newAddress: any) => void;
+  handleCreateAddress?: (address: any) => Promise<any>;
+  handleUpdateAddress?: (addressId: string, address: any) => Promise<void>;
 }
 
 const AddressFormModal: React.FC<AddressFormModalProps> = ({
   address,
+  open = true,
   onClose,
   onSuccess,
   handleCreateAddress,
   handleUpdateAddress,
 }) => {
-
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [selectedLabel, setSelectedLabel] = useState<string>(address?.label || "Home");
 
-  const { provinces, fetchDistricts, fetchWards } = useProvinces();
-  const [districts, setDistricts] = useState<any[]>([]);
-  const [wards, setWards] = useState<any[]>([]);
+  const {
+    provinces,
+    districts: hookDistricts,
+    wards: hookWards,
+    loading: loadingProvinces,
+    fetchDistricts,
+    fetchWards,
+  } = useProvinces();
 
-  const [selectedLabel, setSelectedLabel] = useState(address?.label || "Home");
-
-  const handleProvinceChange = async (provinceId: number) => {
+  const handleProvinceChange = async (provinceCode: number) => {
     form.setFieldsValue({ districtId: undefined, wardCode: undefined });
-    setDistricts([]);
-    setWards([]);
-
-    const fetchedDistricts = await fetchDistricts(provinceId);
-    setDistricts(fetchedDistricts);
+    await fetchDistricts(provinceCode);
   };
 
-  const handleDistrictChange = async (districtId: number) => {
+  const handleDistrictChange = async (districtCode: number) => {
     form.setFieldsValue({ wardCode: undefined });
-    setWards([]);
-
-    const fetchedWards = await fetchWards(districtId);
-    setWards(fetchedWards);
+    await fetchWards(districtCode);
   };
 
-  // Load existing address (edit mode)
+  // Khi sửa địa chỉ → tự động load quận/huyện + phường/xã
   useEffect(() => {
-    const loadAddressData = async () => {
-      if (address) {
-        const fetchedDistricts = await fetchDistricts(address.provinceId);
-        setDistricts(fetchedDistricts);
+    if (!address || provinces.length === 0) return;
 
-        const fetchedWards = await fetchWards(address.districtId);
-        setWards(fetchedWards);
+    const loadData = async () => {
+      await fetchDistricts(address.provinceId);
+      await fetchWards(address.districtId);
 
-        form.setFieldsValue({
-          fullName: address.fullName,
-          phone: address.phone,
-          line1: address.line1,
-          wardCode: address.wardCode,
-          districtId: address.districtId,
-          provinceId: address.provinceId,
-          note: address.note,
-          isDefault: address.isDefault,
-        });
-
-        setSelectedLabel(address.label);
-      }
+      form.setFieldsValue({
+        fullName: address.fullName,
+        phone: address.phone,
+        line1: address.line1,
+        provinceId: address.provinceId,
+        districtId: address.districtId,
+        wardCode: address.wardCode,
+        note: address.note,
+        isDefault: address.isDefault,
+      });
     };
 
-    loadAddressData();
-  }, [address]);
+    loadData();
+  }, [address, provinces.length, fetchDistricts, fetchWards, form]);
 
-  const handleSubmit = async (values: AddressFormData) => {
+  const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      const formData = {
+      const payload = {
         ...values,
         label: selectedLabel,
+        provinceId: Number(values.provinceId),
+        districtId: Number(values.districtId),
+        wardCode: String(values.wardCode),
       };
 
-      if (address) {
-        await handleUpdateAddress(address.addressId, formData);
-      } else {
-        await handleCreateAddress(formData);
+      let resultAddress: any;
+
+      if (address?.addressId && handleUpdateAddress) {
+        await handleUpdateAddress(address.addressId, payload);
+        resultAddress = { ...payload, addressId: address.addressId };
+      } else if (handleCreateAddress) {
+        resultAddress = await handleCreateAddress(payload);
       }
 
-      onSuccess();
-    } catch (error) {
-      console.error("Error saving address:", error);
-      message.error("Failed to save address");
+      message.success(address ? "Cập nhật địa chỉ thành công!" : "Thêm địa chỉ mới thành công!");
+      onSuccess?.(resultAddress || payload);
+      onClose();
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Lưu địa chỉ thất bại!");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-[800px] max-h-[90vh] overflow-y-auto py-10 px-20">
-        
-        <div className="p-6">
-          <h2 className="text-2xl font-semibold text-gray-900">
-            {address ? "Update Address" : "Add New Address"}
-          </h2>
-        </div>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent flex items-center gap-2">
+            <MapPin className="w-6 h-6 text-ocean-600" />
+            {address ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới"}
+          </DialogTitle>
+          <DialogDescription>
+            {address 
+              ? "Cập nhật thông tin địa chỉ của bạn" 
+              : "Thêm địa chỉ mới để nhận hàng"}
+          </DialogDescription>
+        </DialogHeader>
 
-        <Form form={form} layout="vertical" onFinish={handleSubmit} className="p-6">
-
-          {/* Full Name & Phone */}
-          <div className="grid grid-cols-2 gap-4">
-            <Form.Item
-              name="fullName"
-              label="Full Name"
-              rules={[{ required: true, message: "Please enter full name" }]}
+        <Form form={form} layout="vertical" onFinish={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Form.Item 
+              name="fullName" 
+              label={<span className="font-medium text-dark-800 dark:text-dark-200">Họ và tên</span>}
+              rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
             >
-              <Input placeholder="Leonardo DiCaprio" size="large" />
+              <Input 
+                size="large" 
+                placeholder="Nguyễn Văn A" 
+                className="rounded-lg border-ocean-200 focus:border-ocean-500"
+              />
             </Form.Item>
-
-            <Form.Item
-              name="phone"
-              label="Phone Number"
-              rules={[{ required: true, message: "Please enter phone number" }]}
+            <Form.Item 
+              name="phone" 
+              label={<span className="font-medium text-dark-800 dark:text-dark-200">Số điện thoại</span>}
+              rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
             >
-              <Input placeholder="0912345678" size="large" />
+              <Input 
+                size="large" 
+                placeholder="0901234567" 
+                className="rounded-lg border-ocean-200 focus:border-ocean-500"
+              />
             </Form.Item>
           </div>
 
-          {/* Province */}
-          <Form.Item
-            name="provinceId"
-            label="Province / City"
-            rules={[{ required: true, message: "Please select province" }]}
+          <Form.Item 
+            name="provinceId" 
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Tỉnh/Thành phố</span>}
+            rules={[{ required: true, message: "Vui lòng chọn tỉnh/thành phố" }]}
           >
             <Select
-              placeholder="Select province"
               size="large"
+              loading={loadingProvinces}
+              placeholder={loadingProvinces ? "Đang tải tỉnh..." : "Chọn tỉnh/thành phố"}
               onChange={handleProvinceChange}
               showSearch
-              filterOption={(input, option) =>
-                (option?.children + "").toLowerCase().includes(input.toLowerCase())
-              }
+              optionFilterProp="children"
+              className="rounded-lg"
             >
               {provinces.map((p) => (
-                <Select.Option key={p.ProvinceID} value={p.ProvinceID}>
-                  {p.NameExtension?.[0] ?? p.ProvinceName}
+                <Select.Option key={p.code} value={p.code}>
+                  {p.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
-          {/* District */}
-          <Form.Item
-            name="districtId"
-            label="District"
-            rules={[{ required: true, message: "Please select district" }]}
+          <Form.Item 
+            name="districtId" 
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Quận/Huyện</span>}
+            rules={[{ required: true, message: "Vui lòng chọn quận/huyện" }]}
           >
             <Select
-              placeholder="Select district"
               size="large"
+              disabled={hookDistricts.length === 0}
+              placeholder={hookDistricts.length === 0 ? "Chọn tỉnh trước" : "Chọn quận/huyện"}
               onChange={handleDistrictChange}
-              disabled={districts.length === 0}
               showSearch
-              filterOption={(input, option) =>
-                (option?.children + "").toLowerCase().includes(input.toLowerCase())
-              }
+              optionFilterProp="children"
+              className="rounded-lg"
             >
-              {districts.map((d) => (
-                <Select.Option key={d.DistrictID} value={d.DistrictID}>
-                  {d.DistrictName}
+              {hookDistricts.map((d) => (
+                <Select.Option key={d.code} value={d.code}>
+                  {d.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
-          {/* Ward */}
-          <Form.Item
-            name="wardCode"
-            label="Ward"
-            rules={[{ required: true, message: "Please select ward" }]}
+          <Form.Item 
+            name="wardCode" 
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Phường/Xã</span>}
+            rules={[{ required: true, message: "Vui lòng chọn phường/xã" }]}
           >
             <Select
-              placeholder="Select ward"
               size="large"
-              disabled={wards.length === 0}
+              disabled={hookWards.length === 0}
+              placeholder={hookWards.length === 0 ? "Chọn quận/huyện trước" : "Chọn phường/xã"}
               showSearch
-              filterOption={(input, option) =>
-                (option?.children + "").toLowerCase().includes(input.toLowerCase())
-              }
+              optionFilterProp="children"
+              className="rounded-lg"
             >
-              {wards.map((w) => (
-                <Select.Option key={w.WardCode} value={w.WardCode}>
-                  {w.WardName}
+              {hookWards.map((w) => (
+                <Select.Option key={w.code} value={w.code}>
+                  {w.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
-          {/* Detailed Address */}
-          <Form.Item
-            name="line1"
-            label="Detailed Address"
-            rules={[{ required: true, message: "Please enter detailed address" }]}
+          <Form.Item 
+            name="line1" 
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Địa chỉ chi tiết</span>}
+            rules={[{ required: true, message: "Vui lòng nhập địa chỉ chi tiết" }]}
           >
-            <Input.TextArea placeholder="123 Google Street" rows={3} />
+            <Input.TextArea 
+              rows={3} 
+              placeholder="Ví dụ: 123 Đường Láng, Phường Láng Thượng" 
+              className="rounded-lg border-ocean-200 focus:border-ocean-500"
+            />
           </Form.Item>
 
-          {/* Note */}
-          <Form.Item name="note" label="Delivery Note">
-            <Input.TextArea placeholder="Delivery note" rows={2} />
+          <Form.Item 
+            name="note" 
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Ghi chú (tùy chọn)</span>}
+          >
+            <Input.TextArea 
+              rows={2} 
+              placeholder="Ghi chú thêm về địa chỉ (nếu có)"
+              className="rounded-lg border-ocean-200 focus:border-ocean-500"
+            />
           </Form.Item>
 
-          {/* Address Type */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Address Type</label>
-            <div className="flex gap-4">
+          <div className="p-4 bg-ocean-50/50 rounded-xl border border-ocean-200/30">
+            <label className="font-medium text-dark-800 dark:text-dark-200 block mb-3">
+              Loại địa chỉ
+            </label>
+            <div className="flex gap-3">
               <Button
                 type={selectedLabel === "Home" ? "primary" : "default"}
-                danger={selectedLabel === "Home"}
-                size="large"
                 onClick={() => setSelectedLabel("Home")}
+                className={`rounded-lg ${
+                  selectedLabel === "Home" 
+                    ? "bg-gradient-to-r from-ocean-500 to-energy-500 border-0" 
+                    : ""
+                }`}
               >
-                Home
+                🏠 Nhà riêng
               </Button>
-
               <Button
                 type={selectedLabel === "Office" ? "primary" : "default"}
-                danger={selectedLabel === "Office"}
-                size="large"
                 onClick={() => setSelectedLabel("Office")}
+                className={`rounded-lg ${
+                  selectedLabel === "Office" 
+                    ? "bg-gradient-to-r from-ocean-500 to-energy-500 border-0" 
+                    : ""
+                }`}
               >
-                Office
+                🏢 Công ty
               </Button>
             </div>
           </div>
 
-          {/* Default Address */}
           <Form.Item name="isDefault" valuePropName="checked">
-            <Checkbox>Set as default address</Checkbox>
+            <Checkbox className="text-dark-700">
+              Đặt làm địa chỉ mặc định
+            </Checkbox>
           </Form.Item>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-4 pt-4">
-            <Button size="large" onClick={onClose}>
-              Cancel
+          <DialogFooter className="gap-2 sm:gap-0 mt-6">
+            <Button 
+              size="large" 
+              onClick={onClose}
+              className="rounded-lg"
+              disabled={loading}
+            >
+              Hủy
             </Button>
-            <Button type="primary" danger size="large" htmlType="submit" loading={loading}>
-              {address ? "Update" : "Create"}
+            <Button 
+              size="large" 
+              type="primary" 
+              htmlType="submit" 
+              loading={loading}
+              className="bg-gradient-to-r from-ocean-500 to-energy-500 hover:from-ocean-600 hover:to-energy-600 border-0 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+            >
+              {address ? "Cập nhật địa chỉ" : "Thêm địa chỉ"}
             </Button>
-          </div>
-
+          </DialogFooter>
         </Form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
