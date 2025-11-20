@@ -43,6 +43,14 @@ export interface ProductRef {
 
 }
 
+// 💳 Thanh toán
+export interface PaymentInfo {
+  method?: string;
+  status?: string;
+  transactionId?: string;
+  provider?: string;
+}
+
 
 // 💰 Chi tiết sản phẩm trong đơn hàng
 export interface OrderDetail {
@@ -78,6 +86,7 @@ export interface Order {
   totalShippingFee: number;
   grandTotal?: number;
   status: OrderStatus;
+  payment?: PaymentInfo;
 
   shipping_provider?: string;
   shipping_code?: string;
