@@ -74,7 +74,7 @@ export default function Shop() {
       </aside>
 
       {/* Main content */}
-      <main className="ml-64 flex-1 h-[calc(100vh-5rem)] overflow-y-auto p-8">
+      <main className="ml-64 flex-1 h-[calc(100vh-5rem)] overflow-y-auto p-8 scrollbar-hide">
         <div className="max-w-6xl mx-auto">
           <Outlet />
         </div>

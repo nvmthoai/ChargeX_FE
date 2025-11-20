@@ -130,13 +130,11 @@ export default function OrderDetail() {
   };
 
 
-  // 🧮 Tính toán dữ liệu cơ bản with safe defaults
-  const total = Number(order.totalPrice || 0) + Number(order.totalShippingFee || 0);
-  const seller = order.orderShops?.[0]?.seller ?? null;
+
   const product = order.orderShops?.[0]?.orderDetails?.[0]?.product ?? null;
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md my-10 p-10 border border-gray-200 relative">
+    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md my-10 p-20 border border-gray-200 relative">
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
@@ -166,78 +164,124 @@ export default function OrderDetail() {
 
       {/* NOTE: OrderStatusActions removed to avoid duplicate English buttons. */}
 
-      {/* Order Items */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold mb-4">Order Items</h3>
-        <div className="divide-y divide-gray-200">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex gap-4">
-              <img
-                src={product?.imageUrl?.[0] || "/default_product.png"}
-                alt={product?.name || "Product"}
-                className="w-20 h-20 object-cover rounded-md border"
-              />
-              <div>
-                <h4 className="font-medium text-gray-800">{product?.name || "-"}</h4>
-                <p className="text-sm text-gray-500">{product?.description || "-"}</p>
-              </div>
+      {/* ============================
+      📦 ORDER ITEMS
+============================ */}
+      <div className="mt-10">
+        <h2 className="text-lg font-semibold border-b border-gray-300 mb-4">Order Items</h2>
+
+        <div className="bg-white p-6">
+          <div className="flex items-start gap-4">
+            <img
+              src={product?.imageUrl?.[0] || "/default_product.png"}
+              alt={product?.name}
+              className="w-20 h-20 rounded-lg object-cover border"
+            />
+
+            <div className="flex-1">
+              <h3 className="font-medium text-gray-800">{product?.name}</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {product?.description || "No description"}
+              </p>
             </div>
-            <p className="font-medium text-gray-700 text-right">
-              ${Number(order.totalPrice || 0).toLocaleString()}
-            </p>
+
+            <div className="text-right font-semibold text-gray-700">
+              {Number(order.totalPrice).toLocaleString()} VND
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Payment Summary */}
-      <div className="border-t pt-5">
-        <div className="flex justify-between mb-2 text-gray-600">
-          <span>Subtotal</span>
-          <span>${Number(order.totalPrice || 0).toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between mb-2 text-gray-600">
-          <span>Shipping Charge</span>
-          <span>${Number(order.totalShippingFee || 0).toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between mb-2 text-gray-600">
-          <span>Tax Fee</span>
-          <span>$0</span>
-        </div>
-        <div className="flex justify-between text-lg font-semibold mt-3 border-t pt-3">
-          <span>Total</span>
-          <span className="text-green-600">${total.toLocaleString()}</span>
-        </div>
-      </div>
 
-      {/* Delivery Info */}
+      {/* ============================
+      🚚 SHIPPING INFORMATION
+============================ */}
       <div className="mt-10">
-        <h3 className="text-lg font-semibold mb-3">Delivery Address</h3>
-        <div className="bg-gray-50 p-4 rounded-lg border">
-          <p>{order.deliveryAddress?.fullName || "-"}</p>
-          <p>{order.deliveryAddress?.line1 || "-"}</p>
-          <p>{order.deliveryAddress?.phone || "-"}</p>
+        <h2 className="text-lg font-semibold border-b border-gray-300 mb-4">Shipping Information</h2>
+
+        <div className="bg-white p-6">
+          <div className="grid grid-cols-2 gap-6">
+
+            <div>
+              <p className="text-sm text-gray-400">Recipient Name:</p>
+              <p className="font-medium">{order.deliveryAddress?.fullName || "-"}</p>
+
+              <p className="text-sm text-gray-400 mt-4">Phone Number:</p>
+              <p className="font-medium">{order.deliveryAddress?.phone || "-"}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-400">Shipping Address:</p>
+              <p className="font-medium">{order.deliveryAddress?.line1 || "-"}</p>
+
+              <p className="text-sm text-gray-400 mt-4">Shipping Method:</p>
+              <p className="font-medium">
+                {order.shipping_provider || "Standard Shipping"}
+              </p>
+            </div>
+
+          </div>
         </div>
       </div>
 
-      {/* Buyer / Seller Info */}
-      <div className="grid grid-cols-2 gap-6 mt-8">
-        <div className="bg-gray-50 p-4 rounded-lg border">
-          <h4 className="font-semibold text-[#0F74C7] mb-2">
-            Buyer Information
-          </h4>
-          <p>{order.buyer?.fullName || "-"}</p>
-          <p>{order.buyer?.phone || "-"}</p>
-          <p>{order.buyer?.email || "-"}</p>
-        </div>
-        <div className="bg-gray-50 p-4 rounded-lg border">
-          <h4 className="font-semibold text-[#0F74C7] mb-2">
-            Seller Information
-          </h4>
-          <p>{seller?.fullName || "-"}</p>
-          <p>{seller?.phone || "-"}</p>
-          <p>{seller?.email || "-"}</p>
+
+      {/* ============================
+      💳 PAYMENT DETAILS
+============================ */}
+      <div className="mt-10">
+        <h2 className="text-lg font-semibold border-b border-gray-300 mb-4">Payment Details</h2>
+
+        <div className="bg-white p-6">
+          <div className="grid grid-cols-2 gap-6">
+
+            <div>
+              <p className="text-sm text-gray-400">Payment Method:</p>
+              <p className="font-medium">
+                {order.payment?.method || "Wallet / Online Payment"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-400">Billing Address:</p>
+              <p className="font-medium">
+                {order.deliveryAddress?.line1 || "-"}
+              </p>
+            </div>
+
+          </div>
         </div>
       </div>
+
+
+      {/* ============================
+      🧾 ORDER SUMMARY
+============================ */}
+      <div className="mt-10">
+        <h2 className="text-lg font-semibold border-b border-gray-300 mb-4">Order Summary</h2>
+
+        <div className="bg-white p-6">
+
+          <div className="flex justify-between py-2 text-gray-700">
+            <span>Total:</span>
+            <span>{Number(order.totalPrice).toLocaleString()} VND</span>
+          </div>
+
+          <div className="flex justify-between py-2 text-gray-700 border-b border-gray-400  pb-3">
+            <span>Shipping Fee:</span>
+            <span>{Number(order.totalShippingFee).toLocaleString()} VND</span>
+          </div>
+
+          <div className="flex justify-between py-4 text-lg font-bold text-gray-900">
+            <span>Grand Total:</span>
+            <span className="text-green-600">
+              {(Number(order.totalPrice) + Number(order.totalShippingFee)).toLocaleString()} VND
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+
 
       {/* Action Buttons */}
       {actions.length > 0 && (
@@ -280,7 +324,7 @@ export default function OrderDetail() {
             onClick={() => navigate(-1)}
             className="rounded-full px-6 py-2"
           >
-            Back to Profile
+            Back
           </Button>
         </div>
       </div>
