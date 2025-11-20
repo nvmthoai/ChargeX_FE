@@ -52,7 +52,7 @@ function RoutesContent() {
   // Always show header for non-admin routes (Header component will handle admin route hiding)
   return (
     <>
-      <Suspense allback={<div className="p-8 text-center">Loading…</div>}>
+      <Suspense fallback={<div className="p-8 text-center">Loading…</div>}>
       <Routes>
         {/* Public routes with BaseLayout */}
         <Route element={<BaseLayout showHeader={true}><Outlet /></BaseLayout>}>
