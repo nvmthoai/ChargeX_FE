@@ -1,12 +1,14 @@
+
 import { ArrowLeftOutlined, CarOutlined, CreditCardOutlined, ShopOutlined, UserOutlined, WalletOutlined } from "@ant-design/icons";
 import { message, Radio } from "antd";
-// import { MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getWalletAvailable } from "../../../api/payment/api";
 import { PaymentProvider } from "../../../api/payment/type";
 import { postData } from "../../../mocks/CallingAPI";
-import useProvinces, { type District, type Ward } from "../../hooks/useProvinces";
+import useProvinces from "../../hooks/useProvinces";
+import type { District, Ward } from "../../hooks/useProvinces";
 
 type WalletInfo = { balance: number; held: number; available: number } | null;
 
@@ -14,7 +16,6 @@ export default function PaymentCart() {
     const token = localStorage.getItem("token") || "";
     const location = useLocation();
     const OrderState = location.state;
-    console.log('OrderState', OrderState);
     const navigate = useNavigate();
 
     const [order, setOrder] = useState<any>([]);
@@ -24,7 +25,6 @@ export default function PaymentCart() {
     const { provinces, fetchDistricts, fetchWards } = useProvinces();
     const [deliveryLocation, setDeliveryLocation] = useState("Đang tải...");
     const [pickupLocation, setPickupLocation] = useState("Đang tải...");
-
     const [wallet, setWallet] = useState<WalletInfo>(null);
 
     useEffect(() => {
@@ -33,101 +33,97 @@ export default function PaymentCart() {
             navigate("/shop");
             return;
         }
-
         setOrder(OrderState);
     }, [OrderState]);
 
-    // Map địa chỉ
+    // Convert address to text
     useEffect(() => {
         const loadAddressNames = async () => {
             if (order?.length <= 0) return;
-            const convertAddress = async (addr: any) => {
+
+            const convert = async (addr: any) => {
                 if (!addr) return "Không có địa chỉ";
                 try {
-                    const province = provinces.find((p) => p.Code === addr.provinceId);
-                    const districtList = await fetchDistricts(addr.provinceId);
-                    const district = districtList.find((d: District) => d.code === addr.districtId);
-                    const wardList = await fetchWards(addr.districtId);
-                    const ward = wardList.find((w: Ward) => w.code.toString() === addr.wardCode);
-                    const provinceName = province?.NameExtension?.[0] || "";
-                    return `${addr.line1}, ${ward?.name || ""}, ${district?.name || ""}, ${provinceName}`;
+                    const province = provinces.find((p) => p.code === addr.provinceId);
+                    const districts = await fetchDistricts(addr.provinceId);
+                    const district = districts.find((d: District) => d.code === addr.districtId);
+                    const wards = await fetchWards(addr.districtId);
+                    const ward = wards.find((w: Ward) => w.code.toString() === addr.wardCode);
+
+                    return `${addr.line1}, ${ward?.name || ""}, ${district?.name || ""}, ${province?.name || ""}`;
                 } catch {
                     return addr.line1;
                 }
             };
 
             if (order?.[0]?.deliveryAddress) {
-                const text = await convertAddress(order?.[0]?.deliveryAddress);
-                setDeliveryLocation(text);
+                setDeliveryLocation(await convert(order[0].deliveryAddress));
             }
             if (order?.[0]?.pickupAddress) {
-                const text = await convertAddress(order?.[0]?.pickupAddress);
-                setPickupLocation(text);
+                setPickupLocation(await convert(order[0].pickupAddress));
             }
         };
         loadAddressNames();
-    }, [order, provinces, fetchDistricts, fetchWards]);
+    }, [order, provinces]);
 
-    const groupOrdersBySeller = (order: any): any => {
-        const sellerMap = new Map<string, any>();
-        for (const ord of order) {
-            if (!sellerMap.has(ord.orderShops?.[0]?.seller?.userId)) {
-                sellerMap.set(ord.orderShops?.[0]?.seller?.userId, {
-                    userId: ord.orderShops?.[0]?.seller?.userId,
+    // Group by seller
+    const groupOrdersBySeller = (orderList: any) => {
+        const map = new Map();
+        for (const ord of orderList) {
+            const sellerId = ord.orderShops?.[0]?.seller?.userId;
+            if (!map.has(sellerId)) {
+                map.set(sellerId, {
+                    userId: sellerId,
                     fullName: ord.orderShops?.[0]?.seller?.fullName,
                     shippingFee: Number(ord.totalShippingFee),
                     orders: [ord],
                 });
-            } else { sellerMap.get(ord.orderShops?.[0]?.seller?.userId)!.orders.push(ord) }
+            } else {
+                map.get(sellerId).orders.push(ord);
+            }
         }
-        return Array.from(sellerMap.values());
+        return [...map.values()];
     };
-    const sellers = groupOrdersBySeller(order);
-    console.log("sellers", sellers);
 
-    // Tính tổng
-    const PriceBuyNow = order?.reduce((sum: any, i: any) => sum + Number(i.orderShops?.[0]?.orderDetails?.[0]?.price || 0) * Number(i.orderShops?.[0]?.orderDetails?.[0]?.quantity), 0);
-    const totalShippingFee = sellers?.reduce((sum: any, i: any) => sum + Number(i.shippingFee || 0), 0);
-    // const uniqueSellerCount = new Set(order?.map((i: any) => i.orderShops?.[0]?.seller?.userId))?.size;
+    const sellers = groupOrdersBySeller(order);
+    const PriceBuyNow = order.reduce(
+        (sum: any, i: any) =>
+            sum +
+            Number(i.orderShops?.[0]?.orderDetails?.[0]?.price || 0) *
+            Number(i.orderShops?.[0]?.orderDetails?.[0]?.quantity),
+        0
+    );
+    const totalShippingFee = sellers.reduce((sum: any, i: any) => sum + Number(i.shippingFee), 0);
     const total = PriceBuyNow + totalShippingFee;
 
-    console.log("pickupLocation", pickupLocation);
-    console.log("deliveryLocation", deliveryLocation);
     const isWalletInsufficient = method === PaymentProvider.WALLET && (wallet?.available ?? 0) < total;
 
-    // Xử lý thanh toán // FIX==handlePayment
+    // Payment handler
     const handlePayment = async () => {
         if (order?.length <= 0) return message.warning("Không tìm thấy đơn hàng!");
         setProcessing(true);
-        const items = order?.map((ord: any) => ({
+
+        const items = order.map((ord: any) => ({
             orderId: ord.orderId,
             amount:
                 Number(ord.orderShops?.[0]?.orderDetails?.[0]?.price) +
                 Number(ord.totalShippingFee) /
-                (order?.filter(
-                    (o: any) =>
-                        o.orderShops?.[0]?.seller?.userId ==
-                        ord.orderShops?.[0]?.seller?.userId
-                )?.length || 1),
+                (order.filter((o: any) => o.orderShops?.[0]?.seller?.userId === ord.orderShops?.[0]?.seller?.userId).length || 1),
         }));
-        console.log("order", order);
-        console.log("items", items);
-        console.log("method", method);
+
         try {
-            const WalletPaymentCartPayload = {
-                items: items,
-                provider: method == PaymentProvider.PAYOS ? "bank" : (method == PaymentProvider.WALLET ? "internal" : "internal"),
-                method: method == PaymentProvider.PAYOS ? "payos" : (method == PaymentProvider.WALLET ? "wallet" : "wallet"),
+            const payload = {
+                items,
+                provider: method === PaymentProvider.PAYOS ? "bank" : "internal",
+                method: method === PaymentProvider.PAYOS ? "payos" : "wallet",
                 returnUrl: "",
                 cancelUrl: "",
                 webhookUrl: ""
             };
-            console.log("WalletPaymentCartPayload", WalletPaymentCartPayload);
 
-            const PaymentCartResponse = await postData('/payment/orders/batch', WalletPaymentCartPayload, token);
-            console.log('PaymentCartResponse', PaymentCartResponse);
+            await postData("/payment/orders/batch", payload, token);
 
-            navigate(`/payment-success?orderId=${''}&amount=${total}&transactionId=${''}`);
+            navigate(`/payment-success?amount=${total}`);
         } catch (err) {
             console.error("Error processing payment:", err);
             message.error("Không thể xử lý thanh toán!");
@@ -136,14 +132,13 @@ export default function PaymentCart() {
         }
     };
 
-    // Số dư ví
+    // Load wallet
     useEffect(() => {
         (async () => {
             try {
-                const data = await getWalletAvailable();
-                setWallet(data);
-            } catch (err) {
-                console.error("Không thể tải số dư ví");
+                setWallet(await getWalletAvailable());
+            } catch {
+                console.error("Không thể load ví");
             }
         })();
     }, []);
@@ -158,230 +153,159 @@ export default function PaymentCart() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-10">
-            {/* 🧾 Tiêu đề */}
+            {/* Tiêu đề */}
             <div className="text-center">
                 <h1 className="text-3xl font-bold text-[#0F74C7] mb-1">Thanh toán đơn hàng</h1>
                 <p className="text-gray-500">Vui lòng kiểm tra thông tin trước khi thanh toán</p>
             </div>
 
-            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10 items-start">
-                {/* 🧺 Thông tin đơn hàng */}
-                <div className="bg-white rounded-xl shadow-md p-8 space-y-6 lg:col-span-2">
-                    <h2 className="text-2xl font-semibold text-gray-900">
-                        <span className="text-[#0F74C7]">1.</span> Order Summary
-                    </h2>
-
-                    {sellers?.map((slr: any, i: any) => (
-                        <div key={i} className="flex flex-col gap-2 mb-16">
-                            {/* 🛍️ Sản phẩm */}
-                            {slr?.orders?.map((ord: any, j: any) => (
-                                // <div key={j} className="flex items-center gap-4 bg-[#f7faff] rounded-2xl p-4 border border-[#dce9ff]">
-                                //     <img
-                                //         src={ord.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || "/no-image.png"}
-                                //         alt={ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}
-                                //         className="w-20 h-20 rounded-xl object-cover border"
-                                //     />
-                                //     <div className="flex-1">
-                                //         <p className="font-semibold text-gray-900 text-lg">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</p>
-                                //         <p className="text-sm text-gray-500 line-clamp-2">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.description || "Không có mô tả"}</p>
-                                //         <p className="font-semibold text-[#0F74C7] mt-1">{Number(ord.orderShops?.[0]?.orderDetails?.[0]?.price ).toLocaleString()} VND</p>
-                                //     </div>
-                                // </div>
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
+                {/* Order Summary */}
+                <div className="bg-white rounded-xl shadow-md p-8 lg:col-span-2 space-y-6">
+                    
+                    {sellers.map((slr: any, i: number) => (
+                        <div key={i} className="space-y-4">
+                            {slr.orders.map((ord: any, j: number) => (
                                 <div
                                     key={j}
-                                    className="group bg-white/90 rounded-2xl border border-ocean-200/50 p-4 hover:shadow-xl transition-all duration-300 animate-fadeIn"
-                                    style={{ animationDelay: `${j * 50}ms` }}
+                                    className="flex items-center gap-4 bg-[#f7faff] rounded-xl p-4 border border-[#dce9ff]"
                                 >
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                        <div className="flex gap-4 flex-1 w-full sm:w-auto cursor-pointer">
-                                            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-ocean-100 to-energy-100 flex-shrink-0">
-                                                {ord.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] ? (
-                                                    <img
-                                                        src={ord.orderShops[0].orderDetails[0].product.imageUrls[0]}
-                                                        alt={ord.orderShops[0].orderDetails[0].product.title}
-                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-ocean-300">
-                                                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                        </svg>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Product Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-bold text-lg text-dark-900 line-clamp-2 group-hover:text-ocean-600 transition-colors">
-                                                    {ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title || 'Product'}
-                                                </h3>
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-lg font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
-                                                        {Number(ord.orderShops?.[0]?.orderDetails?.[0]?.price || 0).toLocaleString()} VND
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-4 sm:ml-auto">
-                                            {/* Quantity Display */}
-                                            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-ocean-50 to-energy-50 rounded-lg border border-ocean-200">
-                                                <span className="text-sm font-semibold text-dark-900">
-                                                    {ord.orderShops?.[0]?.orderDetails?.[0]?.quantity || 1}
-                                                </span>
-                                            </div>
-                                        </div>
+                                    <img
+                                        src={ord.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || "/no-image.png"}
+                                        className="w-20 h-20 rounded-xl object-cover"
+                                    />
+                                    <div className="flex-1">
+                                        <p className="font-semibold text-lg">
+                                            {ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            {ord.orderShops?.[0]?.orderDetails?.[0]?.product?.description}
+                                        </p>
+                                        <p className="font-semibold text-[#0F74C7] mt-1">
+                                            {Number(ord.orderShops?.[0]?.orderDetails?.[0]?.price).toLocaleString()} VND
+                                        </p>
                                     </div>
                                 </div>
                             ))}
 
-                            {/* 👩‍💼 Người bán */}
-                            <div className="bg-[#fff9f9] border border-red-100 rounded-2xl p-4">
-                                <div className="flex items-center gap-2">
-                                    <ShopOutlined className="text-red-500 text-lg" />
-                                    <h3 className="font-semibold text-gray-800">Người bán:</h3> {slr?.fullName}
+                            {/* Seller */}
+                            <div className="bg-[#fff9f9] border border-red-200 p-4 rounded-xl">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <ShopOutlined className="text-red-500" />
+                                    <span className="font-semibold">Người bán</span>
                                 </div>
-                                {/* <p className="text-gray-700">
-                                    <span className="font-medium">Tên: {slr?.fullName}</span>
-                                </p> */}
-                                {/* {slr?.orders?.[0]?.pickupAddress && (
-                                    <p className="flex items-start gap-1 text-gray-700 mt-1">
-                                        <MapPin size={16} className="text-red-500 mt-1" />
-                                        <span>{pickupLocation}</span>
-                                    </p>
-                                )} */}
-                            </div>
-
-                            {/* 👤 Người mua */}
-                            <div className="bg-[#f7fbff] border border-blue-100 rounded-2xl p-4">
-                                <div className="flex items-center gap-2">
-                                    <UserOutlined className="text-blue-500 text-lg" />
-                                    <h3 className="font-semibold text-gray-800">Người mua:</h3> {slr?.orders?.[0]?.buyer?.fullName}
-                                </div>
-                                {/* <p className="text-gray-700">
-                                    <span className="font-medium">Tên:</span> {slr?.orders?.[0]?.buyer?.fullName}
-                                </p> */}
-                                {/* {slr?.orders?.[0]?.deliveryAddress && (
-                                    <p className="flex items-start gap-1 text-gray-700 mt-1">
-                                        <MapPin size={16} className="text-blue-500 mt-1" />
-                                        <span>{deliveryLocation}</span>
-                                    </p>
-                                )} */}
-                            </div>
-
-                            {/* 🚚 Vận chuyển */}
-                            <div className="bg-[#f9fff9] border border-green-100 rounded-2xl p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <CarOutlined className="text-green-500 text-lg" />
-                                    <h3 className="font-semibold text-gray-800">Vận chuyển</h3>
-                                </div>
-                                {slr?.orders?.[0]?.shipping_provider ? (
-                                    <p className="text-gray-700">
-                                        <span className="font-medium">Đơn vị:</span> {slr?.orders?.[0]?.shipping_provider}
-                                    </p>
-                                ) : (
-                                    <p className="text-gray-500">Chưa có thông tin đơn vị vận chuyển</p>
-                                )}
-                                <p className="text-gray-700 mt-1">
-                                    <span className="font-medium">Phí vận chuyển:</span>{" "}
-                                    {slr?.orders?.[0]?.totalShippingFee ? `${Number(slr?.orders?.[0]?.totalShippingFee).toLocaleString()} VND` : "0 VND"}
+                                <p>{slr.fullName}</p>
+                                <p className="flex items-start mt-1 text-gray-700">
+                                    <MapPin size={16} className="mr-1 text-red-500" />
+                                    {pickupLocation}
                                 </p>
+                            </div>
+
+                            {/* Buyer */}
+                            <div className="bg-[#f7fbff] border border-blue-200 p-4 rounded-xl">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <UserOutlined className="text-blue-500" />
+                                    <span className="font-semibold">Người mua</span>
+                                </div>
+                                <p>{slr.orders[0]?.buyer?.fullName}</p>
+                                <p className="flex items-start mt-1 text-gray-700">
+                                    <MapPin size={16} className="mr-1 text-blue-500" />
+                                    {deliveryLocation}
+                                </p>
+                            </div>
+
+                            {/* Shipping */}
+                            <div className="bg-[#f9fff9] border border-green-200 p-4 rounded-xl">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <CarOutlined className="text-green-500" />
+                                    <span className="font-semibold">Vận chuyển</span>
+                                </div>
+                                <p>Phí ship: {slr.shippingFee.toLocaleString()} VND</p>
                             </div>
                         </div>
                     ))}
 
-                    {/* 💰 Tổng tiền */}
-                    <div className="pt-4 border-t border-gray-200 text-right">
-                        <p className="font-semibold text-gray-800 text-lg">Tổng thanh toán:</p>
-                        <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{Number(total).toLocaleString()} VND</p>
+                    <div className="text-right border-t pt-4">
+                        <p className="font-semibold text-lg">Tổng tiền:</p>
+                        <p className="text-3xl font-bold text-[#0F74C7]">{total.toLocaleString()} VND</p>
                     </div>
                 </div>
 
-                {/* 💳 Hình thức thanh toán */}
-                <div className="bg-white rounded-xl shadow-md p-8 space-y-6 sticky top-6 self-start">
-                    <h2 className="text-2xl font-semibold text-gray-900">
-                        <span className="text-[#0F74C7]">2.</span> Payment Method
-                    </h2>
+                {/* Payment Method */}
+                <div className="bg-white rounded-xl shadow-md p-8 space-y-6 sticky top-8">
 
                     <Radio.Group
-                        onChange={(e) => setMethod(e.target.value)}
                         value={method}
-                        className="space-y-4 mt-6 w-full"
+                        onChange={(e) => setMethod(e.target.value)}
+                        className="space-y-4 w-full"
                     >
-                        {/* PAYOS */}
                         <div
-                            className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.PAYOS ? "border-2 border-[#0F74C7] bg-[#f0f7ff]" : "border border-gray-200 bg-white"
+                            className={`p-4 rounded-xl flex justify-between cursor-pointer border ${method === PaymentProvider.PAYOS ? "border-blue-500 bg-blue-50" : "border-gray-200"
                                 }`}
                             onClick={() => setMethod(PaymentProvider.PAYOS)}
                         >
                             <div className="flex items-center gap-3">
-                                <div className="p-3 rounded-full bg-[#0F74C7]/10">
-                                    <CreditCardOutlined className="text-[#0F74C7] text-xl" />
+                                <div className="p-3 bg-blue-100 rounded-full">
+                                    <CreditCardOutlined className="text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-800">Thanh toán qua PayOS</p>
-                                    <p className="text-gray-500 text-sm">Nhanh chóng và an toàn qua ngân hàng liên kết.</p>
+                                    <p className="font-medium">Thanh toán PayOS</p>
+                                    <p className="text-sm text-gray-500">Thanh toán qua ngân hàng.</p>
                                 </div>
                             </div>
                             <Radio value={PaymentProvider.PAYOS} />
                         </div>
 
-                        {/* WALLET */}
                         <div
-                            className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-300 ${method === PaymentProvider.WALLET ? "border-2 border-[#0F74C7] bg-[#f6fbff]" : "border border-gray-200 bg-white"
+                            className={`p-4 rounded-xl flex justify-between cursor-pointer border ${method === PaymentProvider.WALLET ? "border-blue-500 bg-blue-50" : "border-gray-200"
                                 }`}
                             onClick={() => setMethod(PaymentProvider.WALLET)}
                         >
                             <div className="flex items-center gap-3">
-                                <div className="p-3 rounded-full bg-[#0F74C7]/10">
-                                    <WalletOutlined className="text-[#0F74C7] text-xl" />
+                                <div className="p-3 bg-blue-100 rounded-full">
+                                    <WalletOutlined className="text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-800">Ví nội bộ ReEV</p>
-                                    {method === PaymentProvider.WALLET && (
-                                        <div className="mt-3 text-sm text-gray-700">
-                                            {wallet ? (
-                                                <>
-                                                    <p>
-                                                        Số dư khả dụng:{" "}
-                                                        <span className="font-semibold text-[#0F74C7]">{Number(wallet?.available).toLocaleString()} VND</span>
-                                                    </p>
-                                                    {wallet.available < total && (
-                                                        <p className="text-red-500 mt-1">⚠️ Số dư không đủ để thanh toán!</p>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                <p className="text-gray-400">Đang tải số dư ví...</p>
-                                            )}
-                                        </div>
+                                    <p className="font-medium">Ví nội bộ ReEV</p>
+
+                                    {method === PaymentProvider.WALLET && wallet && (
+                                        <p className="text-sm mt-2">
+                                            Số dư khả dụng:{" "}
+                                            <span className="font-bold text-blue-600">
+                                                {wallet.available.toLocaleString()} VND
+                                            </span>
+                                        </p>
                                     )}
 
-                                    <p className="text-gray-500 text-sm">Thanh toán trực tiếp từ số dư tài khoản của bạn.</p>
+                                    {wallet && wallet.available < total && (
+                                        <p className="text-sm text-red-500 mt-1">
+                                            ⚠ Số dư không đủ thanh toán!
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                             <Radio value={PaymentProvider.WALLET} />
                         </div>
                     </Radio.Group>
 
-                    {/* ACTION */}
-                    <div className="pt-8 space-y-3">
-                        <button
-                            onClick={handlePayment}
-                            disabled={processing || isWalletInsufficient}
-                            className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition cursor-pointer ${processing || isWalletInsufficient ? "bg-gray-400 cursor-not-allowed" : "bg-[#0F74C7] hover:bg-[#3888ca]"
-                                }`}
-                        >
-                            {processing ? "Đang xử lý..." : "Thanh toán ngay"}
-                        </button>
+                    <button
+                        className={`w-full py-3 rounded-lg text-lg font-medium text-white ${processing || isWalletInsufficient
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700"
+                            }`}
+                        onClick={handlePayment}
+                        disabled={processing || isWalletInsufficient}
+                    >
+                        {processing ? "Đang xử lý..." : "Thanh toán ngay"}
+                    </button>
 
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="w-full py-3 rounded-lg border text-gray-700 hover:border-[#0F74C7] transition flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                            <ArrowLeftOutlined /> Quay lại
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="w-full py-3 rounded-lg border text-gray-700 flex items-center justify-center"
+                    >
+                        <ArrowLeftOutlined className="mr-2" />
+                        Quay lại
+                    </button>
                 </div>
             </div>
         </div>

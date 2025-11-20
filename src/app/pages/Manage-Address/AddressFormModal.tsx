@@ -1,42 +1,41 @@
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Form, Input, Select, Checkbox, Button, message } from "antd"
-import useProvinces from "../../hooks/useProvinces"
-import type { District, Ward } from "../../hooks/useProvinces"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Form, Input, Select, Checkbox, Button, message } from "antd";
+import useProvinces from "../../hooks/useProvinces";
 
 interface Address {
-  addressId: string
-  label: string
-  fullName: string
-  phone: string
-  line1: string
-  wardCode: string
-  districtId: number
-  provinceId: number
-  note: string
-  isDefault: boolean
-  createdAt: string
-  updatedAt: string
+  addressId: string;
+  label: string;
+  fullName: string;
+  phone: string;
+  line1: string;
+  wardCode: string;
+  districtId: number;
+  provinceId: number;
+  note: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AddressFormData {
-  label: string
-  fullName: string
-  phone: string
-  line1: string
-  wardCode: string
-  districtId: number
-  provinceId: number
-  note: string
-  isDefault: boolean
+  label: string;
+  fullName: string;
+  phone: string;
+  line1: string;
+  wardCode: string;
+  districtId: number;
+  provinceId: number;
+  note: string;
+  isDefault: boolean;
 }
 
 interface AddressFormModalProps {
-  address: Address | null
-  onClose: () => void
-  onSuccess: () => void
-  handleCreateAddress: (address: AddressFormData) => Promise<void>
-  handleUpdateAddress: (addressId: string, address: AddressFormData) => Promise<void>
+  address: Address | null;
+  onClose: () => void;
+  onSuccess: () => void;
+  handleCreateAddress: (address: AddressFormData) => Promise<void>;
+  handleUpdateAddress: (addressId: string, address: AddressFormData) => Promise<void>;
 }
 
 const AddressFormModal: React.FC<AddressFormModalProps> = ({
@@ -49,42 +48,40 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
 
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+
   const { provinces, fetchDistricts, fetchWards } = useProvinces();
-  console.log("provinces: ", provinces)
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [wards, setWards] = useState<any[]>([]);
+
   const [selectedLabel, setSelectedLabel] = useState(address?.label || "Home");
 
-
   const handleProvinceChange = async (provinceId: number) => {
-    form.setFieldsValue({ districtId: undefined, wardCode: undefined })
-    setDistricts([])
-    setWards([])
+    form.setFieldsValue({ districtId: undefined, wardCode: undefined });
+    setDistricts([]);
+    setWards([]);
 
-    const fetchedDistricts = await fetchDistricts(provinceId)
-    setDistricts(fetchedDistricts)
-  }
+    const fetchedDistricts = await fetchDistricts(provinceId);
+    setDistricts(fetchedDistricts);
+  };
 
   const handleDistrictChange = async (districtId: number) => {
-    form.setFieldsValue({ wardCode: undefined })
-    setWards([])
+    form.setFieldsValue({ wardCode: undefined });
+    setWards([]);
 
-    const fetchedWards = await fetchWards(districtId)
-    setWards(fetchedWards)
-  }
+    const fetchedWards = await fetchWards(districtId);
+    setWards(fetchedWards);
+  };
 
+  // Load existing address (edit mode)
   useEffect(() => {
     const loadAddressData = async () => {
       if (address) {
-        // First load districts for the province
-        const fetchedDistricts = await fetchDistricts(address.provinceId)
-        setDistricts(fetchedDistricts)
+        const fetchedDistricts = await fetchDistricts(address.provinceId);
+        setDistricts(fetchedDistricts);
 
-        // Then load wards for the district
-        const fetchedWards = await fetchWards(address.districtId)
-        setWards(fetchedWards)
+        const fetchedWards = await fetchWards(address.districtId);
+        setWards(fetchedWards);
 
-        // Set form values after data is loaded
         form.setFieldsValue({
           fullName: address.fullName,
           phone: address.phone,
@@ -94,46 +91,51 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
           provinceId: address.provinceId,
           note: address.note,
           isDefault: address.isDefault,
-        })
+        });
 
-        setSelectedLabel(address.label)
+        setSelectedLabel(address.label);
       }
-    }
+    };
 
-    loadAddressData()
-  }, [address])
+    loadAddressData();
+  }, [address]);
 
   const handleSubmit = async (values: AddressFormData) => {
-    setLoading(true)
+    setLoading(true);
     try {
       const formData = {
         ...values,
         label: selectedLabel,
-      }
+      };
+
       if (address) {
-        await handleUpdateAddress(address.addressId, formData)
+        await handleUpdateAddress(address.addressId, formData);
       } else {
-        await handleCreateAddress(formData)
+        await handleCreateAddress(formData);
       }
 
-      onSuccess()
+      onSuccess();
     } catch (error) {
-      console.error("Error saving address:", error)
-      message.error("Failed to save address")
+      console.error("Error saving address:", error);
+      message.error("Failed to save address");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg w-[800px] max-h-[90vh] overflow-y-auto py-10 px-20">
+        
         <div className="p-6">
-          <h2 className="text-2xl font-semibold text-gray-900">{address ? "Update Address" : "Add New Address"}</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">
+            {address ? "Update Address" : "Add New Address"}
+          </h2>
         </div>
 
         <Form form={form} layout="vertical" onFinish={handleSubmit} className="p-6">
-          {/* Full Name and Phone */}
+
+          {/* Full Name & Phone */}
           <div className="grid grid-cols-2 gap-4">
             <Form.Item
               name="fullName"
@@ -163,46 +165,60 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
               size="large"
               onChange={handleProvinceChange}
               showSearch
-              filterOption={(input, option) => (option?.children +'').toLowerCase().includes(input.toLowerCase())}
+              filterOption={(input, option) =>
+                (option?.children + "").toLowerCase().includes(input.toLowerCase())
+              }
             >
-              {provinces.map((province) => (
-                <Select.Option key={province.Code} value={province.Code}>
-                  {province.NameExtension[0]}
+              {provinces.map((p) => (
+                <Select.Option key={p.ProvinceID} value={p.ProvinceID}>
+                  {p.NameExtension?.[0] ?? p.ProvinceName}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
           {/* District */}
-          <Form.Item name="districtId" label="District" rules={[{ required: true, message: "Please select district" }]}>
+          <Form.Item
+            name="districtId"
+            label="District"
+            rules={[{ required: true, message: "Please select district" }]}
+          >
             <Select
               placeholder="Select district"
               size="large"
               onChange={handleDistrictChange}
               disabled={districts.length === 0}
               showSearch
-              filterOption={(input, option) => (option?.children +'').toLowerCase().includes(input.toLowerCase())}
+              filterOption={(input, option) =>
+                (option?.children + "").toLowerCase().includes(input.toLowerCase())
+              }
             >
-              {districts.map((district) => (
-                <Select.Option key={district.code} value={district.code}>
-                  {district.name}
+              {districts.map((d) => (
+                <Select.Option key={d.DistrictID} value={d.DistrictID}>
+                  {d.DistrictName}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
           {/* Ward */}
-          <Form.Item name="wardCode" label="Ward" rules={[{ required: true, message: "Please select ward" }]}>
+          <Form.Item
+            name="wardCode"
+            label="Ward"
+            rules={[{ required: true, message: "Please select ward" }]}
+          >
             <Select
               placeholder="Select ward"
               size="large"
               disabled={wards.length === 0}
               showSearch
-              filterOption={(input, option) => (option?.children +'').toLowerCase().includes(input.toLowerCase())}
+              filterOption={(input, option) =>
+                (option?.children + "").toLowerCase().includes(input.toLowerCase())
+              }
             >
-              {wards.map((ward) => (
-                <Select.Option key={ward.code} value={ward.code.toString()}>
-                  {ward.name}
+              {wards.map((w) => (
+                <Select.Option key={w.WardCode} value={w.WardCode}>
+                  {w.WardName}
                 </Select.Option>
               ))}
             </Select>
@@ -214,7 +230,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
             label="Detailed Address"
             rules={[{ required: true, message: "Please enter detailed address" }]}
           >
-            <Input.TextArea placeholder="123 google, hehe" rows={3} />
+            <Input.TextArea placeholder="123 Google Street" rows={3} />
           </Form.Item>
 
           {/* Note */}
@@ -234,6 +250,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
               >
                 Home
               </Button>
+
               <Button
                 type={selectedLabel === "Office" ? "primary" : "default"}
                 danger={selectedLabel === "Office"}
@@ -245,12 +262,12 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
             </div>
           </div>
 
-          {/* Set as Default */}
+          {/* Default Address */}
           <Form.Item name="isDefault" valuePropName="checked">
             <Checkbox>Set as default address</Checkbox>
           </Form.Item>
 
-          {/* Action Buttons */}
+          {/* Buttons */}
           <div className="flex justify-end gap-4 pt-4">
             <Button size="large" onClick={onClose}>
               Cancel
@@ -259,10 +276,11 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
               {address ? "Update" : "Create"}
             </Button>
           </div>
+
         </Form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AddressFormModal
+export default AddressFormModal;
