@@ -1,7 +1,9 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes, Outlet } from "react-router-dom";
+
 import BaseLayout from "../layouts/BaseLayout";
 import AdminLayout from "../layouts/AdminLayout";
+
 import About from "../pages/About/About";
 import AuthPage from "../pages/Auth/auth";
 import Cart from "../pages/Cart/Cart";
@@ -35,7 +37,6 @@ import OrderDetail from "../pages/Order/OrderDetail";
 import ShopDetailPage from "../pages/Shop-Detail";
 import OrderManagement from "../pages/Profile/Orders";
 import { DisputesManagement } from "../pages/Admin/DisputesManagement";
-// import DashboardManager from "@/app/pages/Shop/component/DashboardManager"; // Unused
 import TermsOfService from "../pages/Term";
 import ForgotPassword from "../pages/Forgot-Password/inde";
 import ResetPassword from "../pages/Reset-Password";
@@ -44,36 +45,46 @@ import AuctionManager from "../pages/Shop/component/AuctionManager";
 import ShopDashboard from "../pages/Shop/dashboard/ShopDashboard";
 import AuctionHistory from "../pages/Shop/auction/AuctionHistory";
 
-// Lazy-load heavier pages to improve initial bundle size
 const Home = lazy(() => import("../pages/Home/Home"));
 const AuctionList = lazy(() => import("../pages/Auction/AuctionListOptimized"));
 const Auction = lazy(() => import("../pages/Auction/Auction"));
 const ProductDetail = lazy(() => import("../pages/Product/ProductDetail"));
 
 function RoutesContent() {
-  // Always show header for non-admin routes (Header component will handle admin route hiding)
   return (
     <>
       <Suspense fallback={<div className="p-8 text-center">Loading…</div>}>
-      <Routes>
-        {/* Public routes with BaseLayout */}
-        <Route element={<BaseLayout showHeader={true}><Outlet /></BaseLayout>}>
+        <Routes>
+
+          {/* Base layout */}
+          <Route element={<BaseLayout showHeader={true}><Outlet /></BaseLayout>}>
+
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
+
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-error" element={<PaymentError />} />
+
             <Route path="/verify-otp" element={<VerifyOTPPage />} />
+
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/checkout-cart" element={<CheckoutCart />} />
+
             <Route path="/payment" element={<Payment />} />
             <Route path="/payment-cart" element={<PaymentCart />} />
+
             <Route path="/shop-detail/:id" element={<ShopDetailPage />} />
+
+            {/* ⭐ PRODUCT DETAIL CHÍNH Ở ĐÂY */}
             <Route path="/productdetail/:id" element={<ProductDetail />} />
+
             <Route path="/auction" element={<AuctionList />} />
             <Route path="/auction/:id" element={<Auction />} />
+
             <Route path="/orders/:id" element={<OrderDetail />} />
 
+            {/* AUTH */}
             <Route element={<AuthRoute />}>
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/terms" element={<TermsOfService />} />
@@ -81,7 +92,8 @@ function RoutesContent() {
               <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
 
-            <Route path="/profile" element={<Profile />} >
+            {/* PROFILE */}
+            <Route path="/profile" element={<Profile />}>
               <Route index element={<Navigate to="detail" replace />} />
               <Route path="detail" element={<ProfileDetail />} />
               <Route path="security" element={<ProfileSecurity />} />
@@ -92,21 +104,22 @@ function RoutesContent() {
               <Route path="auctions" element={<MyAuctions />} />
             </Route>
 
-            <Route path="/shop" element={<Shop />} >
+            {/* SHOP DASHBOARD */}
+            <Route path="/shop" element={<Shop />}>
               <Route index element={<Navigate to="products" />} />
               <Route path="dashboard" element={<ShopDashboard />} />
               <Route path="products" element={<ProductManager />} />
               <Route path="history" element={<TransactionHistory />} />
-              <Route path="auction" element={<AuctionManager />} >
+              <Route path="auction" element={<AuctionManager />}>
                 <Route index element={<AuctionManager />} />
                 <Route path="history" element={<AuctionHistory />} />
               </Route>
               <Route path="productdetail/:id" element={<ProductDetailShop />} />
-              
             </Route>
+
           </Route>
 
-          {/* Admin routes with AdminLayout */}
+          {/* ADMIN */}
           <Route path="/admin" element={<AdminLayout><Outlet /></AdminLayout>}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
@@ -119,9 +132,9 @@ function RoutesContent() {
             <Route path="withdraw-request-management" element={<WithdrawManagement />} />
             <Route path="disputes-request-management" element={<DisputesManagement />} />
           </Route>
+
         </Routes>
       </Suspense>
-      {/* ChatBox intentionally removed for now to avoid UI blocking overlays */}
     </>
   );
 }
