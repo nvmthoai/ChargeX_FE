@@ -5,11 +5,12 @@ import {
   updateOrder,
   markOrderAsDelivered,
   markOrderAsCompleted,
+  cancelOrder, // 🌟 THÊM API CANCEL
 } from "../../../api/order/api";
 import { getOrderEventsByOrderId } from "../../../api/orderevent/api";
 import type { Order } from "../../../api/order/type";
 import type { OrderEvent } from "../../../api/orderevent/type";
-import { Spin, Button, message } from "antd";
+import { Spin, Button, message, Modal, Radio } from "antd"; // 🌟 THÊM Modal + Radio
 import {
   ArrowLeftOutlined,
   PrinterOutlined,
@@ -26,10 +27,24 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // 🧩 Fetch order + events song song and always scroll to top on mount
+  // 🌟 STATE CHO CANCEL
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+
+  const CANCEL_REASONS = [
+    "Tôi đổi ý",
+    "Thông tin sản phẩm không đúng",
+    "Shop phản hồi chậm",
+    "Tìm được giá rẻ hơn",
+    "Thời gian giao hàng quá lâu",
+    "Khác",
+  ];
+
+  // 🧩 Fetch order + events
   useEffect(() => {
     if (!id) return;
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.scrollTo({ top: 0 });
+
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -40,7 +55,7 @@ export default function OrderDetail() {
         setOrder(orderRes || null);
         setEvents(eventRes || []);
       } catch (err) {
-        console.error("❌ Error fetching order or events:", err);
+        console.error("❌ Error fetching:", err);
         setOrder(null);
         setEvents([]);
       } finally {
@@ -50,7 +65,6 @@ export default function OrderDetail() {
     fetchData();
   }, [id]);
 
-  // 🌀 Loading state
   if (loading)
     return (
       <div className="flex justify-center items-center h-[60vh]">
@@ -58,7 +72,6 @@ export default function OrderDetail() {
       </div>
     );
 
-  // ❌ Order not found
   if (!order)
     return (
       <div className="p-8 text-center text-gray-500">
@@ -69,25 +82,53 @@ export default function OrderDetail() {
       </div>
     );
 
-  // ✅ Lấy user object từ localStorage
-  const currentUser = JSON.parse(localStorage.getItem("user") || "null") || null;
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  const currentUserId = currentUser?.sub || currentUser?.id || null;
 
-  // ✅ Dùng field 'sub' làm userId
-  const currentUserId = (currentUser && (currentUser.sub || currentUser.id)) || null;
-
-  // ✅ Lấy sellerId từ đơn hàng
   const sellerId = order.orderShops?.[0]?.seller?.userId || null;
-
-  // ✅ So sánh để xác định vai trò
   const isSeller = sellerId === currentUserId;
   const role = isSeller ? "seller" : "buyer";
   const actions = orderActions[order.status]?.[role] ?? [];
 
+  // 🌟 HANDLE CANCEL ORDER
+  const handleCancelOrder = async () => {
+    if (!cancelReason) {
+      message.error("Vui lòng chọn lý do hủy đơn");
+      return;
+    }
+  
+    try {
+      // gọi API hủy đơn
+      await cancelOrder(order.orderId, cancelReason);
+  
+      message.success("Đã hủy đơn hàng");
+  
+      // 🔥 FETCH LẠI ORDER TỪ SERVER
+      const fresh = await getOrderById(order.orderId);
+      setOrder(fresh);
+  
+      // 🔥 FETCH LẠI EVENTS
+      const eventRes = await getOrderEventsByOrderId(order.orderId);
+      setEvents(eventRes || []);
+  
+      setShowCancelModal(false);
+    } catch (err) {
+      console.error(err);
+      message.error("Không thể hủy đơn hàng");
+    }
+  };
+  
 
-  // ⚙️ Action handler (update status)
+  // ⚙️ Action handler
   const handleAction = async (key: string) => {
     const action = actions.find((a) => a.key === key);
     if (!action) return;
+
+    // 🌟 MỞ MODAL HỦY ĐƠN
+    if (key === "cancel") {
+      setShowCancelModal(true);
+      return;
+    }
 
     if (key === "review") {
       navigate(`/review/${order.orderId}`);
@@ -99,16 +140,17 @@ export default function OrderDetail() {
     try {
       let updatedOrder: any = order;
 
-      // 📦 Use specialized API for delivery confirmation
       if (key === "markDelivered") {
-        updatedOrder = await markOrderAsDelivered(order.orderId, "Package delivered to buyer");
-      }
-      // ✅ Use specialized API for completion confirmation
-      else if (key === "completeOrder") {
-        updatedOrder = await markOrderAsCompleted(order.orderId, "Order completed - buyer confirmed receipt");
-      }
-      // 📝 Use generic update for other statuses
-      else {
+        updatedOrder = await markOrderAsDelivered(
+          order.orderId,
+          "Package delivered to buyer"
+        );
+      } else if (key === "completeOrder") {
+        updatedOrder = await markOrderAsCompleted(
+          order.orderId,
+          "Order completed - buyer confirmed receipt"
+        );
+      } else {
         const res = await updateOrder(order.orderId, {
           status: action.nextStatus,
           eventNote: `${action.label} bởi người dùng`,
@@ -118,7 +160,6 @@ export default function OrderDetail() {
 
       setOrder(updatedOrder);
 
-      // 🟢 Reload events sau khi update
       const eventRes = await getOrderEventsByOrderId(order.orderId);
       setEvents(eventRes || []);
 
@@ -129,12 +170,10 @@ export default function OrderDetail() {
     }
   };
 
-
-
   const product = order.orderShops?.[0]?.orderDetails?.[0]?.product ?? null;
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md my-10 p-20 border border-gray-200 relative">
+    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md my-10 p-10 border border-gray-200 relative">
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
@@ -142,11 +181,11 @@ export default function OrderDetail() {
             Order #{order.orderId}
           </h1>
           <p className="text-gray-500">
-            {order.createdAt ? dayjs(order.createdAt).format("DD MMM, YYYY") : "-"}
+            {dayjs(order.createdAt).format("DD MMM, YYYY")}
           </p>
           <p className="text-sm mt-1">
             <span className="font-semibold">Status:</span>{" "}
-            <span className="capitalize">{order.status || "-"}</span>
+            <span className="capitalize">{order.status}</span>
           </p>
         </div>
 
@@ -159,131 +198,100 @@ export default function OrderDetail() {
         </Button>
       </div>
 
-      {/* ✅ Order Tracking (dựa theo OrderEvent) */}
+      {/* OrderTracking */}
       <OrderTracking events={events} />
 
-      {/* NOTE: OrderStatusActions removed to avoid duplicate English buttons. */}
-
-      {/* ============================
-      📦 ORDER ITEMS
-============================ */}
+      {/* ORDER ITEMS */}
       <div className="mt-10">
-        <h2 className="text-lg font-semibold border-b border-gray-300 mb-4">Order Items</h2>
+        <h2 className="text-lg font-semibold border-b mb-4">Order Items</h2>
 
-        <div className="bg-white p-6">
-          <div className="flex items-start gap-4">
-            <img
-              src={product?.imageUrl?.[0] || "/default_product.png"}
-              alt={product?.name}
-              className="w-20 h-20 rounded-lg object-cover border"
-            />
-
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-800">{product?.name}</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                {product?.description || "No description"}
-              </p>
-            </div>
-
-            <div className="text-right font-semibold text-gray-700">
-              {Number(order.totalPrice).toLocaleString()} VND
-            </div>
+        <div className="flex items-start gap-4 p-6">
+          <img
+            src={product?.imageUrl?.[0] || "/default_product.png"}
+            className="w-20 h-20 rounded-lg object-cover border"
+          />
+          <div className="flex-1">
+            <h3 className="font-medium text-gray-800">{product?.name}</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              {product?.description || "No description"}
+            </p>
+          </div>
+          <div className="text-right font-semibold text-gray-700">
+            {order.totalPrice.toLocaleString()} VND
           </div>
         </div>
       </div>
 
-
-      {/* ============================
-      🚚 SHIPPING INFORMATION
-============================ */}
+      {/* SHIPPING INFO */}
       <div className="mt-10">
-        <h2 className="text-lg font-semibold border-b border-gray-300 mb-4">Shipping Information</h2>
+        <h2 className="text-lg font-semibold border-b mb-4">
+          Shipping Information
+        </h2>
 
-        <div className="bg-white p-6">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-6 p-6">
+          <div>
+            <p className="text-sm text-gray-400">Recipient Name:</p>
+            <p className="font-medium">{order.deliveryAddress?.fullName}</p>
 
-            <div>
-              <p className="text-sm text-gray-400">Recipient Name:</p>
-              <p className="font-medium">{order.deliveryAddress?.fullName || "-"}</p>
+            <p className="text-sm text-gray-400 mt-4">Phone Number:</p>
+            <p className="font-medium">{order.deliveryAddress?.phone}</p>
+          </div>
 
-              <p className="text-sm text-gray-400 mt-4">Phone Number:</p>
-              <p className="font-medium">{order.deliveryAddress?.phone || "-"}</p>
-            </div>
+          <div>
+            <p className="text-sm text-gray-400">Shipping Address:</p>
+            <p className="font-medium">{order.deliveryAddress?.line1}</p>
 
-            <div>
-              <p className="text-sm text-gray-400">Shipping Address:</p>
-              <p className="font-medium">{order.deliveryAddress?.line1 || "-"}</p>
-
-              <p className="text-sm text-gray-400 mt-4">Shipping Method:</p>
-              <p className="font-medium">
-                {order.shipping_provider || "Standard Shipping"}
-              </p>
-            </div>
-
+            <p className="text-sm text-gray-400 mt-4">Shipping Method:</p>
+            <p className="font-medium">{order.shipping_provider}</p>
           </div>
         </div>
       </div>
 
-
-      {/* ============================
-      💳 PAYMENT DETAILS
-============================ */}
+      {/* PAYMENT INFO */}
       <div className="mt-10">
-        <h2 className="text-lg font-semibold border-b border-gray-300 mb-4">Payment Details</h2>
+        <h2 className="text-lg font-semibold border-b mb-4">
+          Payment Details
+        </h2>
 
-        <div className="bg-white p-6">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-6 p-6">
+          <div>
+            <p className="text-sm text-gray-400">Payment Method:</p>
+            <p className="font-medium">{order.payment?.method}</p>
+          </div>
 
-            <div>
-              <p className="text-sm text-gray-400">Payment Method:</p>
-              <p className="font-medium">
-                {order.payment?.method || "Wallet / Online Payment"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-400">Billing Address:</p>
-              <p className="font-medium">
-                {order.deliveryAddress?.line1 || "-"}
-              </p>
-            </div>
-
+          <div>
+            <p className="text-sm text-gray-400">Billing Address:</p>
+            <p className="font-medium">{order.deliveryAddress?.line1}</p>
           </div>
         </div>
       </div>
 
-
-      {/* ============================
-      🧾 ORDER SUMMARY
-============================ */}
+      {/* SUMMARY */}
       <div className="mt-10">
-        <h2 className="text-lg font-semibold border-b border-gray-300 mb-4">Order Summary</h2>
+        <h2 className="text-lg font-semibold border-b mb-4">Order Summary</h2>
 
-        <div className="bg-white p-6">
-
-          <div className="flex justify-between py-2 text-gray-700">
+        <div className="p-6">
+          <div className="flex justify-between py-2">
             <span>Total:</span>
-            <span>{Number(order.totalPrice).toLocaleString()} VND</span>
+            <span>{order.totalPrice.toLocaleString()} VND</span>
           </div>
 
-          <div className="flex justify-between py-2 text-gray-700 border-b border-gray-400  pb-3">
+          <div className="flex justify-between py-2 border-b pb-3">
             <span>Shipping Fee:</span>
-            <span>{Number(order.totalShippingFee).toLocaleString()} VND</span>
+            <span>{order.totalShippingFee.toLocaleString()} VND</span>
           </div>
 
-          <div className="flex justify-between py-4 text-lg font-bold text-gray-900">
+          <div className="flex justify-between py-4 text-lg font-bold">
             <span>Grand Total:</span>
             <span className="text-green-600">
-              {(Number(order.totalPrice) + Number(order.totalShippingFee)).toLocaleString()} VND
+              {(order.totalPrice + order.totalShippingFee).toLocaleString()}{" "}
+              VND
             </span>
           </div>
-
         </div>
       </div>
 
-
-
-      {/* Action Buttons */}
+      {/* ACTION BUTTONS */}
       {actions.length > 0 && (
         <div className="mt-10 flex justify-center gap-4 flex-wrap">
           {actions.map((a) => (
@@ -291,11 +299,7 @@ export default function OrderDetail() {
               key={a.key}
               type={a.variant === "primary" ? "primary" : "default"}
               danger={a.variant === "danger"}
-              icon={
-                a.key === "confirmReceived" ? (
-                  <CheckCircleFilled />
-                ) : undefined
-              }
+              icon={a.key === "confirmReceived" ? <CheckCircleFilled /> : null}
               onClick={() => handleAction(a.key)}
             >
               {a.label}
@@ -304,7 +308,34 @@ export default function OrderDetail() {
         </div>
       )}
 
-      {/* Footer */}
+      {/* 🌟 CANCEL MODAL */}
+      <Modal
+        title="Chọn lý do hủy đơn"
+        open={showCancelModal}
+        onCancel={() => setShowCancelModal(false)}
+        onOk={handleCancelOrder}
+        okText="Xác nhận hủy"
+        okButtonProps={{ danger: true }}
+      >
+        <Radio.Group
+          value={cancelReason}
+          onChange={(e) => setCancelReason(e.target.value)}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            marginTop: 10,
+          }}
+        >
+          {CANCEL_REASONS.map((r) => (
+            <Radio key={r} value={r}>
+              {r}
+            </Radio>
+          ))}
+        </Radio.Group>
+      </Modal>
+
+      {/* FOOTER */}
       <div className="text-center mt-10 text-gray-500 text-sm">
         <p>
           Contract:{" "}
