@@ -1,41 +1,25 @@
-import type React from "react";
-import { useState, useEffect } from "react";
+// src/app/pages/Manage-Address/AddressFormModal.tsx
+import React, { useState, useEffect } from "react";
 import { Form, Input, Select, Checkbox, Button, message } from "antd";
 import useProvinces from "../../hooks/useProvinces";
 
-interface Address {
-  addressId: string;
-  label: string;
-  fullName: string;
-  phone: string;
-  line1: string;
-  wardCode: string;
-  districtId: number;
-  provinceId: number;
-  note: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface AddressFormData {
-  label: string;
-  fullName: string;
-  phone: string;
-  line1: string;
-  wardCode: string;
-  districtId: number;
-  provinceId: number;
-  note: string;
-  isDefault: boolean;
-}
-
 interface AddressFormModalProps {
-  address: Address | null;
+  address?: {
+    addressId?: string;
+    fullName: string;
+    phone: string;
+    provinceId: number;
+    districtId: number;
+    wardCode: string;
+    line1: string;
+    note?: string;
+    isDefault?: boolean;
+    label?: string;
+  };
   onClose: () => void;
-  onSuccess: () => void;
-  handleCreateAddress: (address: AddressFormData) => Promise<void>;
-  handleUpdateAddress: (addressId: string, address: AddressFormData) => Promise<void>;
+  onSuccess?: (newAddress: any) => void;
+  handleCreateAddress?: (address: any) => Promise<any>;
+  handleUpdateAddress?: (addressId: string, address: any) => Promise<void>;
 }
 
 const AddressFormModal: React.FC<AddressFormModalProps> = ({
@@ -45,79 +29,77 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
   handleCreateAddress,
   handleUpdateAddress,
 }) => {
-
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [selectedLabel, setSelectedLabel] = useState<string>(address?.label || "Home");
 
-  const { provinces, fetchDistricts, fetchWards } = useProvinces();
-  const [districts, setDistricts] = useState<any[]>([]);
-  const [wards, setWards] = useState<any[]>([]);
+  const {
+    provinces,
+    districts: hookDistricts,
+    wards: hookWards,
+    loading: loadingProvinces,
+    fetchDistricts,
+    fetchWards,
+  } = useProvinces();
 
-  const [selectedLabel, setSelectedLabel] = useState(address?.label || "Home");
-
-  const handleProvinceChange = async (provinceId: number) => {
+  const handleProvinceChange = async (provinceCode: number) => {
     form.setFieldsValue({ districtId: undefined, wardCode: undefined });
-    setDistricts([]);
-    setWards([]);
-
-    const fetchedDistricts = await fetchDistricts(provinceId);
-    setDistricts(fetchedDistricts);
+    await fetchDistricts(provinceCode);
   };
 
-  const handleDistrictChange = async (districtId: number) => {
+  const handleDistrictChange = async (districtCode: number) => {
     form.setFieldsValue({ wardCode: undefined });
-    setWards([]);
-
-    const fetchedWards = await fetchWards(districtId);
-    setWards(fetchedWards);
+    await fetchWards(districtCode);
   };
 
-  // Load existing address (edit mode)
+  // Khi sửa địa chỉ → tự động load quận/huyện + phường/xã
   useEffect(() => {
-    const loadAddressData = async () => {
-      if (address) {
-        const fetchedDistricts = await fetchDistricts(address.provinceId);
-        setDistricts(fetchedDistricts);
+    if (!address || provinces.length === 0) return;
 
-        const fetchedWards = await fetchWards(address.districtId);
-        setWards(fetchedWards);
+    const loadData = async () => {
+      await fetchDistricts(address.provinceId);
+      await fetchWards(address.districtId);
 
-        form.setFieldsValue({
-          fullName: address.fullName,
-          phone: address.phone,
-          line1: address.line1,
-          wardCode: address.wardCode,
-          districtId: address.districtId,
-          provinceId: address.provinceId,
-          note: address.note,
-          isDefault: address.isDefault,
-        });
-
-        setSelectedLabel(address.label);
-      }
+      form.setFieldsValue({
+        fullName: address.fullName,
+        phone: address.phone,
+        line1: address.line1,
+        provinceId: address.provinceId,
+        districtId: address.districtId,
+        wardCode: address.wardCode,
+        note: address.note,
+        isDefault: address.isDefault,
+      });
     };
 
-    loadAddressData();
-  }, [address]);
+    loadData();
+  }, [address, provinces.length, fetchDistricts, fetchWards, form]);
 
-  const handleSubmit = async (values: AddressFormData) => {
+  const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      const formData = {
+      const payload = {
         ...values,
         label: selectedLabel,
+        provinceId: Number(values.provinceId),
+        districtId: Number(values.districtId),
+        wardCode: String(values.wardCode),
       };
 
-      if (address) {
-        await handleUpdateAddress(address.addressId, formData);
-      } else {
-        await handleCreateAddress(formData);
+      let resultAddress: any;
+
+      if (address?.addressId && handleUpdateAddress) {
+        await handleUpdateAddress(address.addressId, payload);
+        resultAddress = { ...payload, addressId: address.addressId };
+      } else if (handleCreateAddress) {
+        resultAddress = await handleCreateAddress(payload);
       }
 
-      onSuccess();
-    } catch (error) {
-      console.error("Error saving address:", error);
-      message.error("Failed to save address");
+      message.success(address ? "Cập nhật địa chỉ thành công!" : "Thêm địa chỉ mới thành công!");
+      onSuccess?.(resultAddress || payload);
+      onClose();
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Lưu địa chỉ thất bại!");
     } finally {
       setLoading(false);
     }
@@ -126,157 +108,106 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg w-[800px] max-h-[90vh] overflow-y-auto py-10 px-20">
-        
-        <div className="p-6">
-          <h2 className="text-2xl font-semibold text-gray-900">
-            {address ? "Update Address" : "Add New Address"}
-          </h2>
-        </div>
+        <h2 className="text-2xl font-semibold mb-6 text-center">
+          {address ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới"}
+        </h2>
 
-        <Form form={form} layout="vertical" onFinish={handleSubmit} className="p-6">
-
-          {/* Full Name & Phone */}
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
-            <Form.Item
-              name="fullName"
-              label="Full Name"
-              rules={[{ required: true, message: "Please enter full name" }]}
-            >
-              <Input placeholder="Leonardo DiCaprio" size="large" />
+            <Form.Item name="fullName" label="Họ và tên" rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}>
+              <Input size="large" placeholder="Nguyễn Văn A" />
             </Form.Item>
-
-            <Form.Item
-              name="phone"
-              label="Phone Number"
-              rules={[{ required: true, message: "Please enter phone number" }]}
-            >
-              <Input placeholder="0912345678" size="large" />
+            <Form.Item name="phone" label="Số điện thoại" rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}>
+              <Input size="large" placeholder="0901234567" />
             </Form.Item>
           </div>
 
-          {/* Province */}
-          <Form.Item
-            name="provinceId"
-            label="Province / City"
-            rules={[{ required: true, message: "Please select province" }]}
-          >
+          <Form.Item name="provinceId" label="Tỉnh/Thành phố" rules={[{ required: true }]}>
             <Select
-              placeholder="Select province"
               size="large"
+              loading={loadingProvinces}
+              placeholder={loadingProvinces ? "Đang tải tỉnh..." : "Chọn tỉnh/thành phố"}
               onChange={handleProvinceChange}
               showSearch
-              filterOption={(input, option) =>
-                (option?.children + "").toLowerCase().includes(input.toLowerCase())
-              }
+              optionFilterProp="children"
             >
               {provinces.map((p) => (
-                <Select.Option key={p.ProvinceID} value={p.ProvinceID}>
-                  {p.NameExtension?.[0] ?? p.ProvinceName}
+                <Select.Option key={p.code} value={p.code}>
+                  {p.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
-          {/* District */}
-          <Form.Item
-            name="districtId"
-            label="District"
-            rules={[{ required: true, message: "Please select district" }]}
-          >
+          <Form.Item name="districtId" label="Quận/Huyện" rules={[{ required: true }]}>
             <Select
-              placeholder="Select district"
               size="large"
+              disabled={hookDistricts.length === 0}
+              placeholder={hookDistricts.length === 0 ? "Chọn tỉnh trước" : "Chọn quận/huyện"}
               onChange={handleDistrictChange}
-              disabled={districts.length === 0}
               showSearch
-              filterOption={(input, option) =>
-                (option?.children + "").toLowerCase().includes(input.toLowerCase())
-              }
+              optionFilterProp="children"
             >
-              {districts.map((d) => (
-                <Select.Option key={d.DistrictID} value={d.DistrictID}>
-                  {d.DistrictName}
+              {hookDistricts.map((d) => (
+                <Select.Option key={d.code} value={d.code}>
+                  {d.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
-          {/* Ward */}
-          <Form.Item
-            name="wardCode"
-            label="Ward"
-            rules={[{ required: true, message: "Please select ward" }]}
-          >
+          <Form.Item name="wardCode" label="Phường/Xã" rules={[{ required: true }]}>
             <Select
-              placeholder="Select ward"
               size="large"
-              disabled={wards.length === 0}
+              disabled={hookWards.length === 0}
+              placeholder={hookWards.length === 0 ? "Chọn quận/huyện trước" : "Chọn phường/xã"}
               showSearch
-              filterOption={(input, option) =>
-                (option?.children + "").toLowerCase().includes(input.toLowerCase())
-              }
+              optionFilterProp="children"
             >
-              {wards.map((w) => (
-                <Select.Option key={w.WardCode} value={w.WardCode}>
-                  {w.WardName}
+              {hookWards.map((w) => (
+                <Select.Option key={w.code} value={w.code}>
+                  {w.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
-          {/* Detailed Address */}
-          <Form.Item
-            name="line1"
-            label="Detailed Address"
-            rules={[{ required: true, message: "Please enter detailed address" }]}
-          >
-            <Input.TextArea placeholder="123 Google Street" rows={3} />
+          <Form.Item name="line1" label="Địa chỉ chi tiết" rules={[{ required: true }]}>
+            <Input.TextArea rows={3} placeholder="Ví dụ: 123 Đường Láng, Phường Láng Thượng" />
           </Form.Item>
 
-          {/* Note */}
-          <Form.Item name="note" label="Delivery Note">
-            <Input.TextArea placeholder="Delivery note" rows={2} />
+          <Form.Item name="note" label="Ghi chú (tùy chọn)">
+            <Input.TextArea rows={2} />
           </Form.Item>
 
-          {/* Address Type */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Address Type</label>
+            <label className="font-medium block mb-2">Loại địa chỉ</label>
             <div className="flex gap-4">
               <Button
                 type={selectedLabel === "Home" ? "primary" : "default"}
-                danger={selectedLabel === "Home"}
-                size="large"
                 onClick={() => setSelectedLabel("Home")}
               >
-                Home
+                Nhà riêng
               </Button>
-
               <Button
                 type={selectedLabel === "Office" ? "primary" : "default"}
-                danger={selectedLabel === "Office"}
-                size="large"
                 onClick={() => setSelectedLabel("Office")}
               >
-                Office
+                Công ty
               </Button>
             </div>
           </div>
 
-          {/* Default Address */}
           <Form.Item name="isDefault" valuePropName="checked">
-            <Checkbox>Set as default address</Checkbox>
+            <Checkbox>Đặt làm địa chỉ mặc định</Checkbox>
           </Form.Item>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-4 pt-4">
-            <Button size="large" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="primary" danger size="large" htmlType="submit" loading={loading}>
-              {address ? "Update" : "Create"}
+          <div className="flex justify-end gap-4 mt-8">
+            <Button size="large" onClick={onClose}>Hủy</Button>
+            <Button size="large" type="primary" htmlType="submit" loading={loading}>
+              {address ? "Cập nhật" : "Thêm địa chỉ"}
             </Button>
           </div>
-
         </Form>
       </div>
     </div>

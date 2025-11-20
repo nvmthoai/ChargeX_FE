@@ -21,41 +21,38 @@ export default function AllOrder() {
   const [appliedStatus, setAppliedStatus] = useState<string | undefined>(undefined);
   const [appliedSort, setAppliedSort] = useState<string | undefined>("newest");
 
-const fetchOrders = async () => {
-  setLoading(true);
-  try {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) return;
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (!storedUser) return;
 
-    const user = JSON.parse(storedUser);
-    const currentUserId = user?.sub;
+      const user = JSON.parse(storedUser);
+      const currentUserId = user?.sub;
 
-    const res = await getAllOrders({
-      sellerId: currentUserId,
-      search: appliedKeyword,
-      status: appliedStatus,
-      page,
-      limit: pageSize,
-      sortBy: "createdAt",
-      sortOrder: appliedSort === "newest" ? "DESC" : "ASC",
-    });
-    console.log("✅ Fetched orders:", res);
+      const res = await getAllOrders({
+        sellerId: currentUserId,
+        search: appliedKeyword,
+        status: appliedStatus,
+        excludeStatuses: "pending",
+        page,
+        limit: pageSize,
+        sortBy: "createdAt",
+        sortOrder: appliedSort === "newest" ? "DESC" : "ASC",
+      });
 
-    const paginated = res.data;
+      console.log("✅ Fetched orders:", res);
 
-    // 🔎 Chỉ hiển thị các đơn KHÔNG ở trạng thái pending
-    const visibleOrders = (paginated.data || []).filter(
-      (o: Order) => o.status?.toLowerCase() !== "pending"
-    );
-console.log("visibleOrders", visibleOrders);
-    setOrders(visibleOrders);
-    setTotal(visibleOrders.length);
-  } catch (err) {
-    console.error("❌ Failed to load orders:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+      const paginated = res.data;
+
+      setOrders(paginated.data);
+      setTotal(paginated.total);
+    } catch (err) {
+      console.error("❌ Failed to load orders:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   useEffect(() => {
@@ -81,7 +78,7 @@ console.log("visibleOrders", visibleOrders);
   };
 
   return (
-    <div className="p-6 space-y-6 relative ">
+    <div className="p-6 space-y-6 relative">
       <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
         {/* 🔍 Filter */}
         <FilterProduct
@@ -109,13 +106,9 @@ console.log("visibleOrders", visibleOrders);
           statusOptions={[
             { label: "Pending", value: "pending" },
             { label: "Paid", value: "paid" },
-            { label: "Handed to Carrier", value: "handed_to_carrier" },
             { label: "In Transit", value: "in_transit" },
-            { label: "Delivered Pending Confirm", value: "delivered_pending_confirm" },
             { label: "Delivered", value: "delivered" },
-            { label: "Refunded", value: "refunded" },
             { label: "Completed", value: "completed" },
-            { label: "Disputed", value: "disputed" },
             { label: "Cancelled", value: "cancelled" },
           ]}
         />
@@ -140,11 +133,10 @@ console.log("visibleOrders", visibleOrders);
                 <th className="px-5 py-3 w-16 text-center">⋮</th>
               </tr>
             </thead>
-
             <tbody>
               {orders.map((o) => {
                 const product = o.orderShops?.[0]?.orderDetails?.[0]?.product;
-                console.log("o", o);
+
                 return (
                   <tr
                     key={o.orderId}
@@ -194,6 +186,7 @@ console.log("visibleOrders", visibleOrders);
                 );
               })}
             </tbody>
+
           </table>
         )}
       </div>

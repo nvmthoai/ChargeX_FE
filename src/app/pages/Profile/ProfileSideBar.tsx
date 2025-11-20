@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { 
-    User, 
-    MapPin, 
-    Shield, 
-    Bell, 
-    Link as LinkIcon, 
-    FileCheck, 
-    Wallet, 
-    ShoppingBag, 
-    Gavel 
+import {
+    User,
+    MapPin,
+    Shield,
+    FileCheck,
+    Wallet,
+    ShoppingBag,
+    Gavel
 } from "lucide-react";
 
 export default function ProfileSideBar() {
@@ -24,8 +22,6 @@ export default function ProfileSideBar() {
         { name: "Profile Details", link: "detail", icon: User },
         { name: "Address", link: "address", icon: MapPin },
         { name: "Security Settings", link: "security", icon: Shield },
-        { name: "Notification Preferences", link: "notification", icon: Bell },
-        { name: "Linked Accounts", link: "linked-account", icon: LinkIcon },
         { name: "Know your customer", link: "kyc", icon: FileCheck },
         { name: "Wallet", link: "wallet", icon: Wallet },
         { name: "Orders History", link: "orders", icon: ShoppingBag },
@@ -38,7 +34,7 @@ export default function ProfileSideBar() {
                 {ListOption.map((option) => {
                     const isActive = Option?.includes(option.link);
                     const Icon = option.icon;
-                    
+
                     return (
                         <Link
                             to={option.link}
@@ -47,11 +43,10 @@ export default function ProfileSideBar() {
                             className="block"
                         >
                             <div
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                                    isActive
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
                                         ? "bg-gradient-to-r from-ocean-400 to-ocean-500 text-white shadow-md shadow-ocean-400/20"
                                         : "text-dark-700 font-medium hover:bg-ocean-50/60 hover:text-ocean-500"
-                                }`}
+                                    }`}
                             >
                                 <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-ocean-500'}`} />
                                 <span className="font-medium">{option.name}</span>

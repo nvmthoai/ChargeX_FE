@@ -103,7 +103,7 @@ export default function CheckoutCart() {
                                 <span className="text-[#0F74C7]">1.</span> Delivery Address
                             </h2>
                             <button
-                                onClick={() => setShowModal(true)}
+                                onClick={() => { setEditingAddress(null); setShowModal(true); }}
                                 className="bg-[#0F74C7] hover:bg-[#3888ca] text-white px-4 py-2 rounded-md shadow-sm transition cursor-pointer"
                             >
                                 + Add New
