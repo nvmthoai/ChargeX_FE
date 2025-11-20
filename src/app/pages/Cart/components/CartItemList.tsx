@@ -28,6 +28,7 @@ export default function CartItemsList({
                 type="checkbox"
                 checked={selectedItems.includes(item.orderId)}
                 // onChange={() => onCheck(item.orderId)}
+                onChange={() => { }}
                 className="w-5 h-5 text-ocean-600 border-ocean-300 rounded cursor-pointer"
                 style={{ outline: 'none' }}
               />
@@ -63,7 +64,7 @@ export default function CartItemsList({
                     {Number(item.orderShops?.[0]?.orderDetails?.[0]?.price || 0).toLocaleString()} VND
                   </span>
                   <span className="text-sm text-dark-800 font-medium"
-                    style={{ backgroundColor: item.status == "PENDING" ? "#ffc107" : "#28a745" }}
+                    // style={{ backgroundColor: item.status == "PENDING" ? "#ffc107" : "#28a745" }}
                   >
                     Qty: {item.orderShops?.[0]?.orderDetails?.[0]?.quantity || 1}
                   </span>

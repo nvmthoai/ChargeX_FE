@@ -20,8 +20,9 @@ export default function CartPage() {
       const token = localStorage.getItem('token') || '';
       try {
         const ItemsResponse = await fetchData(`/orders${getQueryString({ page: 1, limit: 1000 })}`, token);
-        const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub);
-        // const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub && i.status == 'PENDING');
+        // const FilterItems = ItemsResponse?.data?.data?.filter((_: any) => true);
+        // const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub);
+        const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub && i.status == 'PENDING');
         console.log('FilterItems', FilterItems);
         setItems(FilterItems);
       } catch (error) {
@@ -69,7 +70,7 @@ export default function CartPage() {
           <h2 className="text-2xl font-bold text-dark-900 mb-2">Error</h2>
           <p className="text-dark-800 mb-6 font-medium">{error}</p>
           <button
-            onClick={() => setRefresh(p => p + 1)}
+            onClick={() => { setRefresh(p => p + 1); setError(''); }}
             className="px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
             Try Again
