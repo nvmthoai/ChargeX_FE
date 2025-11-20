@@ -153,7 +153,7 @@ export default function AdminDataTable<T extends { id?: string; [key: string]: a
             {onRefresh && (
               <Button
                 variant="outline"
-                onClick={onRefresh}
+                onClick={() => onRefresh()}
                 className="gap-2 h-11 bg-ocean-500/10 hover:bg-ocean-500/20 border-ocean-400/30 text-ocean-200 hover:text-white"
               >
                 <RefreshCw className="w-4 h-4" />

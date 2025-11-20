@@ -60,7 +60,8 @@ axiosInstance.interceptors.response.use(
 
         if (isTokenExpired && !isRedirecting) {
           isRedirecting = true;
-          toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+          // Token expired — do not show toast to avoid duplicate toasts across many failed requests
+          // Redirect will occur below.
 
           // Clear storage and redirect to auth with next param
           try {
@@ -70,10 +71,14 @@ axiosInstance.interceptors.response.use(
             setTimeout(() => {
               window.location.href = redirectTo;
             }, 500);
-          } catch (e) {
+          } catch {
+            // Fallback redirect if clearing storage or building redirect fails
             try {
               window.location.href = "/auth";
-            } catch {}
+            } catch (err) {
+              // log fallback failure and continue — nothing more we can do here
+              console.error("Redirect to /auth failed", err);
+            }
           }
 
           // reset redirect flag shortly after
@@ -85,20 +90,26 @@ axiosInstance.interceptors.response.use(
         }
 
         // Non-auth errors: show friendly message if available
-        const extractMessage = (d: any) => {
+        const extractMessage = (d: unknown): string | null => {
           if (!d) return null;
           if (typeof d === "string") return d;
-          if (typeof d.message === "string") return d.message;
-          if (typeof d.message?.message === "string") return d.message.message;
-          if (typeof d.error === "string") return d.error;
+          const obj = d as Record<string, unknown>;
+          if (typeof obj.message === "string") return obj.message;
+          if (typeof obj.message === "object" && obj.message !== null) {
+            const nested = obj.message as Record<string, unknown>;
+            if (typeof nested.message === "string") return nested.message;
+          }
+          if (typeof obj.error === "string") return obj.error;
           return null;
         };
 
         const userMessage = extractMessage(data);
         if (userMessage) {
-          toast.error(String(userMessage));
+          // create a stable toastId from the message so duplicate messages won't stack
+          const safeId = `api-error-${String(userMessage).replace(/[^a-z0-9]+/gi, '-').slice(0, 60)}`;
+          toast.error(String(userMessage), { toastId: safeId });
         } else if (statusCode >= 500) {
-          toast.error("Đã có lỗi xảy ra trên server. Vui lòng thử lại sau.");
+          toast.error("Đã có lỗi xảy ra trên server. Vui lòng thử lại sau.", { toastId: 'server-error' });
         }
       }
     } catch (handlerErr) {
