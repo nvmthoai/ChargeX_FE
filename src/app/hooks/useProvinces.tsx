@@ -1,12 +1,10 @@
-
-
 import { useState, useEffect } from "react";
 import axios from "axios";
+import ENV from "../config/env";
 
 export interface Province {
-  code: number;
-  name: string;
-  districts?: District[];
+  Code: number;
+  NameExtension: string[];
 }
 
 export interface District {
@@ -25,47 +23,40 @@ const useProvinces = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchProvinces();
+    getProvinces();
+    fetchDistricts(298);
+    fetchWards(1556);
   }, []);
 
-  const fetchProvinces = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get("https://provinces.open-api.vn/api/p/");
-      if(response){
-        setProvinces(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching provinces:", error);
-    } finally {
-      setLoading(false);
+  const GHN_API = axios.create({
+    baseURL: "https://dev-online-gateway.ghn.vn/shiip/public-api",
+    headers: {
+      "Content-Type": "application/json",
+      Token: "a6e9f694-b57a-11f0-b040-4e257d8388b4",
+    },
+  });
+
+  // Lấy danh sách tỉnh
+  const getProvinces = async () => {
+    const res = await GHN_API.get("/master-data/province");
+    if (res && res.data) {
+      setProvinces(res.data);
     }
+    return res.data;
   };
 
-  const fetchDistricts = async (provinceCode: number): Promise<District[]> => {
-    try {
-      const response = await fetch(
-        `https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`
-      );
-      const data = await response.json();
-      return data.districts || [];
-    } catch (error) {
-      console.error("Error fetching districts:", error);
-      return [];
-    }
+  const fetchDistricts = async (province_id: number) => {
+    const res = await GHN_API.post("/master-data/district", { province_id });
+    return res.data;
   };
 
-  const fetchWards = async (districtCode: number): Promise<Ward[]> => {
-    try {
-      const response = await fetch(
-        `https://provinces.open-api.vn/api/d/${districtCode}?depth=2`
-      );
-      const data = await response.json();
-      return data.wards || [];
-    } catch (error) {
-      console.error("Error fetching wards:", error);
-      return [];
-    }
+  // Lấy danh sách phường theo quận
+  const fetchWards = async (district_id: number) => {
+    const res = await GHN_API.post(
+      `/master-data/ward?district_id=${district_id}`,
+      { district_id }
+    );
+    return res.data;
   };
 
   return {
