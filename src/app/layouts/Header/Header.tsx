@@ -210,9 +210,9 @@ export default function Header() {
         ) : (
           <button
             onClick={() => navigate("/auth")}
-            className="px-4 py-1.5 bg-white rounded-full shadow text-sm font-medium text-gray-700 hover:text-gray-900 transition"
+            className="px-4 py-1.5 bg-white rounded-full shadow text-sm font-medium text-gray-700 hover:text-gray-900 transition cursor-pointer"
           >
-            Login
+            Đăng nhập
           </button>
         )}
           </div>

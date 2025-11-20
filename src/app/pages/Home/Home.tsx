@@ -60,10 +60,10 @@ export default function EVMarketplace() {
   };
 
   const getDisplayPrice = (product: (typeof products)[0]) => {
-    if (product.price_now) return `$${product.price_now.toLocaleString()}`;
+    if (product.price_now) return `${Number(product.price_now || 0)?.toLocaleString()} VND`;
     if (product.price_buy_now)
-      return `$${product.price_buy_now.toLocaleString()}`;
-    return `$${product.price_start.toLocaleString()}`;
+      return `${Number(product.price_buy_now || 0)?.toLocaleString()} VND`;
+    return `${Number(product.price_start || 0)?.toLocaleString()} VND`;
   };
 
   const getCondition = (product: (typeof products)[0]) => {
@@ -88,10 +88,13 @@ export default function EVMarketplace() {
               EV Battery Marketplace
             </h1>
             <p
-              className="text-xl sm:text-2xl mb-8 animate-slideUp text-black"
-
+              className="text-xl sm:text-2xl mb-8 animate-slideUp font-bold text-black"
+                style={{
+                  fontWeight: '500',
+                }}
             >
-              Discover Premium Electric Vehicle Batteries
+              Khám phá pin xe điện cao cấp
+              {/* Discover Premium Electric Vehicle Batteries */}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <div
@@ -104,7 +107,8 @@ export default function EVMarketplace() {
                 }}
               >
                 <Zap className="w-5 h-5" />
-                <span>High Quality</span>
+                {/* <span>High Quality</span> */}
+                <span>Chất lượng cao</span>
               </div>
               <div
                 className="flex items-center gap-2 backdrop-blur-sm rounded-full px-4 py-2"
@@ -116,7 +120,8 @@ export default function EVMarketplace() {
                 }}
               >
                 <Battery className="w-5 h-5" />
-                <span>Certified</span>
+                {/* <span>Certified</span> */}
+                <span>Đã được chứng chỉ</span>
               </div>
               <div
                 className="flex items-center gap-2 backdrop-blur-sm rounded-full px-4 py-2"
@@ -128,7 +133,8 @@ export default function EVMarketplace() {
                 }}
               >
                 <TrendingUp className="w-5 h-5" />
-                <span>Best Prices</span>
+                {/* <span>Best Prices</span> */}
+                <span>Giá tốt nhất</span>
               </div>
             </div>
           </div>
@@ -259,10 +265,10 @@ export default function EVMarketplace() {
           <div className="flex-1">
             <div className="mb-6">
               <h2 className="text-3xl font-bold text-dark-900 mb-2">
-                Explore Products
+                Khám phá sản phẩm
               </h2>
               <p className="text-dark-800 font-medium">
-                Found {filteredProducts.length} products
+                Tìm thấy {filteredProducts.length} sản phẩm phù hợp
               </p>
             </div>
 
@@ -358,7 +364,7 @@ export default function EVMarketplace() {
                       onClick={() => navigate(`/productdetail/${product.id}`)}
                       className="w-full py-2.5 px-4 bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ocean-500/50"
                     >
-                      View Details
+                      Xem chi tiết
                     </button>
                   </div>
                 </div>

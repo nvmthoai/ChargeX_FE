@@ -52,7 +52,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
 
             {address.isDefault && (
               <span className="px-3 py-1 bg-red-100 text-red-600 text-sm font-medium rounded border border-red-300">
-                Default
+                Mặc định
               </span>
             )}
 {/* 
@@ -76,7 +76,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
             onClick={() => onEdit(address)}
             className="text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
           >
-            Update
+            Cập nhật
           </button>
 
           {/* Chỉ hiện trong trang Profile */}
@@ -86,13 +86,13 @@ const AddressCard: React.FC<AddressCardProps> = ({
                 onClick={() => onDelete?.(address.addressId)}
                 className="text-blue-600 hover:text-blue-700 font-medium"
               >
-                Delete
+                Xóa
               </button>
               <button
                 onClick={() => onSetDefault?.(address.addressId)}
                 className="px-4 py-2 border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg font-medium transition-colors"
               >
-                Set as Default
+                Làm mặc định
               </button>
             </>
           )}
