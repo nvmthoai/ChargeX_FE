@@ -22,6 +22,10 @@ export interface AddressRef {
   fullName: string;
   phone: string;
   line1: string;
+  // optional expanded fields returned by BE
+  fullAddress?: string;
+  districtId?: number;
+  wardCode?: string;
 }
 
 // 👤 Người dùng
@@ -56,6 +60,7 @@ export interface OrderShop {
   shippingFee?: number;
   status?: string;
   orderDetails?: OrderDetail[];
+  fromAddress?: AddressRef; // pickup address of the shop (returned by BE)
 }
 
 // 🧾 Đơn hàng chính
@@ -106,7 +111,6 @@ export interface CreateOrderRequest {
     }[];
   }[];
 }
-
 
 // 🟨 Cập nhật đơn hàng
 export interface UpdateOrderRequest {
