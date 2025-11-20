@@ -126,26 +126,25 @@ const AddressManagement: React.FC = () => {
       </div>
 
       {/* Address Form Modal */}
-      {showModal && (
-        <AddressFormModal
-          address={editingAddress || undefined} // <-- fix lỗi TypeScript null
-          onClose={() => {
-            setShowModal(false);
-            setEditingAddress(null);
-          }}
-          onSuccess={() => {
-            message.success(
-              editingAddress
-                ? "Address updated successfully"
-                : "New address added successfully"
-            );
-            setShowModal(false);
-            setEditingAddress(null);
-          }}
-          handleCreateAddress={handleCreateAddress}
-          handleUpdateAddress={handleUpdateAddress}
-        />
-      )}
+      <AddressFormModal
+        open={showModal}
+        address={editingAddress || undefined}
+        onClose={() => {
+          setShowModal(false);
+          setEditingAddress(null);
+        }}
+        onSuccess={() => {
+          message.success(
+            editingAddress
+              ? "Address updated successfully"
+              : "New address added successfully"
+          );
+          setShowModal(false);
+          setEditingAddress(null);
+        }}
+        handleCreateAddress={handleCreateAddress}
+        handleUpdateAddress={handleUpdateAddress}
+      />
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

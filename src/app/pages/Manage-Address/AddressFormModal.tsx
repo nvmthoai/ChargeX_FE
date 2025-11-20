@@ -1,9 +1,19 @@
 // src/app/pages/Manage-Address/AddressFormModal.tsx
 import React, { useState, useEffect } from "react";
 import { Form, Input, Select, Checkbox, Button, message } from "antd";
+import { MapPin, Home, Building2 } from "lucide-react";
 import useProvinces from "../../hooks/useProvinces";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface AddressFormModalProps {
+  open: boolean;
   address?: {
     addressId?: string;
     fullName: string;
@@ -23,6 +33,7 @@ interface AddressFormModalProps {
 }
 
 const AddressFormModal: React.FC<AddressFormModalProps> = ({
+  open,
   address,
   onClose,
   onSuccess,
@@ -106,23 +117,43 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-[800px] max-h-[90vh] overflow-y-auto py-10 px-20">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
-          {address ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới"}
-        </h2>
+    <Dialog open={open} onOpenChange={(open) => !open && !loading && onClose()}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent flex items-center gap-2">
+            <MapPin className="w-6 h-6 text-ocean-600" />
+            {address ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới"}
+          </DialogTitle>
+          <DialogDescription>
+            {address
+              ? "Cập nhật thông tin địa chỉ của bạn"
+              : "Thêm địa chỉ mới để nhận hàng"}
+          </DialogDescription>
+        </DialogHeader>
 
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        <Form form={form} layout="vertical" onFinish={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Form.Item name="fullName" label="Họ và tên" rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}>
-              <Input size="large" placeholder="Nguyễn Văn A" />
+            <Form.Item
+              name="fullName"
+              label={<span className="font-medium text-dark-800 dark:text-dark-200">Họ và tên</span>}
+              rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+            >
+              <Input size="large" placeholder="Nguyễn Văn A" className="rounded-lg" />
             </Form.Item>
-            <Form.Item name="phone" label="Số điện thoại" rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}>
-              <Input size="large" placeholder="0901234567" />
+            <Form.Item
+              name="phone"
+              label={<span className="font-medium text-dark-800 dark:text-dark-200">Số điện thoại</span>}
+              rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
+            >
+              <Input size="large" placeholder="0901234567" className="rounded-lg" />
             </Form.Item>
           </div>
 
-          <Form.Item name="provinceId" label="Tỉnh/Thành phố" rules={[{ required: true }]}>
+          <Form.Item
+            name="provinceId"
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Tỉnh/Thành phố</span>}
+            rules={[{ required: true, message: "Vui lòng chọn tỉnh/thành phố" }]}
+          >
             <Select
               size="large"
               loading={loadingProvinces}
@@ -130,6 +161,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
               onChange={handleProvinceChange}
               showSearch
               optionFilterProp="children"
+              className="rounded-lg"
             >
               {provinces.map((p) => (
                 <Select.Option key={p.code} value={p.code}>
@@ -139,7 +171,11 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item name="districtId" label="Quận/Huyện" rules={[{ required: true }]}>
+          <Form.Item
+            name="districtId"
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Quận/Huyện</span>}
+            rules={[{ required: true, message: "Vui lòng chọn quận/huyện" }]}
+          >
             <Select
               size="large"
               disabled={hookDistricts.length === 0}
@@ -147,6 +183,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
               onChange={handleDistrictChange}
               showSearch
               optionFilterProp="children"
+              className="rounded-lg"
             >
               {hookDistricts.map((d) => (
                 <Select.Option key={d.code} value={d.code}>
@@ -156,13 +193,18 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item name="wardCode" label="Phường/Xã" rules={[{ required: true }]}>
+          <Form.Item
+            name="wardCode"
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Phường/Xã</span>}
+            rules={[{ required: true, message: "Vui lòng chọn phường/xã" }]}
+          >
             <Select
               size="large"
               disabled={hookWards.length === 0}
               placeholder={hookWards.length === 0 ? "Chọn quận/huyện trước" : "Chọn phường/xã"}
               showSearch
               optionFilterProp="children"
+              className="rounded-lg"
             >
               {hookWards.map((w) => (
                 <Select.Option key={w.code} value={w.code}>
@@ -172,45 +214,88 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item name="line1" label="Địa chỉ chi tiết" rules={[{ required: true }]}>
-            <Input.TextArea rows={3} placeholder="Ví dụ: 123 Đường Láng, Phường Láng Thượng" />
+          <Form.Item
+            name="line1"
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Địa chỉ chi tiết</span>}
+            rules={[{ required: true, message: "Vui lòng nhập địa chỉ chi tiết" }]}
+          >
+            <Input.TextArea
+              rows={3}
+              placeholder="Ví dụ: 123 Đường Láng, Phường Láng Thượng"
+              className="rounded-lg"
+            />
           </Form.Item>
 
-          <Form.Item name="note" label="Ghi chú (tùy chọn)">
-            <Input.TextArea rows={2} />
+          <Form.Item
+            name="note"
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Ghi chú (tùy chọn)</span>}
+          >
+            <Input.TextArea rows={2} className="rounded-lg" />
           </Form.Item>
 
-          <div className="mb-6">
-            <label className="font-medium block mb-2">Loại địa chỉ</label>
-            <div className="flex gap-4">
-              <Button
-                type={selectedLabel === "Home" ? "primary" : "default"}
+          <div className="p-4 bg-ocean-50 dark:bg-ocean-900/20 rounded-lg">
+            <label className="font-medium text-dark-800 dark:text-dark-200 block mb-3">
+              Loại địa chỉ
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
                 onClick={() => setSelectedLabel("Home")}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${
+                  selectedLabel === "Home"
+                    ? "bg-ocean-500 text-white border-ocean-600 shadow-md"
+                    : "bg-white text-ocean-700 border-ocean-200 hover:border-ocean-300"
+                }`}
               >
-                Nhà riêng
-              </Button>
-              <Button
-                type={selectedLabel === "Office" ? "primary" : "default"}
+                <Home className="w-5 h-5" />
+                <span className="font-semibold">Nhà riêng</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setSelectedLabel("Office")}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${
+                  selectedLabel === "Office"
+                    ? "bg-ocean-500 text-white border-ocean-600 shadow-md"
+                    : "bg-white text-ocean-700 border-ocean-200 hover:border-ocean-300"
+                }`}
               >
-                Công ty
-              </Button>
+                <Building2 className="w-5 h-5" />
+                <span className="font-semibold">Công ty</span>
+              </button>
             </div>
           </div>
 
           <Form.Item name="isDefault" valuePropName="checked">
-            <Checkbox>Đặt làm địa chỉ mặc định</Checkbox>
+            <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-ocean-200/50">
+              <Checkbox className="rounded" />
+              <span className="text-dark-800 dark:text-dark-200 font-medium">
+                Đặt làm địa chỉ mặc định
+              </span>
+            </div>
           </Form.Item>
 
-          <div className="flex justify-end gap-4 mt-8">
-            <Button size="large" onClick={onClose}>Hủy</Button>
-            <Button size="large" type="primary" htmlType="submit" loading={loading}>
+          <DialogFooter className="gap-2 sm:gap-0 mt-6">
+            <Button
+              size="large"
+              onClick={onClose}
+              disabled={loading}
+              className="rounded-xl"
+            >
+              Hủy
+            </Button>
+            <Button
+              size="large"
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              className="bg-gradient-to-r from-ocean-500 to-energy-500 hover:from-ocean-600 hover:to-energy-600 rounded-xl font-semibold"
+            >
               {address ? "Cập nhật" : "Thêm địa chỉ"}
             </Button>
-          </div>
+          </DialogFooter>
         </Form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
