@@ -14,30 +14,27 @@ export default function WalletDisplay({ wallet }: WalletDisplayProps) {
       <Space direction="vertical" size="small" className="w-full">
         <div className="flex items-center gap-2">
           <WalletOutlined className="text-ocean-600 text-lg" />
-          <span className="text-sm font-semibold text-ocean-700">My Wallet</span>
+          <span className="text-sm font-semibold text-ocean-700">Ví của tôi</span>
         </div>
         <div className="grid grid-cols-3 gap-4">
           <div>
             <Statistic
               title={<span className="text-ocean-600 font-medium">Balance</span>}
-              value={wallet.balance}
-              prefix="$"
+              value={Number(wallet.balance)?.toLocaleString() + " VND"}
               valueStyle={{ color: "#1890ff", fontSize: "16px", fontWeight: "600" }}
             />
           </div>
           <div>
             <Statistic
               title={<span className="text-energy-600 font-medium">Held</span>}
-              value={wallet.held}
-              prefix="$"
+              value={Number(wallet.held)?.toLocaleString() + " VND"}
               valueStyle={{ color: "#faad14", fontSize: "16px", fontWeight: "600" }}
             />
           </div>
           <div>
             <Statistic
               title={<span className="text-green-600 font-medium">Available</span>}
-              value={wallet.available}
-              prefix="$"
+              value={Number(wallet.available)?.toLocaleString() + " VND"}
               valueStyle={{ color: "#52c41a", fontSize: "16px", fontWeight: "600" }}
             />
           </div>
