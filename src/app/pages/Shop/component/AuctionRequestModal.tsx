@@ -36,18 +36,30 @@ export default function AuctionRequestModal({
     try {
       setLoading(true);
 
+      // Validate user data
+      if (!userData?.sub) {
+        message.error("User information not found. Please login again.");
+        setLoading(false);
+        return;
+      }
+
       // Validate prices
       if (values.reservePrice < values.startingPrice) {
         message.error("Reserve price must be >= starting price");
+        setLoading(false);
         return;
       }
 
-      if (values.buyNowPrice && values.buyNowPrice <= values.reservePrice) {
-        message.error("Buy-now price must be > reserve price");
-        return;
+      // Note: buyNowPrice is optional, but if provided, it should be > reservePrice
+      if (values.buyNowPrice !== undefined && values.buyNowPrice !== null && values.buyNowPrice > 0) {
+        if (values.buyNowPrice <= values.reservePrice) {
+          message.error(`Buy-now price (${values.buyNowPrice.toLocaleString()}) must be greater than reserve price (${values.reservePrice.toLocaleString()})`);
+          setLoading(false);
+          return;
+        }
       }
 
-      const response = await onSubmit({
+      const submitData = {
         sellerId: userData.sub,
         productId,
         startingPrice: values.startingPrice,
@@ -57,14 +69,21 @@ export default function AuctionRequestModal({
         buyNowPrice: values.buyNowPrice || null,
         bidDepositPercent: values.bidDepositPercent || 0,
         note: values.note,
-      });
+      };
+
+      const response = await onSubmit(submitData);
+      
       if (response) {
         message.success("Auction request submitted successfully");
         form.resetFields();
         onClose();
+      } else {
+        message.warning("Request submitted but no response received");
       }
     } catch (error: any) {
-      message.error(error?.message || "Failed to submit auction request");
+      console.error('Error in handleSubmit:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to submit auction request";
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -242,23 +261,35 @@ export default function AuctionRequestModal({
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full sm:w-auto gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Gavel className="w-4 h-4" />
-                  Submit Request
-                </>
-              )}
-            </Button>
+            <Form.Item className="mb-0">
+              <Button
+                type="button"
+                disabled={loading}
+                className="w-full sm:w-auto gap-2"
+                onClick={(e) => { 
+                  e.preventDefault();
+                  form.validateFields()
+                    .then((values) => {
+                      handleSubmit(values);
+                    })
+                    .catch(() => {
+                      // Ant Design sẽ tự động hiển thị lỗi validation
+                    });
+                }}
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Gavel className="w-4 h-4" />
+                    Submit Request
+                  </>
+                )}
+              </Button>
+            </Form.Item>
           </DialogFooter>
         </Form>
       </DialogContent>

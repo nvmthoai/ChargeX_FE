@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Table, Tag, Spin, Button, Modal, Descriptions, message } from "antd";
 import { EyeOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
@@ -26,6 +25,32 @@ interface AuctionInfo {
   images?: string[];
 }
 
+// Helper to derive sellerId from storage or JWT
+function getSellerIdFromTokenOrStorage() {
+  const byStorage = localStorage.getItem('userId');
+  if (byStorage) return byStorage;
+  try {
+    const rawUser = localStorage.getItem('user');
+    if (rawUser) {
+      const parsed = JSON.parse(rawUser);
+      if (parsed?.id) return parsed.id;
+      if (parsed?.userId) return parsed.userId;
+      if (parsed?.sub) return parsed.sub;
+    }
+  } catch {}
+  let token = localStorage.getItem('token');
+  if (!token) return null;
+  if (String(token).toLowerCase().startsWith('bearer ')) token = String(token).slice(7);
+  try {
+    const parts = String(token).split('.');
+    if (parts.length < 2) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    return payload?.userId || payload?.id || payload?.sub || null;
+  } catch {
+    return null;
+  }
+}
+
 export default function AuctionManager() {
   const navigate = useNavigate();
   const [auctions, setAuctions] = useState<AuctionInfo[]>([]);
@@ -41,27 +66,31 @@ export default function AuctionManager() {
     try {
       setLoading(true);
 
-      // Get seller ID from localStorage
-      const sellerId = localStorage.getItem('userId');
+      // Get seller ID from token or localStorage
+      const sellerId = getSellerIdFromTokenOrStorage();
 
       if (!sellerId) {
-        message.warning("Please login to view your auctions");
+        console.warn('AuctionManager: no sellerId found');
+        message.warning('Please login to view your auctions');
         setLoading(false);
         return;
       }
 
+      console.log('AuctionManager: fetching seller auctions for', sellerId);
+
       // Call backend API via auctionApi
       try {
         const resp = await auctionApi.getSellerAuctions(sellerId, 1, 20);
-        const auctionData = resp?.items || resp?.data?.items || [];
+        console.log('AuctionManager: seller auctions resp=', resp);
+        const auctionData = resp?.items || resp?.data?.items || resp?.data || [];
 
-        if (auctionData.length > 0) {
+        if (Array.isArray(auctionData) && auctionData.length > 0) {
           setAuctions(auctionData);
           setLoading(false);
           return;
         }
       } catch (apiError) {
-        console.warn("API call failed, using mock data:", apiError);
+        console.warn('API call failed, using mock data:', apiError);
       }
 
       // Fallback: Mock data for development
