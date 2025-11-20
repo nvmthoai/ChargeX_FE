@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
-import { Clock3, MapPin, Phone, Gavel } from "lucide-react";
-import type { Product } from "../../../../api/product/type";
-import AddToCart from "../../Order/AddToCart";
-import useAddress from "../../../hooks/useAddress";
+import { fetchData, getQueryString } from "@/mocks/CallingAPI";
+import { Clock3, Gavel, MapPin, Phone } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import type { Product } from "../../../../api/product/type";
+import useAddress from "../../../hooks/useAddress";
+import AddToCart from "../../Order/AddToCart";
 
 export default function ProductInfo({ product }: { product: Product }) {
   const [loading, setLoading] = useState(false);
@@ -15,18 +16,34 @@ export default function ProductInfo({ product }: { product: Product }) {
 
   const { addresses } = useAddress();
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+
+  const [orders, setOrders] = useState<Record<string, any>[]>([]);
+  const [refresh, setRefresh] = useState(0);
+  const isInCart = orders.find(order => order.orderShops?.some((shop: any) => shop.orderDetails?.some((detail: any) => detail.product?.id === product.id)) && order.buyer?.userId == user?.sub) !== undefined;
+  const isBought = orders.find(order => order.orderShops?.some((shop: any) => shop.orderDetails?.some((detail: any) => detail.product?.id === product.id)) && order.status == "paid") !== undefined;
+
   useEffect(() => {
     if (addresses && addresses.length > 0) {
       const defaultAddr = addresses.find((a: any) => a.isDefault);
       if (defaultAddr) setSelectedAddressId(defaultAddr.addressId);
     }
-  }, [addresses]);
 
+    (async () => {
+      setLoading(true);
+      const token = localStorage.getItem('token') || '';
+      try {
+        const OrdersResponse = await fetchData(`/orders${getQueryString({ page: 1, limit: 1000 })}`, token);
+        // const FilterMyOrders = OrdersResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub);
+        // console.log('FilterMyOrders', FilterMyOrders);
+        setOrders(OrdersResponse?.data?.data || []);
+      } catch (error) {
+        console.error('Error loading orders', error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [addresses, refresh]);
 
-
-
-
-  // 🛒 Handle Buy Now
   const handleBuyNow = async () => {
     try {
       setLoading(true);
@@ -61,6 +78,7 @@ export default function ProductInfo({ product }: { product: Product }) {
       return false;
     } finally {
       setLoading(false);
+      setRefresh(p => p + 1);
     }
   };
 
@@ -106,17 +124,17 @@ export default function ProductInfo({ product }: { product: Product }) {
             <div className="grid grid-cols-2 gap-y-3 text-sm text-gray-800">
               <div className="font-semibold text-dark-800">Start Price</div>
               <div className="font-semibold text-gray-900">
-                ${(product.price_start).toLocaleString()}
+                {(product.price_start).toLocaleString()} VND
               </div>
 
               <div className="font-medium text-gray-500">Current Price</div>
               <div className="font-bold text-green-600 text-base">
-                ${(product.price_now ?? product.price_start).toLocaleString()}
+                {(product.price_now ?? product.price_start).toLocaleString()} VND
               </div>
 
               <div className="font-medium text-gray-500">Buy Now Price</div>
               <div className="font-semibold text-blue-600">
-                ${(product.price_buy_now ?? 0).toLocaleString()}
+                {(product.price_buy_now ?? 0).toLocaleString()} VND
               </div>
 
               <div className="font-medium text-gray-500">End Time</div>
@@ -176,7 +194,7 @@ export default function ProductInfo({ product }: { product: Product }) {
 
       {/* Buy Now + Watchlist */}
       <div
-        className={`flex gap-3 mt-5 ${isOwner ? "opacity-60 pointer-events-none select-none" : ""
+        className={`flex gap-3 mt-5 ${(isOwner || isBought) ? "opacity-60 pointer-events-none select-none" : ""
           }`}
       >
         <button
@@ -187,23 +205,29 @@ export default function ProductInfo({ product }: { product: Product }) {
         >
           {loading
             ? "Đang xử lý..."
-            : `Buy Now $${Number(product.price_buy_now).toLocaleString()}`}
+            : `Buy Now ${Number(product.price_buy_now).toLocaleString()} VND`}
         </button>
 
         <button
           onClick={handleAddToCart}
-          className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium"
+          className={`flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium ${isInCart ? "opacity-50 cursor-not-allowed" : ""}`}
+          disabled={isInCart}
         >
-          Add to Watchlist
+          {isInCart ? "Already In Watchlist" : "Add to Watchlist"}
         </button>
       </div>
 
       {/* Nếu là sản phẩm của chính user, hiển thị cảnh báo nhỏ bên dưới */}
-      {isOwner && (
+      {isOwner ?
         <p className="text-sm text-red-500 mt-2 italic">
           ⚠️ Bạn không thể mua hoặc thêm sản phẩm của chính mình.
         </p>
-      )}
+        : (isBought &&
+          <p className="text-sm text-green-600 mt-2 italic">
+            ✅ Sản phẩm này đã được bán.
+          </p>
+        )
+      }
 
 
       {/* Specifications */}

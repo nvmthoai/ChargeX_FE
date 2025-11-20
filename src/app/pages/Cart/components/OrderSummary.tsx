@@ -11,9 +11,6 @@ interface OrderSummaryProps {
 
 export default function OrderSummary({
   selectedItems,
-  subtotal,
-  shipping,
-  tax,
   total,
 }: OrderSummaryProps) {
   return (
@@ -25,26 +22,26 @@ export default function OrderSummary({
         <h2 className="text-xl font-bold text-dark-900">Order Summary</h2>
       </div>
 
-      <div className="space-y-3 mb-6">
+      {/* <div className="space-y-3 mb-6">
         <div className="flex justify-between items-center py-2">
           <span className="text-dark-800 font-medium">Subtotal</span>
-          <span className="font-semibold text-dark-900">${subtotal.toFixed(2)}</span>
+          <span className="font-semibold text-dark-900">{Number(subtotal).toLocaleString()} VND</span>
         </div>
         <div className="flex justify-between items-center py-2">
           <span className="text-dark-600">Shipping</span>
-          <span className="font-semibold text-dark-900">${shipping.toFixed(2)}</span>
+          <span className="font-semibold text-dark-900">{Number(shipping).toLocaleString()} VND</span>
         </div>
         <div className="flex justify-between items-center py-2">
           <span className="text-dark-600">Tax (estimated)</span>
-          <span className="font-semibold text-dark-900">${tax.toFixed(2)}</span>
+          <span className="font-semibold text-dark-900">{Number(tax).toLocaleString()} VND</span>
         </div>
-      </div>
+      </div> */}
 
       <div className="border-t border-ocean-200 pt-4 mb-6">
         <div className="flex justify-between items-center">
           <span className="text-lg font-bold text-dark-900">Order Total</span>
           <span className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
-            ${total.toFixed(2)}
+            {Number(total).toLocaleString()} VND
           </span>
         </div>
       </div>
@@ -57,7 +54,7 @@ export default function OrderSummary({
         >
           <button 
             disabled={selectedItems.length === 0}
-            className="w-full py-3 px-4 bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 text-white rounded-xl font-semibold shadow-lg shadow-ocean-500/30 hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 text-white rounded-xl font-semibold shadow-lg shadow-ocean-500/30 hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 cursor-pointer"
           >
             Proceed to Checkout
             <ArrowRight className="w-5 h-5" />
@@ -65,7 +62,7 @@ export default function OrderSummary({
         </Link>
         
         <Link to='/' className="block">
-          <button className="w-full py-3 px-4 border-2 border-ocean-200 text-ocean-700 rounded-xl font-semibold hover:bg-ocean-50 hover:border-ocean-300 transition-all">
+          <button className="w-full py-3 px-4 border-2 border-ocean-200 text-ocean-700 rounded-xl font-semibold hover:bg-ocean-50 hover:border-ocean-300 transition-all cursor-pointer">
             Continue Shopping
           </button>
         </Link>

@@ -22,6 +22,10 @@ export interface AddressRef {
   fullName: string;
   phone: string;
   line1: string;
+  // optional expanded fields returned by BE
+  fullAddress?: string;
+  districtId?: number;
+  wardCode?: string;
 }
 
 // 👤 Người dùng
@@ -35,10 +39,22 @@ export interface UserRef {
 // 📦 Sản phẩm
 export interface ProductRef {
   id: string;
-  title: string;
+  name?: string;     // API get all orders
+  title?: string;    // API get order detail
   description?: string;
-  imageUrls: string[];
+  imageUrl?: string[];
+  imageUrls?: string[];
+
 }
+
+// 💳 Thanh toán
+export interface PaymentInfo {
+  method?: string;
+  status?: string;
+  transactionId?: string;
+  provider?: string;
+}
+
 
 // 💰 Chi tiết sản phẩm trong đơn hàng
 export interface OrderDetail {
@@ -56,6 +72,7 @@ export interface OrderShop {
   shippingFee?: number;
   status?: string;
   orderDetails?: OrderDetail[];
+  fromAddress?: AddressRef; // pickup address of the shop (returned by BE)
 }
 
 // 🧾 Đơn hàng chính
@@ -74,6 +91,7 @@ export interface Order {
   totalShippingFee: number;
   grandTotal?: number;
   status: OrderStatus;
+  payment?: PaymentInfo;
 
   shipping_provider?: string;
   shipping_code?: string;
@@ -107,7 +125,6 @@ export interface CreateOrderRequest {
   }[];
 }
 
-
 // 🟨 Cập nhật đơn hàng
 export interface UpdateOrderRequest {
   status?: OrderStatus;
@@ -129,3 +146,18 @@ export interface GetOrdersParams {
   search?: string; // 🟢 thêm dòng này
 }
 
+export interface PaginatedOrders {
+  data: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  statusCode: number;
+  data: T;
+}
+
+export type GetOrdersResponse = ApiResponse<PaginatedOrders>;
