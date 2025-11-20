@@ -15,7 +15,7 @@
 
   export default function OrderTracking({ events }: Props) {
     const steps = [
-      { key: "pending", label: "Order Created", icon: ClipboardList },
+      { key: "paid", label: "Order Created", icon: ClipboardList },
       { key: "in_transit", label: "Delivering", icon: Truck },
       { key: "delivered", label: "Delivered", icon: PackageCheck },
       { key: "completed", label: "Completed", icon: Home },

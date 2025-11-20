@@ -49,3 +49,7 @@
 .animate-slideUp {
   animation: slideUp 0.35s ease-out forwards;
 }
+
+.scrollbar-hide {
+  scrollbar-width: none;
+}

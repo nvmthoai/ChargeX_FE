@@ -41,10 +41,15 @@ const fetchOrders = async () => {
     });
     console.log("✅ Fetched orders:", res);
 
-    const paginated = res.data;  
+    const paginated = res.data;
 
-    setOrders(paginated.data);
-    setTotal(paginated.total);
+    // 🔎 Chỉ hiển thị các đơn KHÔNG ở trạng thái pending
+    const visibleOrders = (paginated.data || []).filter(
+      (o: Order) => o.status?.toLowerCase() !== "pending"
+    );
+console.log("visibleOrders", visibleOrders);
+    setOrders(visibleOrders);
+    setTotal(visibleOrders.length);
   } catch (err) {
     console.error("❌ Failed to load orders:", err);
   } finally {
@@ -76,7 +81,7 @@ const fetchOrders = async () => {
   };
 
   return (
-    <div className="p-6 space-y-6 relative">
+    <div className="p-6 space-y-6 relative ">
       <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
         {/* 🔍 Filter */}
         <FilterProduct
@@ -104,9 +109,13 @@ const fetchOrders = async () => {
           statusOptions={[
             { label: "Pending", value: "pending" },
             { label: "Paid", value: "paid" },
+            { label: "Handed to Carrier", value: "handed_to_carrier" },
             { label: "In Transit", value: "in_transit" },
+            { label: "Delivered Pending Confirm", value: "delivered_pending_confirm" },
             { label: "Delivered", value: "delivered" },
+            { label: "Refunded", value: "refunded" },
             { label: "Completed", value: "completed" },
+            { label: "Disputed", value: "disputed" },
             { label: "Cancelled", value: "cancelled" },
           ]}
         />
@@ -135,6 +144,7 @@ const fetchOrders = async () => {
             <tbody>
               {orders.map((o) => {
                 const product = o.orderShops?.[0]?.orderDetails?.[0]?.product;
+                console.log("o", o);
                 return (
                   <tr
                     key={o.orderId}
@@ -143,13 +153,13 @@ const fetchOrders = async () => {
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <img
-                          src={product?.imageUrl?.[0] || "/placeholder.png"}
-                          alt={product?.name}
+                          src={product?.imageUrls?.[0] || "/placeholder.png"}
+                          alt={product?.title}
                           className="w-12 h-12 rounded-md object-cover border"
                         />
                         <div>
                           <p className="font-medium text-gray-800">
-                            {product?.name || "Untitled"}
+                            {product?.title || "Untitled"}
                           </p>
                           <p className="text-sm text-gray-500">
                             Buyer: {o.buyer?.fullName || "Unknown"}
