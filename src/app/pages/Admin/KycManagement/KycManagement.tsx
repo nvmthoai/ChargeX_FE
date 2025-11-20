@@ -164,7 +164,7 @@ const KycManagement = () => {
                         className="w-10 h-10 rounded-full object-cover"
                     />
                     <div>
-                        <div className="font-medium text-dark-800 dark:text-dark-200">{kyc.user?.fullName}</div>
+                        <div className="font-medium text-white dark:text-dark-200">{kyc.user?.fullName}</div>
                         <div className="text-xs text-muted-foreground">{kyc.user?.role}</div>
                     </div>
                 </div>
