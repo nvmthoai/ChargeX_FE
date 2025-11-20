@@ -83,6 +83,22 @@ export default function OrderDetail() {
   const role = isSeller ? "seller" : "buyer";
   const actions = orderActions[order.status]?.[role] ?? [];
 
+  // Delivery fallback: prefer order.deliveryAddress (new BE field), then receiverAddressRef or receiver fields, then first orderShop pickup address
+  const delivery =
+    order.deliveryAddress ??
+    (order.receiverAddressRef
+      ? {
+          fullName: order.receiverAddressRef.fullName || order.receiverName || "-",
+          line1: order.receiverAddressRef.line1 || order.receiverAddressRef.fullAddress || "-",
+          phone: order.receiverAddressRef.phone || order.receiverPhone || "-",
+        }
+      : order.orderShops?.[0]?.fromAddress
+      ? {
+          fullName: order.orderShops[0].fromAddress.fullName || "-",
+          line1: order.orderShops[0].fromAddress.line1 || order.orderShops[0].fromAddress.fullAddress || "-",
+          phone: order.orderShops[0].fromAddress.phone || "-",
+        }
+      : { fullName: order.receiverName || "-", line1: order.receiverName || "-", phone: order.receiverPhone || "-" });
 
   // ⚙️ Action handler (update status)
   const handleAction = async (key: string) => {
@@ -97,7 +113,7 @@ export default function OrderDetail() {
     if (!action.nextStatus) return;
 
     try {
-      let updatedOrder: any = order;
+      let updatedOrder: Order = order as Order;
 
       // 📦 Use specialized API for delivery confirmation
       if (key === "markDelivered") {
@@ -122,13 +138,13 @@ export default function OrderDetail() {
       const eventRes = await getOrderEventsByOrderId(order.orderId);
       setEvents(eventRes || []);
 
-      message.success(`✅ ${action.label} thành công`);
+      // use a stable key so the same notification replaces previous ones (prevents duplicates)
+      message.success({ content: `✅ ${action.label} thành công`, key: 'order-action' });
     } catch (err) {
       console.error(err);
-      message.error(`❌ ${action.label} thất bại`);
+      message.error({ content: `❌ ${action.label} thất bại`, key: 'order-action' });
     }
   };
-
 
   // 🧮 Tính toán dữ liệu cơ bản with safe defaults
   const total = Number(order.totalPrice || 0) + Number(order.totalShippingFee || 0);
@@ -213,9 +229,9 @@ export default function OrderDetail() {
       <div className="mt-10">
         <h3 className="text-lg font-semibold mb-3">Delivery Address</h3>
         <div className="bg-gray-50 p-4 rounded-lg border">
-          <p>{order.deliveryAddress?.fullName || "-"}</p>
-          <p>{order.deliveryAddress?.line1 || "-"}</p>
-          <p>{order.deliveryAddress?.phone || "-"}</p>
+          <p>{delivery?.fullName || "-"}</p>
+          <p>{delivery?.line1 || "-"}</p>
+          <p>{delivery?.phone || "-"}</p>
         </div>
       </div>
 
