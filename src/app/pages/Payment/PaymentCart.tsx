@@ -1,6 +1,6 @@
 import { ArrowLeftOutlined, CarOutlined, CreditCardOutlined, ShopOutlined, UserOutlined, WalletOutlined } from "@ant-design/icons";
 import { message, Radio } from "antd";
-import { MapPin } from "lucide-react";
+// import { MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getWalletAvailable } from "../../../api/payment/api";
@@ -172,55 +172,102 @@ export default function PaymentCart() {
                     </h2>
 
                     {sellers?.map((slr: any, i: any) => (
-                        <div key={i}>
+                        <div key={i} className="flex flex-col gap-2 mb-16">
                             {/* 🛍️ Sản phẩm */}
                             {slr?.orders?.map((ord: any, j: any) => (
-                                <div key={j} className="flex items-center gap-4 bg-[#f7faff] rounded-2xl p-4 border border-[#dce9ff]">
-                                    <img
-                                        src={ord.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || "/no-image.png"}
-                                        alt={ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}
-                                        className="w-20 h-20 rounded-xl object-cover border"
-                                    />
-                                    <div className="flex-1">
-                                        <p className="font-semibold text-gray-900 text-lg">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</p>
-                                        <p className="text-sm text-gray-500 line-clamp-2">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.description || "Không có mô tả"}</p>
-                                        <p className="font-semibold text-[#0F74C7] mt-1">{Number(ord.orderShops?.[0]?.orderDetails?.[0]?.price ).toLocaleString()} VND</p>
+                                // <div key={j} className="flex items-center gap-4 bg-[#f7faff] rounded-2xl p-4 border border-[#dce9ff]">
+                                //     <img
+                                //         src={ord.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || "/no-image.png"}
+                                //         alt={ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}
+                                //         className="w-20 h-20 rounded-xl object-cover border"
+                                //     />
+                                //     <div className="flex-1">
+                                //         <p className="font-semibold text-gray-900 text-lg">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</p>
+                                //         <p className="text-sm text-gray-500 line-clamp-2">{ord.orderShops?.[0]?.orderDetails?.[0]?.product?.description || "Không có mô tả"}</p>
+                                //         <p className="font-semibold text-[#0F74C7] mt-1">{Number(ord.orderShops?.[0]?.orderDetails?.[0]?.price ).toLocaleString()} VND</p>
+                                //     </div>
+                                // </div>
+                                <div
+                                    key={j}
+                                    className="group bg-white/90 rounded-2xl border border-ocean-200/50 p-4 hover:shadow-xl transition-all duration-300 animate-fadeIn"
+                                    style={{ animationDelay: `${j * 50}ms` }}
+                                >
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                        <div className="flex gap-4 flex-1 w-full sm:w-auto cursor-pointer">
+                                            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-ocean-100 to-energy-100 flex-shrink-0">
+                                                {ord.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] ? (
+                                                    <img
+                                                        src={ord.orderShops[0].orderDetails[0].product.imageUrls[0]}
+                                                        alt={ord.orderShops[0].orderDetails[0].product.title}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-ocean-300">
+                                                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Product Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-bold text-lg text-dark-900 line-clamp-2 group-hover:text-ocean-600 transition-colors">
+                                                    {ord.orderShops?.[0]?.orderDetails?.[0]?.product?.title || 'Product'}
+                                                </h3>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-lg font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+                                                        {Number(ord.orderShops?.[0]?.orderDetails?.[0]?.price || 0).toLocaleString()} VND
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-4 sm:ml-auto">
+                                            {/* Quantity Display */}
+                                            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-ocean-50 to-energy-50 rounded-lg border border-ocean-200">
+                                                <span className="text-sm font-semibold text-dark-900">
+                                                    {ord.orderShops?.[0]?.orderDetails?.[0]?.quantity || 1}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
 
                             {/* 👩‍💼 Người bán */}
                             <div className="bg-[#fff9f9] border border-red-100 rounded-2xl p-4">
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex items-center gap-2">
                                     <ShopOutlined className="text-red-500 text-lg" />
-                                    <h3 className="font-semibold text-gray-800">Người bán</h3>
+                                    <h3 className="font-semibold text-gray-800">Người bán:</h3> {slr?.fullName}
                                 </div>
-                                <p className="text-gray-700">
-                                    <span className="font-medium">Tên:</span> {slr?.fullName}
-                                </p>
-                                {slr?.orders?.[0]?.pickupAddress && (
+                                {/* <p className="text-gray-700">
+                                    <span className="font-medium">Tên: {slr?.fullName}</span>
+                                </p> */}
+                                {/* {slr?.orders?.[0]?.pickupAddress && (
                                     <p className="flex items-start gap-1 text-gray-700 mt-1">
                                         <MapPin size={16} className="text-red-500 mt-1" />
                                         <span>{pickupLocation}</span>
                                     </p>
-                                )}
+                                )} */}
                             </div>
 
                             {/* 👤 Người mua */}
                             <div className="bg-[#f7fbff] border border-blue-100 rounded-2xl p-4">
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex items-center gap-2">
                                     <UserOutlined className="text-blue-500 text-lg" />
-                                    <h3 className="font-semibold text-gray-800">Người mua</h3>
+                                    <h3 className="font-semibold text-gray-800">Người mua:</h3> {slr?.orders?.[0]?.buyer?.fullName}
                                 </div>
-                                <p className="text-gray-700">
+                                {/* <p className="text-gray-700">
                                     <span className="font-medium">Tên:</span> {slr?.orders?.[0]?.buyer?.fullName}
-                                </p>
-                                {slr?.orders?.[0]?.deliveryAddress && (
+                                </p> */}
+                                {/* {slr?.orders?.[0]?.deliveryAddress && (
                                     <p className="flex items-start gap-1 text-gray-700 mt-1">
                                         <MapPin size={16} className="text-blue-500 mt-1" />
                                         <span>{deliveryLocation}</span>
                                     </p>
-                                )}
+                                )} */}
                             </div>
 
                             {/* 🚚 Vận chuyển */}

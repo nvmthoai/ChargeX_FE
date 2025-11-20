@@ -210,7 +210,7 @@ export default function ProductInfo({ product }: { product: Product }) {
 
         <button
           onClick={handleAddToCart}
-          className={`flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium ${isInCart ? "opacity-50 pointer-events-none select-none" : ""}`}
+          className={`flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium ${isInCart ? "opacity-50 cursor-not-allowed" : ""}`}
           disabled={isInCart}
         >
           {isInCart ? "Already In Watchlist" : "Add to Watchlist"}

@@ -138,34 +138,88 @@ export default function CheckoutCart() {
                         <h2 className="text-2xl font-semibold text-gray-900">
                             <span className="text-[#0F74C7]">2.</span> Order Items
                         </h2>
-                        {items?.map((item: any) => (
+                        {items?.map((item: any, index: number) => (
+                            // <div
+                            //     key={item.orderId}
+                            //     className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4 gap-4"
+                            // >
+                            //     <div className="flex items-center gap-4">
+                            //         <img
+                            //             src={item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || null}
+                            //             alt={item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}
+                            //             className="w-20 h-20 object-cover rounded-md"
+                            //         />
+                            //         <div>
+                            //             <h3 className="font-semibold">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</h3>
+                            //             <p className="text-sm text-gray-500">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.description}</p>
+                            //             <p className="mt-1 font-semibold">{Number(item.orderShops?.[0]?.orderDetails?.[0]?.price).toLocaleString()} VND</p>
+                            //         </div>
+                            //     </div>
+
+                            //     <div className="flex items-center gap-4">
+                            //         <div className="flex items-center justify-center gap-2">
+                            //             <input
+                            //                 type="text"
+                            //                 inputMode="numeric"
+                            //                 pattern="[0-9]*"
+                            //                 value={item.orderShops?.[0]?.orderDetails?.[0]?.quantity}
+                            //                 className="w-12 h-9 text-center border border-gray-300 rounded-md focus:outline-none text-base font-medium leading-none flex items-center justify-center"
+                            //                 disabled
+                            //             />
+                            //         </div>
+                            //     </div>
+                            // </div>
                             <div
                                 key={item.orderId}
-                                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4 gap-4"
+                                className="group bg-white/90 backdrop-blur-sm rounded-2xl border border-ocean-200/50 p-5 hover:shadow-xl transition-all duration-300 animate-fadeIn"
+                                style={{ animationDelay: `${index * 50}ms` }}
                             >
-                                <div className="flex items-center gap-4">
-                                    <img
-                                        src={item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] || null}
-                                        alt={item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}
-                                        className="w-20 h-20 object-cover rounded-md"
-                                    />
-                                    <div>
-                                        <h3 className="font-semibold">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.title}</h3>
-                                        <p className="text-sm text-gray-500">{item.orderShops?.[0]?.orderDetails?.[0]?.product?.description}</p>
-                                        <p className="mt-1 font-semibold">{Number(item.orderShops?.[0]?.orderDetails?.[0]?.price).toLocaleString()} VND</p>
-                                    </div>
-                                </div>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                    {/* Checkbox & Image */}
+                                    <div className="flex items-center gap-4 flex-1 w-full sm:w-auto cursor-pointer">
+                                        <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-ocean-100 to-energy-100 flex-shrink-0">
+                                            {item.orderShops?.[0]?.orderDetails?.[0]?.product?.imageUrls?.[0] ? (
+                                                <img
+                                                    src={item.orderShops[0].orderDetails[0].product.imageUrls[0]}
+                                                    alt={item.orderShops[0].orderDetails[0].product.title}
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-ocean-300">
+                                                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
 
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center justify-center gap-2">
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            pattern="[0-9]*"
-                                            value={item.orderShops?.[0]?.orderDetails?.[0]?.quantity}
-                                            className="w-12 h-9 text-center border border-gray-300 rounded-md focus:outline-none text-base font-medium leading-none flex items-center justify-center"
-                                            disabled
-                                        />
+                                        {/* Product Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-lg text-dark-900 line-clamp-2 group-hover:text-ocean-600 transition-colors">
+                                                {item.orderShops?.[0]?.orderDetails?.[0]?.product?.title || 'Product'}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 line-clamp-2 mb-1 font-medium">
+                                                {item.orderShops?.[0]?.orderDetails?.[0]?.product?.description || 'No description'}
+                                            </p>
+                                            <h4 className="text-dark-900 line-clamp-2">
+                                                Seller: {item.orderShops?.[0]?.seller?.fullName || 'Unknown'}
+                                            </h4>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-lg font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+                                                    {Number(item.orderShops?.[0]?.orderDetails?.[0]?.price || 0).toLocaleString()} VND
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-4 sm:ml-auto">
+                                        {/* Quantity Display */}
+                                        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-ocean-50 to-energy-50 rounded-lg border border-ocean-200">
+                                            <span className="text-sm font-semibold text-dark-900">
+                                                {item.orderShops?.[0]?.orderDetails?.[0]?.quantity || 1}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
