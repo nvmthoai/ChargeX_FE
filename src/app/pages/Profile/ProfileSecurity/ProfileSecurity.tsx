@@ -8,23 +8,23 @@ export default function ProfileSecurity() {
   const verificationSteps = [
     {
       id: "identity",
-      label: "Identity Verification",
+      label: "Xác minh danh tính",
       status: "completed",
-      description: "Your identity has been verified",
+      description: "Danh tính của bạn đã được xác minh",
       icon: CheckCircle2,
     },
     {
       id: "address",
-      label: "Address Proof",
+      label: "Xác minh địa chỉ",
       status: "pending",
-      description: "Upload proof of address document",
+      description: "Tải lên tài liệu chứng minh địa chỉ của bạn",
       icon: Clock,
     },
     {
       id: "bank",
-      label: "Bank Account Linking",
+      label: "Liên kết tài khoản ngân hàng",
       status: "required",
-      description: "Link your bank account for transactions",
+      description: "Liên kết tài khoản ngân hàng để thực hiện giao dịch thuận lợi hơn",
       icon: AlertCircle,
     },
   ];
@@ -46,10 +46,10 @@ export default function ProfileSecurity() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-ocean-500 to-energy-500 bg-clip-text text-transparent">
-          Security Settings
+          Cài đặt bảo mật
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Ensure a secure trading environment by completing verification
+          Đảm bảo môi trường giao dịch an toàn bằng cách hoàn thành các bước xác minh
         </p>
       </div>
 
@@ -58,10 +58,10 @@ export default function ProfileSecurity() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-ocean-700">
             <Shield className="w-5 h-5 text-ocean-600" />
-            KYC Verification Status
+            Trạng thái xác minh KYC
           </CardTitle>
           <CardDescription className="text-ocean-600">
-            Complete all verification steps to unlock full platform features
+            Hoàn thành tất cả các bước xác minh để mở khóa đầy đủ các tính năng của nền tảng
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -69,10 +69,10 @@ export default function ProfileSecurity() {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium text-ocean-700">
-                Verification Progress
+                Tiến trình xác minh
               </span>
               <span className="font-semibold text-ocean-600">
-                {Math.round(progressPercentage)}% Complete
+                {Math.round(progressPercentage)}% Hoàn thành
               </span>
             </div>
             <div className="w-full h-3 bg-ocean-100 rounded-full overflow-hidden">
@@ -147,7 +147,7 @@ export default function ProfileSecurity() {
           <div className="pt-4 border-t border-ocean-200/30">
             <Link to="/profile/kyc">
               <Button className="w-full gap-2">
-                Complete Verification
+                Hoàn thành xác minh
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>

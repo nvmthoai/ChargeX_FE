@@ -4,11 +4,13 @@ import { toast } from "react-toastify";
 
 const AddToCart = async (product: any, selectedAddressId: any, addresses: any): Promise<boolean> => {
     if (!selectedAddressId) {
-        console.log("Vui lòng chọn địa chỉ giao hàng!");
+        console.log("Vui lòng tạo địa chỉ giao hàng!");
+        toast.error("Vui lòng tạo địa chỉ giao hàng!");
         return false;
     }
     if (!product) {
         console.log("Không tìm thấy sản phẩm!");
+        toast.error("Không tìm thấy sản phẩm!");
         return false;
     }
 
@@ -16,12 +18,14 @@ const AddToCart = async (product: any, selectedAddressId: any, addresses: any): 
     const user = userData ? JSON.parse(userData) : null;
     if (!user?.sub) {
         console.log("Bạn cần đăng nhập để đặt hàng!");
+        toast.error("Bạn cần đăng nhập để đặt hàng!");
         return false;
     }
 
     const selectedAddress = addresses.find((a: any) => a.addressId === selectedAddressId);
     if (!selectedAddress) {
         console.log("Địa chỉ giao hàng không hợp lệ!");
+        toast.error("Địa chỉ giao hàng không hợp lệ!");
         return false;
     }
 

@@ -56,21 +56,21 @@ export default function OrderSummary({
             disabled={selectedItems.length === 0}
             className="w-full py-3 px-4 bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 text-white rounded-xl font-semibold shadow-lg shadow-ocean-500/30 hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 cursor-pointer"
           >
-            Proceed to Checkout
+            Tiếp tuc đến thanh toán
             <ArrowRight className="w-5 h-5" />
           </button>
         </Link>
         
         <Link to='/' className="block">
           <button className="w-full py-3 px-4 border-2 border-ocean-200 text-ocean-700 rounded-xl font-semibold hover:bg-ocean-50 hover:border-ocean-300 transition-all cursor-pointer">
-            Continue Shopping
+            Tiếp tục mua sắm
           </button>
         </Link>
       </div>
 
       {selectedItems.length === 0 && (
         <p className="mt-4 text-sm text-center text-dark-800 font-medium">
-          Select items to proceed
+          Chọn sản phẩm để tiếp tục
         </p>
       )}
     </aside>

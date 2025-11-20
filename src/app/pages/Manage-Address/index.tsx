@@ -87,7 +87,7 @@ const AddressManagement: React.FC = () => {
       <div className="w-[800px] mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Addresses</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Địa chỉ của tôi</h1>
           <button
             onClick={handleAddAddress}
             className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
@@ -105,14 +105,14 @@ const AddressManagement: React.FC = () => {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Add New Address
+            Thêm địa chỉ mới
           </button>
         </div>
 
         {/* Address List */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Addresses</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Địa chỉ</h2>
           </div>
 
           <AddressList
@@ -136,8 +136,8 @@ const AddressManagement: React.FC = () => {
           onSuccess={() => {
             message.success(
               editingAddress
-                ? "Address updated successfully"
-                : "New address added successfully"
+                ? "Địa chỉ mới đã được cập nhật thành công"
+                : "Địa chỉ mới đã được thêm thành công"
             );
             setShowModal(false);
             setEditingAddress(null);

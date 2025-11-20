@@ -29,12 +29,12 @@ export default function KycUploadModal({
     desc: string;
   }[] = isBasic
     ? [
-        { type: "front_id", label: "Front of ID", desc: "Upload a clear image of the front of your ID." },
-        { type: "back_id", label: "Back of ID", desc: "Upload a clear image of the back of your ID." },
+        { type: "front_id", label: "Front of ID", desc: "Tải lên hình ảnh rõ ràng về mặt trước giấy tờ tùy thân của bạn.." },
+        { type: "back_id", label: "Back of ID", desc: "Tải lên hình ảnh rõ ràng về mặt sau giấy tờ tùy thân của bạn.." },
       ]
     : [
-        { type: "selfie", label: "Selfie", desc: "Take a selfie holding your ID." },
-        { type: "passport", label: "Passport", desc: "Upload a clear photo of your passport." },
+        { type: "selfie", label: "Selfie", desc: "Chụp ảnh selfie cùng giấy tờ tùy thân của bạn." },
+        { type: "passport", label: "Passport", desc: "Tải lên hình ảnh rõ ràng về hộ chiếu của bạn." },
       ];
 
   const requiredTypes = uploadFields.map((f) => f.type);
@@ -98,9 +98,9 @@ const handleRemove = (type: string) => {
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-xl font-semibold">
-            Upload Your Documents
+            Tải lên tài liệu
             <span className="block text-sm text-gray-500 mt-1">
-              {isBasic ? "Basic Verification" : "Advanced Verification"}
+              {isBasic ? "Xác minh cơ bản" : "Xác minh nâng cao"}
             </span>
           </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -186,10 +186,10 @@ const handleRemove = (type: string) => {
             }`}
           >
             {uploadingType
-              ? "Uploading..."
+              ? "Đang tải..."
               : allUploaded
-              ? "Save and Close"
-              : "Upload All Required Files"}
+              ? "Lưu và đóng"
+              : "Tải lên tất cả các tệp yêu cầu"}
           </button>
         </div>
       </div>

@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
   const { handleRegister, handleLogin } = userAuth();
+  const [accept, setAccept] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-ocean-50 via-energy-50/50 to-ocean-100 flex items-center justify-center p-4 relative overflow-hidden">
@@ -25,7 +26,7 @@ function AuthPage() {
 
       <div className="relative w-full max-w-md">
         {/* Auth Card */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-ocean-200/50 p-8 sm:p-10 animate-fadeIn">
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-ocean-200/50 p-4 sm:p-8 animate-fadeIn">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-ocean-500 via-energy-500 to-ocean-600 rounded-2xl mb-4 shadow-lg ring-4 ring-ocean-200/50">
@@ -39,7 +40,7 @@ function AuthPage() {
               Welcome to ChargeX
             </h1>
             <p className="text-dark-800 font-semibold">
-              Your EV Battery Marketplace
+              Thị trường PIN EV của bạn
             </p>
           </div>
 
@@ -53,7 +54,7 @@ function AuthPage() {
                 key: "login",
                 label: (
                   <span className="px-4 py-2 font-semibold text-dark-800">
-                    Login
+                    Đăng nhập
                   </span>
                 ),
                 children: (
@@ -103,14 +104,14 @@ function AuthPage() {
                     </Form.Item>
 
                     <div className="text-right mb-4">
-                     <Link to={'/forgot-password'}>
-                      <Button
-                        type="link"
-                        className="text-ocean-600 hover:text-ocean-700 p-0"
-                      >
-                        Forgot Password?
-                      </Button>
-                     </Link>
+                      <Link to={'/forgot-password'}>
+                        <Button
+                          type="link"
+                          className="text-ocean-600 hover:text-ocean-700 p-0"
+                        >
+                          Quên mật khẩu?
+                        </Button>
+                      </Link>
                     </div>
 
                     <Form.Item>
@@ -121,7 +122,7 @@ function AuthPage() {
                         size="large"
                         className="bg-gradient-to-r from-ocean-500 to-ocean-600 hover:from-ocean-600 hover:to-ocean-700 border-0 rounded-xl font-semibold shadow-lg shadow-ocean-500/30 hover:shadow-xl hover:scale-105 transition-all h-12"
                       >
-                        Login
+                        ĐĂNG NHẬP
                       </Button>
                     </Form.Item>
                   </Form>
@@ -131,7 +132,7 @@ function AuthPage() {
                 key: "signup",
                 label: (
                   <span className="px-4 py-2 font-semibold text-dark-800">
-                    Sign Up
+                    Đăng ký
                   </span>
                 ),
                 children: (
@@ -272,7 +273,7 @@ function AuthPage() {
                         },
                       ]}
                     >
-                      <Checkbox className="text-dark-900">
+                      <Checkbox className="text-dark-900" checked={accept} onChange={() => setAccept(p => !p)}>
                         Tôi đồng ý với{" "}
                         <a
                           href="/terms"
@@ -292,8 +293,9 @@ function AuthPage() {
                         block
                         size="large"
                         className="bg-gradient-to-r from-energy-500 to-energy-600 hover:from-energy-600 hover:to-energy-700 border-0 rounded-xl font-semibold shadow-lg shadow-energy-500/30 hover:shadow-xl hover:scale-105 transition-all h-12"
+                        disabled={!accept}
                       >
-                        Sign Up
+                        ĐĂNG KÝ
                       </Button>
                     </Form.Item>
                   </Form>
