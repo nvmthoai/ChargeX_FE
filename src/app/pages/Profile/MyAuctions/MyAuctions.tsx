@@ -10,20 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-interface AuctionWonItem {
-  auctionId: string;
-  productId: string;
-  title: string;
-  status: string;
-  startTime: string;
-  endTime: string;
-  currentPrice: number;
-  minBidIncrement: number;
-  winnerId?: string | null;
-  orderId?: string | null;
-  imageUrls?: string[];
-}
-
 type AuctionStatus = 'scheduled' | 'live' | 'ended' | 'cancelled'
 
 interface AuctionSummaryLoose {
@@ -63,26 +49,27 @@ export default function MyAuctions() {
 
       try {
         setLoading(true);
-        const resp = await auctionApi.getUserWonAuctions(user.sub, 1, 100);
-        const items = resp?.items || [];
+        // Use auction history API which returns both won and lost participation
+        const resp = await auctionApi.getUserAuctionHistory(user.sub, 1, 100, 'all');
+        const items = resp?.items || resp?.data?.items || resp?.data || resp || [];
 
-        const mapped: UserAuction[] = (items as AuctionWonItem[]).map((it) => ({
-          auctionId: it.auctionId,
+        const mapped: UserAuction[] = (items as any[]).map((it) => ({
+          auctionId: it.auctionId || it.auctionId,
           productId: it.productId,
-          title: it.title,
+          title: it.title || (it.product?.title ?? ''),
           status: (['scheduled','live','ended','cancelled'].includes(it.status) ? it.status : 'ended') as AuctionStatus,
           startTime: it.startTime,
           endTime: it.endTime,
-          currentPrice: it.currentPrice,
-          minBidIncrement: it.minBidIncrement,
-          imageUrls: it.imageUrls,
-          wonByUser: it.winnerId === user.sub,
+          currentPrice: it.currentPrice ?? it.finalPrice ?? 0,
+          minBidIncrement: it.minBidIncrement ?? 0,
+          imageUrls: it.imageUrls || it.product?.imageUrls || it.image_urls || [],
+          wonByUser: (it.userResult === 'won') || (it.winnerId === user.sub),
           orderId: it.orderId ?? null
         }));
 
         setAuctions(mapped);
       } catch (err: unknown) {
-        console.error("Failed to fetch won auctions:", err);
+        console.error("Failed to fetch auction history:", err);
       } finally {
         setLoading(false);
       }
