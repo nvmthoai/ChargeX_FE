@@ -41,15 +41,10 @@ const fetchOrders = async () => {
     });
     console.log("✅ Fetched orders:", res);
 
-    const paginated = res.data;
+    const paginated = res.data;  
 
-    // 🔎 Chỉ hiển thị các đơn KHÔNG ở trạng thái pending
-    const visibleOrders = (paginated.data || []).filter(
-      (o: Order) => o.status?.toLowerCase() !== "pending"
-    );
-console.log("visibleOrders", visibleOrders);
-    setOrders(visibleOrders);
-    setTotal(visibleOrders.length);
+    setOrders(paginated.data);
+    setTotal(paginated.total);
   } catch (err) {
     console.error("❌ Failed to load orders:", err);
   } finally {
@@ -81,7 +76,7 @@ console.log("visibleOrders", visibleOrders);
   };
 
   return (
-    <div className="p-6 space-y-6 relative ">
+    <div className="p-6 space-y-6 relative">
       <div className="bg-white rounded-xl border border-gray-100 overflow-visible">
         {/* 🔍 Filter */}
         <FilterProduct
@@ -109,13 +104,9 @@ console.log("visibleOrders", visibleOrders);
           statusOptions={[
             { label: "Pending", value: "pending" },
             { label: "Paid", value: "paid" },
-            { label: "Handed to Carrier", value: "handed_to_carrier" },
             { label: "In Transit", value: "in_transit" },
-            { label: "Delivered Pending Confirm", value: "delivered_pending_confirm" },
             { label: "Delivered", value: "delivered" },
-            { label: "Refunded", value: "refunded" },
             { label: "Completed", value: "completed" },
-            { label: "Disputed", value: "disputed" },
             { label: "Cancelled", value: "cancelled" },
           ]}
         />
@@ -140,60 +131,62 @@ console.log("visibleOrders", visibleOrders);
                 <th className="px-5 py-3 w-16 text-center">⋮</th>
               </tr>
             </thead>
+<tbody>
+  {orders
+    .filter((o) => o.status !== "pending") // ⛔ Bỏ pending ngay trước khi render
+    .map((o) => {
+      const product = o.orderShops?.[0]?.orderDetails?.[0]?.product;
 
-            <tbody>
-              {orders.map((o) => {
-                const product = o.orderShops?.[0]?.orderDetails?.[0]?.product;
-                console.log("o", o);
-                return (
-                  <tr
-                    key={o.orderId}
-                    className="border-b border-gray-200 last:border-none hover:bg-blue-50 transition"
-                  >
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={product?.imageUrls?.[0] || "/placeholder.png"}
-                          alt={product?.title}
-                          className="w-12 h-12 rounded-md object-cover border"
-                        />
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {product?.title || "Untitled"}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Buyer: {o.buyer?.fullName || "Unknown"}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
+      return (
+        <tr
+          key={o.orderId}
+          className="border-b border-gray-200 last:border-none hover:bg-blue-50 transition"
+        >
+          <td className="px-5 py-3">
+            <div className="flex items-center gap-3">
+              <img
+                src={product?.imageUrls?.[0] || "/placeholder.png"}
+                alt={product?.title}
+                className="w-12 h-12 rounded-md object-cover border"
+              />
+              <div>
+                <p className="font-medium text-gray-800">
+                  {product?.title || "Untitled"}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Buyer: {o.buyer?.fullName || "Unknown"}
+                </p>
+              </div>
+            </div>
+          </td>
 
-                    <td className="px-5 py-3 text-right font-semibold">
-                      {Number(o.totalPrice)?.toLocaleString()} VND
-                    </td>
+          <td className="px-5 py-3 text-right font-semibold">
+            {Number(o.totalPrice)?.toLocaleString()} VND
+          </td>
 
-                    <td className="px-5 py-3">
-                      <OrderStatusBadge value={o.status} />
-                    </td>
+          <td className="px-5 py-3">
+            <OrderStatusBadge value={o.status} />
+          </td>
 
-                    <td className="px-5 py-3 text-gray-500">
-                      {o.createdAt
-                        ? new Date(o.createdAt).toLocaleDateString("vi-VN")
-                        : "-"}
-                    </td>
+          <td className="px-5 py-3 text-gray-500">
+            {o.createdAt
+              ? new Date(o.createdAt).toLocaleDateString("vi-VN")
+              : "-"}
+          </td>
 
-                    <td className="px-5 py-3 text-center">
-                      <button
-                        onClick={() => navigate(`/orders/${o.orderId}`)}
-                        className="p-2 rounded-full hover:bg-gray-100 transition"
-                      >
-                        <Eye className="w-5 h-5 text-gray-600" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+          <td className="px-5 py-3 text-center">
+            <button
+              onClick={() => navigate(`/orders/${o.orderId}`)}
+              className="p-2 rounded-full hover:bg-gray-100 transition"
+            >
+              <Eye className="w-5 h-5 text-gray-600" />
+            </button>
+          </td>
+        </tr>
+      );
+    })}
+</tbody>
+
           </table>
         )}
       </div>

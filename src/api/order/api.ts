@@ -105,3 +105,22 @@ export const markOrderAsCompleted = async (
     throw err;
   }
 };
+
+// 🛑 Hủy đơn hàng + gửi lý do
+export const cancelOrder = async (
+  orderId: string,
+  note: string
+): Promise<Order> => {
+  try {
+    const res = await axiosInstance.patch(
+      `/orders/${orderId}/cancel`,
+      { note }
+    );
+    console.log(`🚫 Order ${orderId} cancelled:`, res.data?.data);
+    return res.data?.data ?? res.data;
+  } catch (err) {
+    console.error(`❌ Error cancelling order ${orderId}:`, err);
+    throw err;
+  }
+};
+
