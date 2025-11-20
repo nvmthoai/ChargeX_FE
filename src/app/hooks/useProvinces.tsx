@@ -1,4 +1,3 @@
-// src/hooks/useProvinces.ts  ← THAY TOÀN BỘ FILE NÀY HOÀN TOÀN
 import { useState, useEffect } from "react";
 
 export interface Province {
@@ -16,56 +15,103 @@ export interface Ward {
   name: string;
 }
 
+const GHN_TOKEN = "a6e9f694-b57a-11f0-b040-4e257d8388b4";
+const SHOP_ID = 197845;
+
+const GHN_HEADERS = {
+  "Content-Type": "application/json",
+  token: GHN_TOKEN,
+  ShopId: SHOP_ID.toString(),
+};
+
 export default function useProvinces() {
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Lấy danh sách tỉnh/thành
+  // ================= PROVINCES =================
   useEffect(() => {
-    fetch("https://provinces.open-api.vn/api/p/")
-      .then(res => res.json())
-      .then(data => {
-        setProvinces(data);
+    const fetchProvinces = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/province",
+          { headers: GHN_HEADERS }
+        );
+
+        const json = await res.json();
+
+        setProvinces(
+          json.data.map((p: any) => ({
+            code: p.ProvinceID,
+            name: p.ProvinceName,
+          }))
+        );
+      } catch (err) {
+        console.error("GHN Province error:", err);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+
+    fetchProvinces();
   }, []);
 
-  // Lấy quận/huyện theo tỉnh
+  // ================= DISTRICTS =================
   const fetchDistricts = async (provinceCode: number) => {
     setLoading(true);
     try {
-      const res = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
-      const data = await res.json();
-      const mapped = data.districts.map((d: any) => ({
-        code: d.code,
-        name: d.name,
+      const res = await fetch(
+        `https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${provinceCode}`,
+        {
+          method: "GET",
+          headers: GHN_HEADERS,
+        }
+      );
+
+      const json = await res.json();
+
+      const mapped = json.data.map((d: any) => ({
+        code: d.DistrictID,
+        name: d.DistrictName,
       }));
+
       setDistricts(mapped);
-      setWards([]); // reset phường/xã
+      setWards([]);
       return mapped;
     } catch (err) {
+      console.error("GHN District error:", err);
       return [];
     } finally {
       setLoading(false);
     }
   };
 
-  // Lấy phường/xã theo quận/huyện
+  // ================= WARDS =================
   const fetchWards = async (districtCode: number) => {
     setLoading(true);
     try {
-      const res = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
-      const data = await res.json();
-      const mapped = data.wards.map((w: any) => ({
-        code: String(w.code),
-        name: w.name,
+      const res = await fetch(
+        `https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${districtCode}`,
+        {
+          method: "POST",
+          headers: GHN_HEADERS,
+          body: JSON.stringify({ district_id: districtCode }),
+        }
+      );
+
+      const json = await res.json();
+
+      const mapped = json.data.map((w: any) => ({
+        code: w.WardCode,
+        name: w.WardName,
       }));
+
       setWards(mapped);
       return mapped;
     } catch (err) {
+      console.error("GHN Ward error:", err);
       return [];
     } finally {
       setLoading(false);

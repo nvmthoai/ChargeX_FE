@@ -13,9 +13,12 @@ export default function Checkout() {
   const productId = params.get("productId");
   const navigate = useNavigate();
 
-  const { addresses, handleCreateAddress, handleUpdateAddress, isLoading } = useAddress();
+  const { addresses, handleCreateAddress, handleUpdateAddress, isLoading } =
+    useAddress();
 
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null
+  );
   const [showModal, setShowModal] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [product, setProduct] = useState<any>(null);
@@ -53,17 +56,22 @@ export default function Checkout() {
 
   // 🟢 Xác nhận thanh toán → gửi payload đúng chuẩn BE
   const handleConfirmPayment = async () => {
-    if (!selectedAddressId) return message.warning("Vui lòng chọn địa chỉ giao hàng!");
+    if (!selectedAddressId)
+      return message.warning("Vui lòng chọn địa chỉ giao hàng!");
     if (!product) return message.error("Không tìm thấy sản phẩm!");
 
     const userData = localStorage.getItem("user");
     const user = userData ? JSON.parse(userData) : null;
     if (!user?.sub) return message.error("Bạn cần đăng nhập để đặt hàng!");
 
-    const selectedAddress = addresses.find((a: any) => a.addressId === selectedAddressId);
-    if (!selectedAddress) return message.error("Địa chỉ giao hàng không hợp lệ!");
+    const selectedAddress = addresses.find(
+      (a: any) => a.addressId === selectedAddressId
+    );
+    if (!selectedAddress)
+      return message.error("Địa chỉ giao hàng không hợp lệ!");
 
     setConfirming(true);
+    console.log({ selectedAddress });
     try {
       const payload = {
         receiverName: selectedAddress.fullName,
@@ -97,7 +105,6 @@ export default function Checkout() {
 
       // BE sẽ trả orderId → điều hướng sang trang payment
       navigate(`/payment?orderId=${order.orderId}`);
-
     } catch (err: any) {
       console.error("❌ Error creating order:", err);
       message.error("Không thể tạo đơn hàng!");
@@ -109,7 +116,6 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
         {/* --------------------------- */}
         {/* Cột trái: Thông tin giao hàng */}
         {/* --------------------------- */}
@@ -119,7 +125,10 @@ export default function Checkout() {
               <span className="text-[#0F74C7]">1.</span> Delivery Address
             </h2>
             <button
-              onClick={() => { setEditingAddress(null); setShowModal(true); }}
+              onClick={() => {
+                setEditingAddress(null);
+                setShowModal(true);
+              }}
               className="bg-[#0F74C7] hover:bg-[#3888ca] text-white px-4 py-2 rounded-md shadow-sm transition"
             >
               + Add New
@@ -142,8 +151,8 @@ export default function Checkout() {
                 }}
                 onSelect={(id) => setSelectedAddressId(id)}
                 selectedAddressId={selectedAddressId}
-                onDelete={() => { }}
-                onSetDefault={() => { }}
+                onDelete={() => {}}
+                onSetDefault={() => {}}
               />
             )}
           </div>
@@ -170,7 +179,9 @@ export default function Checkout() {
                   className="w-24 h-24 rounded-md object-cover"
                 />
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-900">{product?.title}</span>
+                  <span className="font-semibold text-gray-900">
+                    {product?.title}
+                  </span>
                   <span className="text-gray-600 text-sm line-clamp-2">
                     {product?.description}
                   </span>
@@ -180,7 +191,9 @@ export default function Checkout() {
               <div className="border-t pt-4 space-y-2 text-gray-700">
                 <p className="flex justify-between">
                   <span>Price</span>
-                  <span>{Number(product.price_buy_now).toLocaleString()} VND</span>
+                  <span>
+                    {Number(product.price_buy_now).toLocaleString()} VND
+                  </span>
                 </p>
 
                 <p className="flex justify-between">
@@ -199,8 +212,11 @@ export default function Checkout() {
               <button
                 onClick={handleConfirmPayment}
                 disabled={confirming}
-                className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${confirming ? "bg-gray-400 cursor-not-allowed" : "bg-[#0F74C7] hover:bg-[#3888ca]"
-                  }`}
+                className={`w-full py-3 rounded-lg text-white font-medium text-lg mt-4 transition ${
+                  confirming
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#0F74C7] hover:bg-[#3888ca]"
+                }`}
               >
                 {confirming ? "Đang xử lý..." : "Xác nhận thanh toán"}
               </button>
