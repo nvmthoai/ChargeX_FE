@@ -92,15 +92,28 @@ export default function PaymentCart() {
         for (const ord of orders) {
             const sellerId = ord.orderShops?.[0]?.seller?.userId;
             if (!map.has(sellerId)) {
+                // If backend failed to calculate shipping (0 or missing) fall back to a dynamic estimate
+                const rawFee = Number(ord.totalShippingFee ?? 0);
+                const isEstimated = !rawFee || rawFee <= 0 || ord.totalShippingFee === null || ord.totalShippingFee === undefined;
+
+                // Dynamic estimate formula must match backend: base + perKg * ceil(weightKg)
+                const base = 20000
+                const perKg = 10000
+                // Try to read weight from order detail, fallback to 1000g
+                const weight = ord.orderShops?.[0]?.orderDetails?.[0]?.weight || 1000
+                const weightKgCeil = Math.max(1, Math.ceil(Number(weight) / 1000))
+                const estimatedFee = Math.max(10000, base + weightKgCeil * perKg)
+
                 map.set(sellerId, {
                     userId: sellerId,
                     fullName: ord.orderShops?.[0]?.seller?.fullName,
-                    shippingFee: Number(ord.totalShippingFee || 0),
+                    shippingFee: isEstimated ? estimatedFee : rawFee,
+                    shippingEstimated: isEstimated,
                     orders: [ord],
                 });
-            } else {
-                map.get(sellerId).orders.push(ord);
-            }
+             } else {
+                 map.get(sellerId).orders.push(ord);
+             }
         }
         return [...map.values()];
     };
@@ -178,11 +191,15 @@ export default function PaymentCart() {
             message.success("Thanh toán thành công! Đơn hàng đã được tạo.");
             navigate(`/payment-success?amount=${total}`);
         } catch (err: any) {
+            // Log detailed axios error response for debugging
             console.error("Lỗi thanh toán:", err);
-            message.error(err?.response?.data?.message || "Thanh toán thất bại. Vui lòng thử lại!");
-        } finally {
-            setProcessing(false);
-        }
+            console.error("Order creation error response:", err?.response?.data);
+
+            const serverMessage = err?.response?.data?.message || err?.response?.data || err.message || "Thanh toán thất bại. Vui lòng thử lại!";
+            message.error(serverMessage);
+         } finally {
+             setProcessing(false);
+         }
     };
 
     if (!order?.length) {
@@ -287,7 +304,12 @@ export default function PaymentCart() {
                                     <CarOutlined className="text-green-500" />
                                     <span className="font-semibold">Vận chuyển</span>
                                 </div>
-                                <p>Phí ship: {Number(slr.shippingFee).toLocaleString()} VND</p>
+                                <p>
+                                    Phí ship: {Number(slr.shippingFee).toLocaleString()} VND
+                                    {slr.shippingEstimated && (
+                                        <span className="ml-2 text-sm text-orange-600">(Ước tính)</span>
+                                    )}
+                                </p>
                             </div>
                         </div>
                     ))}
