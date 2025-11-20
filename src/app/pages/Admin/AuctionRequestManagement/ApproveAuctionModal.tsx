@@ -2,9 +2,9 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Form, Input, InputNumber, DatePicker, Tooltip } from "antd"
+import { Form, Input, DatePicker } from "antd"
 import dayjs from 'dayjs'
-import { CheckCircle, Info, Clock, DollarSign, Settings } from "lucide-react"
+import { CheckCircle, Info, Clock } from "lucide-react"
 import type { ApproveAuctionPayload } from "../../../models/auction.model"
 import useAuction from "../../../hooks/useAuction"
 import { Button } from "@/components/ui/button"
@@ -58,11 +58,6 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
         auctionRequestId,
         startTime: values.startTime.toISOString(),
         endTime: values.endTime.toISOString(),
-        startingPrice: values.startingPrice,
-        reservePrice: values.reservePrice,
-        minBidIncrement: values.minBidIncrement,
-        antiSnipingSeconds: values.antiSnipingSeconds,
-        bidDepositPercent: values.bidDepositPercent,
       }
       await handleApproveRequest(payload)
       form.resetFields()
@@ -155,120 +150,15 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Price Settings */}
-          <Card className="border-ocean-800/30 bg-dark-800">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <DollarSign className="w-5 h-5 text-ocean-400" />
-                Price Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <Form.Item
-                  label={
-                    <span className="font-medium text-dark-200 flex items-center gap-1">
-                      Starting Price (₫)
-                      <Tooltip title="Initial bid amount - customers can't bid lower than this">
-                        <Info className="w-4 h-4 text-dark-400" />
-                      </Tooltip>
-                    </span>
-                  }
-                  name="startingPrice"
-                  rules={[{ required: true, message: "Please enter starting price" }]}
-                >
-                  <InputNumber
-                    min={0}
-                    placeholder="0"
-                    className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label={
-                    <span className="font-medium text-dark-200 flex items-center gap-1">
-                      Reserve Price (₫)
-                      <Tooltip title="Minimum price required to sell the item if reserve not met auction won't conclude">
-                        <Info className="w-4 h-4 text-dark-400" />
-                      </Tooltip>
-                    </span>
-                  }
-                  name="reservePrice"
-                  rules={[{ required: true, message: "Please enter a reserve price" }]}
-                >
-                  <InputNumber
-                    min={0}
-                    placeholder="0"
-                    className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label={
-                    <span className="font-medium text-dark-200 flex items-center gap-1">
-                      Minimum Bid Increment (₫)
-                      <Tooltip title="Smallest allowed increase for each new bid">
-                        <Info className="w-4 h-4 text-dark-400" />
-                      </Tooltip>
-                    </span>
-                  }
-                  name="minBidIncrement"
-                  rules={[{ required: true, message: "Please enter minimum bid increment" }]}
-                >
-                  <InputNumber
-                    min={0}
-                    placeholder="0"
-                    className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  />
-                </Form.Item>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Advanced Settings */}
-          <Card className="border-ocean-800/30 bg-dark-800">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Settings className="w-5 h-5 text-ocean-400" />
-                Advanced Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <Form.Item
-                  label={
-                    <span className="font-medium text-dark-200 flex items-center gap-1">
-                      Anti-sniping (seconds)
-                      <Tooltip title="If a bid arrives within this many seconds before end, the auction end time will extend">
-                        <Info className="w-4 h-4 text-dark-400" />
-                      </Tooltip>
-                    </span>
-                  }
-                  name="antiSnipingSeconds"
-                  rules={[{ required: true, message: "Please enter anti-sniping time" }]}
-                  initialValue={30}
-                >
-                  <InputNumber min={0} max={300} placeholder="30" className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100" />
-                </Form.Item>
-
-                <Form.Item
-                  label={
-                    <span className="font-medium text-dark-200 flex items-center gap-1">
-                      Bid Deposit (%)
-                      <Tooltip title="Percent of bid held as deposit to ensure seriousness of bidder">
-                        <Info className="w-4 h-4 text-dark-400" />
-                      </Tooltip>
-                    </span>
-                  }
-                  name="bidDepositPercent"
-                  rules={[{ required: true, message: "Please enter deposit percent" }]}
-                  initialValue={10}
-                >
-                  <InputNumber min={0} max={100} placeholder="10" className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100" />
-                </Form.Item>
+          {/* Info Card */}
+          <Card className="border-ocean-800/30 bg-ocean-900/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 text-ocean-400 mt-1 flex-shrink-0" />
+                <div className="text-sm text-dark-300">
+                  <p className="font-medium text-dark-200 mb-1">Auction Details from Seller Request:</p>
+                  <p className="text-dark-400">Starting Price, Reserve Price, Bid Increment, Anti-Sniping, Buy-Now Price, and Deposit % are already set by the seller. You only need to confirm the auction time window.</p>
+                </div>
               </div>
             </CardContent>
           </Card>

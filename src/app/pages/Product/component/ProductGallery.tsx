@@ -76,18 +76,21 @@ export default function ProductGallery({ images, user, product }: Props) {
 
       {/* Modal zoom ảnh */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          {/* nút đóng */}
           <button
-            className="absolute top-4 right-4 text-white text-2xl"
+            className="absolute top-5 right-5 text-white text-3xl z-50"
             onClick={() => setIsOpen(false)}
           >
             ✕
           </button>
+
+          {/* FULLSCREEN SWIPER */}
           <Swiper
             modules={[Navigation]}
             navigation
             initialSlide={selected}
-            className="w-[90%] md:w-[60%] h-[80%] rounded-lg overflow-hidden"
+            className="w-screen h-screen"   // ⬅ FULL MÀN HÌNH
           >
             {safeImages.map((img, idx) => (
               <SwiperSlide key={idx}>
@@ -101,6 +104,7 @@ export default function ProductGallery({ images, user, product }: Props) {
           </Swiper>
         </div>
       )}
+
     </div>
   );
 }

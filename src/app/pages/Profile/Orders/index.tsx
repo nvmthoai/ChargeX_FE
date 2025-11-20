@@ -21,7 +21,7 @@ import useOrder from "../../../hooks/useOrder";
 import useReview from "../../../hooks/useReview";
 import ReviewListModal from "./ReviewListModal";
 import { getUserInfo } from "../../../hooks/useAddress";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ReportModal from "./ReportModal";
 import useDisputes from "../../../hooks/useDisputes";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +54,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function OrderManagement() {
   const { orders } = useOrder();
+  console.log("orders", orders);
   const { handleCreateDisputes } = useDisputes();
   const {
     handleCreateReview,
@@ -103,6 +104,8 @@ export default function OrderManagement() {
     sellerId: "",
     sellerName: "",
   });
+  // router navigate for Pay button
+  const navigate = useNavigate();
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order: any) => {
@@ -191,14 +194,14 @@ export default function OrderManagement() {
                 >
                   Shop: {shop.seller.fullName}
                 </Link>
-                <span
+                {/* <span
                   className={cn(
                     "px-2 py-1 rounded-md text-xs font-semibold border",
                     STATUS_COLORS[shop.status] || STATUS_COLORS.pending
                   )}
                 >
                   {shop.status.replace(/_/g, " ")}
-                </span>
+                </span> */}
               </CardTitle>
               <p className="text-sm text-muted-foreground">{shop.seller.email}</p>
             </CardHeader>
@@ -231,10 +234,13 @@ export default function OrderManagement() {
                       </p>
                     )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right align-middle flex flex-col justify-center items-end gap-1">
                       <p className="font-semibold text-energy-600 dark:text-energy-400">
                       ₫{Number.parseFloat(detail.subtotal).toLocaleString()}
                     </p>
+                    <Link to={`/orders/${record.orderId}`} className="text-xs text-ocean-600 hover:underline cursor-pointer">
+                      View details
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -251,7 +257,31 @@ export default function OrderManagement() {
                   <Eye className="w-4 h-4" />
                   View Reviews
                 </Button>
-                {record.status === "completed" && (
+                {/* New: View Order Details button */}
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/orders/${record.orderId}`);
+                  }}
+                  className="gap-1"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Details
+                </Button>
+                {record.status === "pending" && (
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/payment?orderId=${record.orderId}`);
+                    }}
+                    className="gap-1 bg-[#0F74C7] text-white"
+                  >
+                    Pay
+                  </Button>
+                )}
+                {(record.status === "completed" || record.status === "delivered") && (
                   <>
                     <Button
                       size="sm"

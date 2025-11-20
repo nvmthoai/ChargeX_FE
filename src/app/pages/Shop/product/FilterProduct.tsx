@@ -1,12 +1,9 @@
-import { Input, Select, Button, Space, Tooltip } from "antd";
+import Select from "@/app/components/Table/Select";
 import {
-  SearchOutlined,
-  ReloadOutlined,
-  FilterOutlined,
-  SortAscendingOutlined,
-  SortDescendingOutlined,
-} from "@ant-design/icons";
-// import type { OrderStatus } from "../../../../api/order/type";
+  Search,
+  Filter,
+  RefreshCw,
+} from "lucide-react";
 
 interface StatusOption {
   label: string;
@@ -26,7 +23,6 @@ interface Props {
   onSearch: () => void;
   onReset: () => void;
 
-  /** 🟢 Cho phép truyền option trạng thái từ ngoài vào */
   statusOptions?: StatusOption[];
 }
 
@@ -45,85 +41,69 @@ export default function FilterProduct({
 
   statusOptions,
 }: Props) {
-
-  // 🟢 Default option dành cho sản phẩm (nếu không truyền từ ngoài vào)
   const defaultStatusOptions: StatusOption[] = [
-    { label: "Đang bán", value: "active" },
-    { label: "Đã bán", value: "sold" },
-    { label: "Tạm ẩn", value: "draft" },
+    { label: "Active", value: "active" },
+    { label: "Sold", value: "sold" },
+    { label: "Draft", value: "draft" },
   ];
 
   const finalStatusOptions = statusOptions ?? defaultStatusOptions;
 
   return (
-    <div className="flex flex-wrap justify-between items-center gap-3 bg-white px-5 py-4">
+    <div className="flex flex-wrap justify-between items-center gap-3 bg-white px-5 py-4 border-b border-gray-200 rounded-t-xl">
 
-      {/* 🔍 Tìm kiếm */}
-      <Input
-        placeholder="Tìm..."
-        prefix={<SearchOutlined className="text-gray-400" />}
-        value={keyword}
-        onChange={(e) => onKeywordChange(e.target.value)}
-        style={{ width: 250 }}
-        allowClear
-      />
+      {/* 🔍 Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search..."
+          value={keyword}
+          onChange={(e) => onKeywordChange(e.target.value)}
+          className="pl-10 pr-3 py-2 w-60 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-400 focus:outline-none"
+        />
+      </div>
 
-      {/* 📦 Trạng thái */}
+      {/* 📦 Status */}
       <Select
-        allowClear
-        placeholder="Trạng thái"
         value={status}
-        onChange={(val) => onStatusChange(val ?? undefined)}
-        style={{ width: 160 }}
+        placeholder="Status"
         options={finalStatusOptions}
+        onChange={(val) => onStatusChange(val)}
       />
 
-      {/* 🕒 Sắp xếp */}
+      {/* 🕒 Sort */}
       <Select
-        allowClear
-        placeholder="Sắp xếp theo"
         value={sort}
-        onChange={(val) => onSortChange(val ?? undefined)}
-        style={{ width: 180 }}
+        placeholder="Sort by" 
         options={[
-          {
-            label: (
-              <span className="flex items-center gap-2">
-                <SortDescendingOutlined /> Ngày tạo (mới nhất)
-              </span>
-            ),
-            value: "newest",
-          },
-          {
-            label: (
-              <span className="flex items-center gap-2">
-                <SortAscendingOutlined /> Ngày tạo (cũ nhất)
-              </span>
-            ),
-            value: "oldest",
-          },
+          { label: "Created (Newest)", value: "newest" },
+          { label: "Created (Oldest)", value: "oldest" },
         ]}
+        onChange={(val) => onSortChange(val)}
       />
 
-      {/* ⚙️ Nút hành động */}
-      <Space>
-        <Tooltip title="Tìm theo điều kiện hiện tại">
-          <Button
-            type="primary"
-            icon={<FilterOutlined />}
-            onClick={onSearch}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Tìm kiếm
-          </Button>
-        </Tooltip>
 
-        <Tooltip title="Đặt lại tất cả bộ lọc">
-          <Button icon={<ReloadOutlined />} onClick={onReset}>
-            Làm mới
-          </Button>
-        </Tooltip>
-      </Space>
+      {/* ⚙️ Buttons */}
+      <div className="flex gap-2">
+        {/* Search button */}
+        <button
+          onClick={onSearch}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition"
+        >
+          <Filter className="w-4 h-4" />
+          Apply Filters
+        </button>
+
+        {/* Reset button */}
+        <button
+          onClick={onReset}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-100 transition"
+        >
+          <RefreshCw className="w-4 h-4 text-gray-600" />
+          Reset
+        </button>
+      </div>
     </div>
   );
 }

@@ -52,7 +52,7 @@ import { useParams } from "react-router-dom";
     },
     {
       key: "addresses",
-      label: `Addresses (${shopDetail.addresses.length})`,
+      label: `Addresses`,
       children: <ShopAddresses addresses={shopDetail.addresses} />,
     },
     {

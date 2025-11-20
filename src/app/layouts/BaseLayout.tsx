@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Header from "./Header/Header";
 import Footer from "./Footer/Footer";
 import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 interface BaseLayoutProps {
   children: ReactNode;
@@ -10,6 +11,15 @@ interface BaseLayoutProps {
 
 export default function BaseLayout({ children, showHeader = true }: BaseLayoutProps) {
   const location = useLocation();
+  
+  // Scroll to top whenever the route changes to avoid unexpected jumps
+  useEffect(() => {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    } catch (err) {
+      // ignore in non-browser environments
+    }
+  }, [location.pathname]);
   
   // Hide footer on authentication pages and admin pages
   const isAuthRoute = location.pathname.startsWith("/auth") || location.pathname.startsWith("/verify-otp");
@@ -30,7 +40,8 @@ export default function BaseLayout({ children, showHeader = true }: BaseLayoutPr
       
       {showHeader && (
         <div className="relative z-10">
-          <Header />
+          {/* key forces Header to remount on route change so it picks up any auth/user changes */}
+          <Header key={location.pathname} />
         </div>
       )}
       <main className="relative z-10 w-full flex-1">

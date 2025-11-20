@@ -1,20 +1,26 @@
-import { Card, Row, Col, Statistic, Space, Button, Avatar } from "antd"
-import { ShopOutlined, UserOutlined, PhoneOutlined, MailOutlined, StarOutlined } from "@ant-design/icons"
+import { Card, Row, Col, Statistic, Space, Avatar } from "antd";
+import {
+  ShopOutlined,
+  UserOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  StarOutlined,
+} from "@ant-design/icons";
 
 interface ShopHeaderProps {
   seller: {
-    userId: string
-    fullName: string
-    email: string
-    phone: string
-    image: string | null
-    createdAt: string
-  }
+    userId: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    image: string | null;
+    createdAt: string;
+  };
   stats: {
-    totalProducts: number
-    totalReviews: number
-    averageRating: number
-  }
+    totalProducts: number;
+    totalReviews: number;
+    averageRating: number;
+  };
 }
 
 export default function ShopHeader({ seller, stats }: ShopHeaderProps) {
@@ -24,7 +30,9 @@ export default function ShopHeader({ seller, stats }: ShopHeaderProps) {
         <div className="flex items-center gap-6">
           <Avatar size={80} icon={<UserOutlined />} src={seller.image} />
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">{seller.fullName}</h1>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">
+              {seller.fullName}
+            </h1>
             <Space direction="vertical" size="small">
               <div className="flex items-center gap-2 text-slate-600">
                 <PhoneOutlined /> {seller.phone}
@@ -50,7 +58,11 @@ export default function ShopHeader({ seller, stats }: ShopHeaderProps) {
               />
             </Col>
             <Col xs={24} sm={8}>
-              <Statistic title="Reviews" value={stats.totalReviews} valueStyle={{ color: "#1f2937" }} />
+              <Statistic
+                title="Reviews"
+                value={stats.totalReviews}
+                valueStyle={{ color: "#1f2937" }}
+              />
             </Col>
             <Col xs={24} sm={8}>
               <Statistic
@@ -59,17 +71,14 @@ export default function ShopHeader({ seller, stats }: ShopHeaderProps) {
                 precision={1}
                 prefix={<StarOutlined />}
                 suffix="/ 5"
-                valueStyle={{ color: stats.averageRating > 0 ? "#fbbf24" : "#9ca3af" }}
+                valueStyle={{
+                  color: stats.averageRating > 0 ? "#fbbf24" : "#9ca3af",
+                }}
               />
             </Col>
           </Row>
         </div>
       </div>
-
-      <div className="mt-6 flex gap-3 flex-wrap">
-        <Button type="primary">Contact Seller</Button>
-        <Button>Follow Shop</Button>
-      </div>
     </Card>
-  )
+  );
 }

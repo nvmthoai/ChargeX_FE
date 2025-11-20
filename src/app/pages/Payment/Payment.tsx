@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Spin, message, Radio } from "antd";
-import { createPaymentForOrder, payOrderWithWallet, getWalletAvailable } from "../../../api/payment/api";
-import {
-  PaymentProvider,
-  type Payment,
-} from "../../../api/payment/type";
+import { createPaymentForOrder, getWalletAvailable } from "../../../api/payment/api";
+import { PaymentProvider } from "../../../api/payment/type";
 import { getOrderById } from "../../../api/order/api";
 import type { Order } from "../../../api/order/type";
 import {
@@ -68,12 +65,14 @@ export default function PaymentPage() {
       const convertAddress = async (addr: { provinceId?: number; districtId?: number; wardCode?: string; line1?: string }) => {
         if (!addr) return "Không có địa chỉ";
         try {
-          const province = provinces.find((p) => p.code === Number(addr.provinceId));
-          const districtList = await fetchDistricts(Number(addr.provinceId));
-          const district = districtList.find((d) => d.code === Number(addr.districtId));
-          const wardList = await fetchWards(Number(addr.districtId));
-          const ward = wardList.find((w) => w.code.toString() === addr.wardCode);
-          return `${addr.line1}, ${ward?.name || ""}, ${district?.name || ""}, ${province?.name || ""}`;
+          // types from hook may not match TS defs; cast to any for lightweight compatibility
+          const provincesAny: unknown[] = provinces as unknown[]
+          const province = (provincesAny as any[]).find((p) => Number((p as any).code) === Number(addr.provinceId))
+          const districtList: unknown[] = await fetchDistricts(Number(addr.provinceId))
+          const district = (districtList as any[]).find((d) => Number((d as any).code) === Number(addr.districtId))
+          const wardList: unknown[] = await fetchWards(Number(addr.districtId))
+          const ward = (wardList as any[]).find((w) => String((w as any).code) === String(addr.wardCode))
+          return `${addr.line1 || ''}, ${ward?.name || ''}, ${district?.name || ''}, ${province?.name || ''}`
         } catch {
           return addr.line1 || "Không rõ địa chỉ";
         }
@@ -112,45 +111,38 @@ export default function PaymentPage() {
     try {
       if (method === PaymentProvider.WALLET) {
         // 🪙 Thanh toán qua ví nội bộ
-        console.log("🪙 payOrderWithWallet →", { orderId: order.orderId, total });
-        const result = await payOrderWithWallet(order.orderId, total);
+        // Create orchestrating payment on backend which will deduct wallet, create escrow and mark order paid atomically
+        const walletPaymentPayload = {
+          type: "pay_order" as const,
+          amount: Number(total),
+          description: `Thanh toán đơn hàng #${order.orderId}`,
+          related_order_id: order.orderId,
+          provider: PaymentProvider.WALLET,
+          method: "wallet",
+          returnUrl: `${window.location.origin}/payment-success`,
+          cancelUrl: `${window.location.origin}/payment-cancel`,
+          webhookUrl: "https://yoursite.com/webhook/payos",
+        };
+        console.log("🧾 createPaymentForOrder (WALLET) payload →", walletPaymentPayload);
 
-        if (result.success) {
-          message.success("Thanh toán ví nội bộ thành công!");
-
-          // 🔗 Ghi lại Payment record để Order có payment hiển thị ở các màn sau
-          const walletPaymentPayload = {
-            type: "pay_order" as const,
-            amount: Number(total),
-            description: `Thanh toán đơn hàng #${order.orderId}`,
-            related_order_id: order.orderId,
-            provider: PaymentProvider.WALLET,
-            method: "wallet",
-            returnUrl: `${window.location.origin}/payment-success`,
-            cancelUrl: `${window.location.origin}/payment-cancel`,
-            webhookUrl: "https://yoursite.com/webhook/payos",
-          };
-          console.log("🧾 createPaymentForOrder (WALLET) payload →", walletPaymentPayload);
-
-          try {
-            await createPaymentForOrder(walletPaymentPayload);
-          } catch (e) {
-            // Không chặn UX nếu chỉ lỗi ghi log payment; vẫn điều hướng success vì tiền đã trừ
-            console.warn("⚠️ createPaymentForOrder (WALLET) failed, continue redirect:", e);
-          }
-
-          const txId = result.transactionId || `WALLET-${Date.now()}`;
-          
-          // 📱 If from mobile, redirect back to mobile app with deep link
-          if (isMobile) {
-            const deepLinkUrl = `reev://payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}&status=paid`;
-            console.log('📱 Redirecting to mobile app:', deepLinkUrl);
-            window.location.href = deepLinkUrl;
-          } else {
-            navigate(`/payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}`);
-          }
-        } else {
-          message.error(result.message || "Thanh toán ví thất bại!");
+        try {
+          const resp = await createPaymentForOrder(walletPaymentPayload);
+          // resp expected to contain { paymentId, method, status, transactionId }
+          if (resp && (resp.status === 'completed' || resp.status === 'succeeded' || resp.paymentId)) {
+             message.success("Thanh toán ví nội bộ thành công!");
+             const txId = resp.transactionId || resp.paymentId || `WALLET-${Date.now()}`;
+             if (isMobile) {
+               const deepLinkUrl = `reev://payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}&status=paid`;
+               window.location.href = deepLinkUrl;
+             } else {
+               navigate(`/payment-success?orderId=${order.orderId}&amount=${total}&transactionId=${txId}`);
+             }
+           } else {
+             message.error('Thanh toán thất bại hoặc chưa hoàn tất.');
+           }
+        } catch (e) {
+          console.error('Wallet payment failed:', e);
+          message.error('Không thể xử lý thanh toán qua ví.');
         }
       } else {
         // 💳 Thanh toán qua PayOS (tạo Payment + redirect)
@@ -167,10 +159,10 @@ export default function PaymentPage() {
         };
         console.log("🚀 Payment payload (PAYOS):", payload);
 
-        const payment: Payment = await createPaymentForOrder(payload);
-        if (payment?.checkoutUrl) {
+        const paymentResp = await createPaymentForOrder(payload);
+        if (paymentResp?.checkoutUrl) {
           message.success("Đang chuyển đến cổng thanh toán...");
-          window.location.href = payment.checkoutUrl;
+          window.location.href = paymentResp.checkoutUrl;
         } else {
           message.error("Không nhận được đường dẫn thanh toán!");
         }
@@ -230,14 +222,14 @@ export default function PaymentPage() {
           {product && (
             <div className="flex items-center gap-4 bg-[#f7faff] rounded-2xl p-4 border border-[#dce9ff]">
               <img
-                src={product.imageUrls?.[0] || "/no-image.png"}
-                alt={product.title}
+                src={product.imageUrl?.[0] || "/no-image.png"}
+                alt={product.name}
                 className="w-20 h-20 rounded-xl object-cover border"
               />
               <div className="flex-1">
-                <p className="font-semibold text-gray-900 text-lg">{product.title}</p>
+                <p className="font-semibold text-gray-900 text-lg">{product.name}</p>
                 <p className="text-sm text-gray-500 line-clamp-2">{product.description || "Không có mô tả"}</p>
-                <p className="font-semibold text-[#0F74C7] mt-1">${Number(order.totalPrice).toLocaleString()}</p>
+                <p className="font-semibold text-[#0F74C7] mt-1">{Number(order.totalPrice).toLocaleString()} VND</p>
               </div>
             </div>
           )}
@@ -291,14 +283,14 @@ export default function PaymentPage() {
             )}
             <p className="text-gray-700 mt-1">
               <span className="font-medium">Phí vận chuyển:</span>{" "}
-              {order.totalShippingFee ? `$${Number(order.totalShippingFee).toLocaleString()}` : "$0"}
+              {order.totalShippingFee ? `${Number(order.totalShippingFee).toLocaleString()} VND` : "0 VND"}
             </p>
           </div>
 
           {/* 💰 Tổng tiền */}
           <div className="pt-4 border-t border-gray-200 text-right">
             <p className="font-semibold text-gray-800 text-lg">Tổng thanh toán:</p>
-            <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">${total.toLocaleString()}</p>
+            <p className="text-3xl font-extrabold text-[#0F74C7] mt-1">{total.toLocaleString()} VND</p>
           </div>
         </div>
 
@@ -350,7 +342,7 @@ export default function PaymentPage() {
                           <p>
                             Số dư khả dụng:{" "}
                             <span className="font-semibold text-[#0F74C7]">
-                              ${wallet.available.toLocaleString()}
+                              {wallet.available.toLocaleString()} VND
                             </span>
                           </p>
                           {wallet.available < total && (
