@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Table, Tag, Spin, Button, Modal, Descriptions, message } from "antd";
 import { EyeOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { auctionApi } from "../../../../api/auction";
 
 interface AuctionInfo {
   auctionId: string;
@@ -46,18 +47,15 @@ export default function AuctionManager() {
         return;
       }
 
-      // Call backend API
+      // Call backend API via auctionApi
       try {
-        const res = await fetch(`/auction/seller/${sellerId}/managed?page=1&pageSize=20`);
+        const resp = await auctionApi.getSellerAuctions(sellerId, 1, 20);
+        const auctionData = resp?.items || resp?.data?.items || [];
 
-        if (res.ok) {
-          const response = await res.json();
-          const auctionData = response.items || [];
-
-          if (auctionData.length > 0) {
-            setAuctions(auctionData);
-            return;
-          }
+        if (auctionData.length > 0) {
+          setAuctions(auctionData);
+          setLoading(false);
+          return;
         }
       } catch (apiError) {
         console.warn("API call failed, using mock data:", apiError);
