@@ -1,9 +1,6 @@
+import { CheckCircle, Download, Home, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  CheckCircle, Download, Home,
-  // Package
-} from "lucide-react";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -11,12 +8,12 @@ export default function PaymentSuccess() {
   const [isAnimated, setIsAnimated] = useState(false);
 
   // Get payment details from URL params
-  // const orderId =
-  //   searchParams.get("orderId") ||
-  //   "ORD-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-  // const transactionId =
-  //   searchParams.get("transactionId") ||
-  //   "TXN-" + Math.random().toString(36).substr(2, 12).toUpperCase();
+  const orderId =
+    searchParams.get("orderId") || "";
+  // "ORD-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+  const transactionId =
+    searchParams.get("transactionId") || "";
+  // "TXN-" + Math.random().toString(36).substr(2, 12).toUpperCase();
   const amount = searchParams.get("amount") || "0";
 
   useEffect(() => {
@@ -59,16 +56,20 @@ export default function PaymentSuccess() {
 
           {/* Payment Details */}
           <div className="space-y-4">
-            {/* <div className="flex justify-between items-center">
-              <span className="text-gray-600">Order ID</span>
-              <span className="font-semibold text-gray-900">{orderId}</span>
-            </div> */}
-            {/* <div className="flex justify-between items-center">
-              <span className="text-gray-600">Transaction ID</span>
-              <span className="font-mono text-sm text-gray-900">
-                {transactionId}
-              </span>
-            </div> */}
+            {orderId &&
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Order ID</span>
+                <span className="font-semibold text-gray-900">{orderId}</span>
+              </div>
+            }
+            {transactionId &&
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Transaction ID</span>
+                <span className="font-mono text-sm text-gray-900">
+                  {transactionId}
+                </span>
+              </div>
+            }
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Amount Paid</span>
               <span className="text-2xl font-bold text-green-600">
@@ -88,20 +89,30 @@ export default function PaymentSuccess() {
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            {/* <button
-              onClick={() => navigate("/orders/" + orderId)}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
-            >
-              <Package className="w-5 h-5" />
-              View Order Details
-            </button> */}
+            {orderId ?
+              <button
+                onClick={() => navigate("/orders/" + orderId)}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl cursor-pointer"
+              >
+                <Package className="w-5 h-5" />
+                View Order Details
+              </button>
+              :
+              <button
+                onClick={() => navigate("/profile/orders")}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl cursor-pointer"
+              >
+                <Package className="w-5 h-5" />
+                View Orders History
+              </button>
+            }
 
             <button
               onClick={() => {
                 // Download receipt logic here
                 alert("Receipt download started");
               }}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Download className="w-5 h-5" />
               Download Receipt
@@ -109,7 +120,7 @@ export default function PaymentSuccess() {
 
             <button
               onClick={() => navigate("/")}
-              className="w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 border-2 border-gray-200"
+              className="w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 border-2 border-gray-200 cursor-pointer"
             >
               <Home className="w-5 h-5" />
               Back to Home

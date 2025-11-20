@@ -91,3 +91,43 @@ export const getAllProducts = async () => {
   const response = await axiosInstance.get(`/product-listing/all`);
   return response.data;
 };
+
+// 🟪 Lấy sản phẩm theo seller_id (public API)
+export const getProductsBySellerId = async (
+  sellerId: string,
+  page = 1,
+  limit = 10,
+  excludeProductId?: string
+): Promise<ProductListResponse> => {
+  try {
+    if (!sellerId) throw new Error("❌ Missing seller_id");
+
+    const response = await axiosInstance.get(`/product-listing`, {
+      params: {
+        seller_id: sellerId,
+        page,
+        limit,
+      },
+    });
+
+    const res = response.data;
+    const payload = res.data || {};
+
+    let products = payload.data || [];
+
+    // Loại bỏ sản phẩm hiện tại nếu có excludeProductId
+    if (excludeProductId) {
+      products = products.filter((p: Product) => p.id !== excludeProductId);
+    }
+
+    return {
+      data: products,
+      total: payload.total || 0,
+      page: payload.page || 1,
+      limit: payload.limit || limit,
+    };
+  } catch (error) {
+    console.error("Error fetching products by seller_id:", error);
+    throw error;
+  }
+};

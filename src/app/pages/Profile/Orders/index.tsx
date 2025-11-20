@@ -54,6 +54,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function OrderManagement() {
   const { orders } = useOrder();
+  console.log("orders", orders);
   const { handleCreateDisputes } = useDisputes();
   const {
     handleCreateReview,
@@ -193,14 +194,14 @@ export default function OrderManagement() {
                 >
                   Shop: {shop.seller.fullName}
                 </Link>
-                <span
+                {/* <span
                   className={cn(
                     "px-2 py-1 rounded-md text-xs font-semibold border",
                     STATUS_COLORS[shop.status] || STATUS_COLORS.pending
                   )}
                 >
                   {shop.status.replace(/_/g, " ")}
-                </span>
+                </span> */}
               </CardTitle>
               <p className="text-sm text-muted-foreground">{shop.seller.email}</p>
             </CardHeader>
@@ -233,10 +234,13 @@ export default function OrderManagement() {
                       </p>
                     )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right align-middle flex flex-col justify-center items-end gap-1">
                       <p className="font-semibold text-energy-600 dark:text-energy-400">
                       ₫{Number.parseFloat(detail.subtotal).toLocaleString()}
                     </p>
+                    <Link to={`/orders/${record.orderId}`} className="text-xs text-ocean-600 hover:underline cursor-pointer">
+                      View details
+                    </Link>
                   </div>
                 </div>
               ))}

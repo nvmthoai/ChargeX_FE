@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ProductGallery from "./component/ProductGallery";
 import ProductInfo from "./component/ProductInfo";
+import OrtherProduct from "./component/OrtherProduct";
 import { getProductById } from "../.././../api/product/api";
 import { Loader2, AlertCircle } from "lucide-react";
 
@@ -50,7 +51,7 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="min-h-scre  en py-8">
+    <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Gallery bên trái */}
@@ -65,6 +66,12 @@ export default function ProductDetail() {
             <ProductInfo product={product} />
           </div>
         </div>
+
+        {/* Sản phẩm liên quan */}
+        <OrtherProduct
+          sellerId={product?.seller?.userId || null}
+          currentProductId={product?.id}
+        />
       </div>
     </div>
   );

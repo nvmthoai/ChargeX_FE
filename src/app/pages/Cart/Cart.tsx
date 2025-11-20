@@ -4,9 +4,9 @@ import OrderSummary from "./components/OrderSummary";
 import { useAuth } from "../../hooks/AuthContext";
 import { deleteData, fetchData, getQueryString } from "../../../mocks/CallingAPI";
 import { ShoppingCart, Loader2, AlertCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function CartPage() {
-  const token = localStorage.getItem('token') || '';
   const { user } = useAuth();
   const [items, setItems] = useState<Record<string, any>[]>([]);
   const [selectedItems, setSelectedItems] = useState<Record<string, any>[]>([]);
@@ -15,24 +15,27 @@ export default function CartPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchDataAPI = async () => {
+    (async () => {
       setLoading(true);
+      const token = localStorage.getItem('token') || '';
       try {
         const ItemsResponse = await fetchData(`/orders${getQueryString({ page: 1, limit: 1000 })}`, token);
+        // const FilterItems = ItemsResponse?.data?.data?.filter((_: any) => true);
+        // const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub);
         const FilterItems = ItemsResponse?.data?.data?.filter((i: any) => i.buyer?.userId == user?.sub && i.status == 'PENDING');
+        console.log('FilterItems', FilterItems);
         setItems(FilterItems);
       } catch (error) {
         setError('Error loading cart items');
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchDataAPI();
-  }, [refresh, user, token]);
+    })();
+  }, [refresh, user]);
 
   const removeItem = async (orderId: number) => {
     setLoading(true);
+    const token = localStorage.getItem('token') || '';
     try {
       await deleteData(`/orders/${orderId}`, token);
     } catch (error) {
@@ -54,8 +57,8 @@ export default function CartPage() {
   };
 
   const filteredItems = items.filter(item => selectedItems.includes(item.orderId));
-  const subtotal = filteredItems.reduce((sum: any, i: any) => sum + (i.orderShops?.[0]?.orderDetails?.[0]?.price || 0) * i.orderShops?.[0]?.orderDetails?.[0]?.quantity, 0);
-  const shipping = filteredItems.reduce((sum: any, i: any) => sum + parseInt(i.orderShops?.[0]?.shippingFee || 0), 0);
+  const subtotal = filteredItems.reduce((sum: any, i: any) => sum + Number(i.orderShops?.[0]?.orderDetails?.[0]?.price || 0) * Number(i.orderShops?.[0]?.orderDetails?.[0]?.quantity), 0);
+  const shipping = filteredItems.reduce((sum: any, i: any) => sum + parseInt(i.totalShippingFee || 0), 0);
   const tax = 0;
   const total = subtotal + shipping + tax;
 
@@ -66,8 +69,8 @@ export default function CartPage() {
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-dark-900 mb-2">Error</h2>
           <p className="text-dark-800 mb-6 font-medium">{error}</p>
-          <button 
-            onClick={() => setRefresh(p => p + 1)}
+          <button
+            onClick={() => { setRefresh(p => p + 1); setError(''); }}
             className="px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
             Try Again
@@ -97,12 +100,12 @@ export default function CartPage() {
             <div className="p-3 bg-gradient-to-r from-ocean-500 to-energy-500 rounded-xl">
               <ShoppingCart className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent h-14">
               Your Shopping Cart
             </h1>
           </div>
           <p className="text-dark-800 text-lg font-medium">
-            {items.length > 0 
+            {items.length > 0
               ? `${items.length} item${items.length !== 1 ? 's' : ''} in your cart`
               : 'Your cart is empty'}
           </p>
@@ -112,11 +115,11 @@ export default function CartPage() {
           {/* Cart Items */}
           <section className="lg:col-span-2">
             {items?.length > 0 ? (
-              <CartItemsList 
-                items={items} 
-                selectedItems={selectedItems} 
-                onRemove={removeItem} 
-                onCheck={handleCheckboxChange} 
+              <CartItemsList
+                items={items}
+                selectedItems={selectedItems}
+                onRemove={removeItem}
+                onCheck={handleCheckboxChange}
               />
             ) : (
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-12 shadow-xl border border-ocean-200/50 text-center">
@@ -125,12 +128,13 @@ export default function CartPage() {
                 </div>
                 <h3 className="text-2xl font-bold text-dark-900 mb-2">Your cart is empty</h3>
                 <p className="text-dark-800 mb-6 font-medium">Start shopping to add items to your cart</p>
-                <a
-                  href="/"
+                <Link
+                  to="/"
                   className="inline-block px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                  style={{ color: '#fff' }}
                 >
                   Continue Shopping
-                </a>
+                </Link>
               </div>
             )}
           </section>

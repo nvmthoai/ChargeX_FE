@@ -4,6 +4,7 @@ import type {
   CreateOrderRequest,
   UpdateOrderRequest,
   GetOrdersParams,
+  GetOrdersResponse,
 } from "./type";
 
 // 🟩 Tạo đơn hàng
@@ -13,7 +14,6 @@ export const createOrder = async (
 ): Promise<Order> => {
   try {
     const res = await axiosInstance.post(`/orders/${buyerId}`, payload);
-    console.log("✅ Order created:", res.data?.data?.data);
     return res.data?.data?.data || res.data?.data;
   } catch (err) {
     console.error("❌ Error creating order:", err);
@@ -22,22 +22,21 @@ export const createOrder = async (
 };
 
 // 🟦 Lấy tất cả đơn hàng (hỗ trợ filter buyerId / sellerId / status / pagination)
-export const getAllOrders = async (params?: GetOrdersParams): Promise<Order[]> => {
+export async function getAllOrders(params: GetOrdersParams): Promise<GetOrdersResponse> {
   try {
     const res = await axiosInstance.get("/orders", { params });
-    console.log("✅ All orders:", res.data?.data?.data);
-    return res.data?.data?.data ?? [];
+    return res.data;
   } catch (err) {
     console.error("❌ Error fetching orders:", err);
     throw err;
   }
-};
+}
 
 // 🟨 Lấy đơn hàng theo ID
 export const getOrderById = async (id: string): Promise<Order> => {
   try {
     const res = await axiosInstance.get(`/orders/${id}`);
-    console.log(`✅ Order ${id}:`, res.data?.data);
+    console.log(`✅ Order có ${id}:`, res.data?.data);
     return res.data?.data;
   } catch (err) {
     console.error(`❌ Error fetching order ${id}:`, err);
