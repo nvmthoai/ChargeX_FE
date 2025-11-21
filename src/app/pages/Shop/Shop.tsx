@@ -8,25 +8,25 @@ export default function Shop() {
   const menuItems = [
     {
       to: "products",
-      label: "Products for Sale",
+      label: "Sản phẩm bán",
       icon: ShoppingBag,
       isActive: path.includes("/shop/products") || path.includes("/shop/productdetail"),
     },
     {
       to: "history",
-      label: "Transaction History",
+      label: "Lịch sử giao dịch",
       icon: History,
       isActive: path.includes("/shop/history"),
     },
     {
       to: "auction",
-      label: "Auction Management",
+      label: "Quản lý đấu giá",
       icon: Gavel,
       isActive: path.includes("/shop/auction"),
     },
     {
       to: "dashboard",
-      label: "Shop Dashboard",
+      label: "Bảng điều khiển cửa hàng",
       icon: ShoppingBag,
       isActive: path.includes("/shop/dashboard"),
     },
@@ -84,7 +84,7 @@ export default function Shop() {
         <div className="max-w-6xl mx-auto">
           {/* Fee notice banner */}
           <div className="mb-4 p-3 rounded-md bg-yellow-50 border border-yellow-200 text-sm text-yellow-800">
-            Note: A platform fee of 10% will be charged for each order placed through this shop.
+            Lưu ý: Phí nền tảng 10% sẽ được tính cho mỗi đơn hàng đặt qua cửa hàng này.
           </div>
 
           <Outlet />

@@ -104,19 +104,19 @@ export default function AllOrder() {
             setPage(1);
           }}
           statusOptions={[
-            { label: "Pending", value: "pending" },
-            { label: "Paid", value: "paid" },
-            { label: "In Transit", value: "in_transit" },
-            { label: "Delivered", value: "delivered" },
-            { label: "Completed", value: "completed" },
-            { label: "Cancelled", value: "cancelled" },
+            { label: "Đang chờ", value: "pending" },
+            { label: "Đã thanh toán", value: "paid" },
+            { label: "Đang vận chuyển", value: "in_transit" },
+            { label: "Đã giao", value: "delivered" },
+            { label: "Hoàn thành", value: "completed" },
+            { label: "Đã hủy", value: "cancelled" },
           ]}
         />
 
         {/* Table */}
         {loading ? (
           <div className="p-10 text-center text-gray-400 animate-pulse">
-            Loading orders...
+            Đang tải đơn hàng...
           </div>
         ) : orders.length === 0 ? (
           <div className="p-12 text-center text-gray-500">

@@ -51,10 +51,10 @@ export const GoLiveModal = ({ visible, onCancel, onSubmit, auctionId, loading }:
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-ocean-400 to-energy-400 bg-clip-text text-transparent flex items-center gap-2">
             <Radio className="w-6 h-6 text-ocean-400" />
-            Go Live
+            Phát trực tiếp
           </DialogTitle>
           <DialogDescription>
-            Configure settings to make this auction live
+            Cấu hình cài đặt để phát trực tiếp phiên đấu giá này
           </DialogDescription>
         </DialogHeader>
 
@@ -64,32 +64,32 @@ export const GoLiveModal = ({ visible, onCancel, onSubmit, auctionId, loading }:
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Clock className="w-5 h-5 text-ocean-400" />
-                Auction Time
+                Thời gian đấu giá
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <Form.Item
-                  label={<span className="font-medium text-dark-200">Start Time</span>}
+                  label={<span className="font-medium text-dark-200">Thời gian bắt đầu</span>}
                   name="startTime"
-                  rules={[{ required: true, message: "Please select start time" }]}
+                  rules={[{ required: true, message: "Vui lòng chọn thời gian bắt đầu" }]}
                 >
                   <DatePicker
                     showTime
                     className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
-                    placeholder="Select start time"
+                    placeholder="Chọn thời gian bắt đầu"
                   />
                 </Form.Item>
 
                 <Form.Item
-                  label={<span className="font-medium text-dark-200">End Time</span>}
+                  label={<span className="font-medium text-dark-200">Thời gian kết thúc</span>}
                   name="endTime"
-                  rules={[{ required: true, message: "Please select end time" }]}
+                  rules={[{ required: true, message: "Vui lòng chọn thời gian kết thúc" }]}
                 >
                   <DatePicker
                     showTime
                     className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
-                    placeholder="Select end time"
+                    placeholder="Chọn thời gian kết thúc"
                   />
                 </Form.Item>
               </div>
@@ -101,15 +101,15 @@ export const GoLiveModal = ({ visible, onCancel, onSubmit, auctionId, loading }:
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <DollarSign className="w-5 h-5 text-ocean-400" />
-                Price Settings
+                Cài đặt giá
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <Form.Item
-                  label={<span className="font-medium text-dark-200">Reserve Price</span>}
+                  label={<span className="font-medium text-dark-200">Giá khởi điểm</span>}
                   name="reservePrice"
-                  rules={[{ required: true, message: "Please enter reserve price" }]}
+                  rules={[{ required: true, message: "Vui lòng nhập giá khởi điểm" }]}
                 >
                   <InputNumber
                     className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
@@ -118,9 +118,9 @@ export const GoLiveModal = ({ visible, onCancel, onSubmit, auctionId, loading }:
                 </Form.Item>
 
                 <Form.Item
-                  label={<span className="font-medium text-dark-200">Min Bid Increment</span>}
+                  label={<span className="font-medium text-dark-200">Bước giá tối thiểu</span>}
                   name="minBidIncrement"
-                  rules={[{ required: true, message: "Please enter min bid increment" }]}
+                  rules={[{ required: true, message: "Vui lòng nhập bước giá tối thiểu" }]}
                 >
                   <InputNumber
                     className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
@@ -136,15 +136,15 @@ export const GoLiveModal = ({ visible, onCancel, onSubmit, auctionId, loading }:
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Settings className="w-5 h-5 text-ocean-400" />
-                Advanced Settings
+                Cài đặt nâng cao
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <Form.Item
-                  label={<span className="font-medium text-dark-200">Anti Sniping Seconds</span>}
+                  label={<span className="font-medium text-dark-200">Giây chống snipe</span>}
                   name="antiSnipingSeconds"
-                  rules={[{ required: true, message: "Please enter anti sniping seconds" }]}
+                  rules={[{ required: true, message: "Vui lòng nhập số giây chống snipe" }]}
                 >
                   <InputNumber
                     className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
@@ -153,9 +153,9 @@ export const GoLiveModal = ({ visible, onCancel, onSubmit, auctionId, loading }:
                 </Form.Item>
 
                 <Form.Item
-                  label={<span className="font-medium text-dark-200">Bid Deposit Percent</span>}
+                  label={<span className="font-medium text-dark-200">Phần trăm đặt cọc</span>}
                   name="bidDepositPercent"
-                  rules={[{ required: true, message: "Please enter bid deposit percent" }]}
+                  rules={[{ required: true, message: "Vui lòng nhập phần trăm đặt cọc" }]}
                 >
                   <InputNumber
                     className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
@@ -173,7 +173,7 @@ export const GoLiveModal = ({ visible, onCancel, onSubmit, auctionId, loading }:
               disabled={submitting || loading}
               className="w-full sm:w-auto"
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               onClick={() => form.submit()}
@@ -183,12 +183,12 @@ export const GoLiveModal = ({ visible, onCancel, onSubmit, auctionId, loading }:
               {submitting || loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Processing...
+                  Đang xử lý...
                 </>
               ) : (
                 <>
                   <Radio className="w-4 h-4" />
-                  Go Live
+                  Phát trực tiếp
                 </>
               )}
             </Button>

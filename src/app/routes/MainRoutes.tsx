@@ -53,7 +53,7 @@ const ProductDetail = lazy(() => import("../pages/Product/ProductDetail"));
 function RoutesContent() {
   return (
     <>
-      <Suspense fallback={<div className="p-8 text-center">Loading…</div>}>
+      <Suspense fallback={<div className="p-8 text-center">Đang tải…</div>}>
         <Routes>
 
           {/* Base layout */}

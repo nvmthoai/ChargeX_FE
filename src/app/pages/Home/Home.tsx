@@ -74,7 +74,7 @@ export default function EVMarketplace() {
 
   const getCondition = (product: (typeof products)[0]) => {
     if (product.condition_grade) return `Grade ${product.condition_grade}`;
-    return product.status === "active" ? "Active" : "Draft";
+    return product.status === "active" ? "Hoạt động" : "Bản nháp";
   };
 
   const handlePageChange = (page: number) => {
@@ -237,8 +237,8 @@ export default function EVMarketplace() {
                 <h4 className="font-bold mb-3 text-dark-900">Auction Type</h4>
                 <div className="space-y-2">
                   {[
-                    { value: null, label: "All" },
-                    { value: true, label: "Auction" },
+                    { value: null, label: "Tất cả" },
+                    { value: true, label: "Đấu giá" },
                     { value: false, label: "Buy Now" },
                   ].map((option) => (
                     <label key={String(option.value)} className="flex items-center cursor-pointer group">
@@ -353,7 +353,7 @@ export default function EVMarketplace() {
                     {/* Status & Seller */}
                     <div className="flex items-center justify-between mb-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getCondition(product) === "Active"
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getCondition(product) === "Hoạt động"
                             ? "bg-gradient-to-r from-energy-100 to-energy-200 text-energy-800"
                             : "bg-dark-100 text-dark-700"
                           }`}

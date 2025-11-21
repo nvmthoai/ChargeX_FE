@@ -19,7 +19,7 @@ export default function OrderSummary({
         <div className="p-2 bg-gradient-to-r from-ocean-500 to-energy-500 rounded-lg">
           <ShoppingBag className="w-5 h-5 text-white" />
         </div>
-        <h2 className="text-xl font-bold text-dark-900">Order Summary</h2>
+        <h2 className="text-xl font-bold text-dark-900">Tóm tắt đơn hàng</h2>
       </div>
 
       {/* <div className="space-y-3 mb-6">
@@ -39,7 +39,7 @@ export default function OrderSummary({
 
       <div className="border-t border-ocean-200 pt-4 mb-6">
         <div className="flex justify-between items-center">
-          <span className="text-lg font-bold text-dark-900">Order Total</span>
+          <span className="text-lg font-bold text-dark-900">Tổng đơn hàng</span>
           <span className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent">
             {Number(total).toLocaleString()} VND
           </span>

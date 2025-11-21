@@ -111,11 +111,11 @@ const WithdrawManagement: React.FC = () => {
   const filters: FilterOption[] = [
     {
       key: "status",
-      label: "Status",
+      label: "Trạng thái",
       options: [
-        { value: "pending", label: "Pending" },
-        { value: "approved", label: "Approved" },
-        { value: "rejected", label: "Rejected" },
+        { value: "pending", label: "Đang chờ" },
+        { value: "approved", label: "Đã duyệt" },
+        { value: "rejected", label: "Đã từ chối" },
       ],
     },
   ];
@@ -143,7 +143,7 @@ const WithdrawManagement: React.FC = () => {
   const columns: Column<PayoutRequest>[] = [
     {
       key: "user",
-      title: "User",
+      title: "Người dùng",
       render: (record) => (
         <div>
           <div className="font-medium text-dark-800 dark:text-dark-200">
@@ -157,14 +157,14 @@ const WithdrawManagement: React.FC = () => {
     },
     {
       key: "phone",
-      title: "Phone",
+      title: "Số điện thoại",
       render: (record) => (
         <span className="text-sm">{record.userData.phone}</span>
       ),
     },
     {
       key: "amount",
-      title: "Amount",
+      title: "Số tiền",
       render: (record) => (
         <span className="text-sm font-semibold text-energy-600 dark:text-energy-400">
           ${Number.parseFloat(record.amount).toLocaleString()}
@@ -173,7 +173,7 @@ const WithdrawManagement: React.FC = () => {
     },
     {
       key: "bankInfo",
-      title: "Bank Info",
+      title: "Thông tin ngân hàng",
       render: (record) => {
         const info = getDescription(record.description);
         return (
@@ -190,7 +190,7 @@ const WithdrawManagement: React.FC = () => {
     },
     {
       key: "status",
-      title: "Status",
+      title: "Trạng thái",
       render: (record) => (
         <span className={cn("px-2 py-1 rounded-md text-xs font-medium", getStatusColor(record.status))}>
           {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
@@ -199,7 +199,7 @@ const WithdrawManagement: React.FC = () => {
     },
     {
       key: "actions",
-      title: "Actions",
+      title: "Hành động",
       render: (record) => (
         <div className="flex items-center gap-2">
           {record.status === "pending" && (
@@ -210,7 +210,7 @@ const WithdrawManagement: React.FC = () => {
                 className="gap-1"
               >
                 <CheckCircle className="w-4 h-4" />
-                Approve
+                Duyệt
               </Button>
               <Button
                 variant="destructive"
@@ -219,7 +219,7 @@ const WithdrawManagement: React.FC = () => {
                 className="gap-1"
               >
                 <XCircle className="w-4 h-4" />
-                Deny
+                Từ chối
               </Button>
             </>
           )}
@@ -233,7 +233,7 @@ const WithdrawManagement: React.FC = () => {
       <div className="h-screen flex justify-center items-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-ocean-600" />
-          <p className="text-sm text-muted-foreground">Processing request...</p>
+          <p className="text-sm text-muted-foreground">Đang xử lý yêu cầu...</p>
         </div>
       </div>
     );
@@ -242,11 +242,11 @@ const WithdrawManagement: React.FC = () => {
   return (
     <div className="p-6">
       <AdminDataTable
-        title="Withdraw Request Management"
+        title="Quản lý yêu cầu rút tiền"
         data={payouts}
         columns={columns}
         loading={loading}
-        searchPlaceholder="Find by name, email or phone..."
+        searchPlaceholder="Tìm theo tên, email hoặc số điện thoại..."
         searchValue={searchText}
         onSearchChange={setSearchText}
         filters={filters}

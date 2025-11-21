@@ -50,7 +50,7 @@ export default function AdminDashboard() {
       setStats(merged);
     } catch (err) {
       console.error("Error fetching dashboard stats:", err);
-      message.error("Failed to load dashboard statistics");
+      message.error("Không thể tải thống kê bảng điều khiển");
 
       // Fallback: Mock data for development
       const mockStats: DashboardStats = {
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
     return (
       <div className="p-6">
         <Empty
-          description="No data available"
+          description="Không có dữ liệu"
           styles={{ description: { color: 'rgba(209, 213, 219, 1)' } }}
         />
       </div>
@@ -91,10 +91,10 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-dark-100 mb-2">
-            Admin Dashboard
+            Bảng điều khiển quản trị
           </h1>
           <p className="text-dark-300">
-            Platform metrics and revenue tracking
+            Số liệu nền tảng và theo dõi doanh thu
           </p>
         </div>
 

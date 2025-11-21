@@ -215,7 +215,7 @@ export default function PaymentPage() {
         {/* 🧺 Thông tin đơn hàng */}
         <div className="bg-gradient-to-br from-white/95 via-ocean-50/20 to-energy-50/20 rounded-xl shadow-md border border-ocean-200/30 p-8 space-y-6 lg:col-span-2">
           <h2 className="text-2xl font-semibold text-gray-900">
-            <span className="text-[#0F74C7]">1.</span> Order Summary
+            <span className="text-[#0F74C7]">1.</span> Tóm tắt đơn hàng
           </h2>
 
           {/* 🛍️ Sản phẩm */}

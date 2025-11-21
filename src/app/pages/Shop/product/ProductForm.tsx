@@ -56,10 +56,10 @@ export default function ProductForm({
   const [openStatus, setOpenStatus] = useState(false);
 
   const statusOptions = [
-    { value: "active", label: "Active", icon: CheckCircle },
-    { value: "sold", label: "Sold", icon: XCircle },
-    { value: "ended", label: "Ended", icon: PauseCircle },
-    { value: "draft", label: "Draft", icon: FileText },
+    { value: "active", label: "Hoạt động", icon: CheckCircle },
+    { value: "sold", label: "Đã bán", icon: XCircle },
+    { value: "ended", label: "Đã kết thúc", icon: PauseCircle },
+    { value: "draft", label: "Bản nháp", icon: FileText },
   ];
 
   // 🔹 Load data when editing
@@ -135,7 +135,7 @@ export default function ProductForm({
     e.preventDefault();
 
     if (!form.title || !form.description) {
-      alert("Please fill in all required fields!");
+      alert("Vui lòng điền đầy đủ các trường bắt buộc!");
       return;
     }
 

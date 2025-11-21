@@ -37,7 +37,7 @@ function AuthPage() {
               />
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent mb-2">
-              Welcome to ChargeX
+              Chào mừng đến với ChargeX
             </h1>
             <p className="text-dark-800 font-semibold">
               Thị trường PIN EV của bạn
@@ -84,7 +84,7 @@ function AuthPage() {
                     <Form.Item
                       label={
                         <span className="font-bold text-dark-900">
-                          Password
+                          Mật khẩu
                         </span>
                       }
                       name="password"

@@ -43,7 +43,7 @@ export const ApprovePayoutModal: React.FC<ApprovePayoutModalProps> = ({
         onClose();
       }
     } catch (error) {
-      message.error("Failed to approve payout");
+      message.error("Không thể duyệt thanh toán");
     } finally {
       setLoading(false);
     }
@@ -60,37 +60,37 @@ export const ApprovePayoutModal: React.FC<ApprovePayoutModalProps> = ({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent flex items-center gap-2">
             <CheckCircle className="w-6 h-6 text-ocean-600" />
-            Approve Payout Request
+            Duyệt yêu cầu thanh toán
           </DialogTitle>
           <DialogDescription>
-            Confirm and approve this payout request
+            Xác nhận và duyệt yêu cầu thanh toán này
           </DialogDescription>
         </DialogHeader>
 
         <Form form={form} layout="vertical" onFinish={handleSubmit} className="space-y-4">
           <Form.Item
-            label={<span className="font-medium text-dark-800 dark:text-dark-200">Account Number</span>}
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Số tài khoản</span>}
             name="accountNumber"
-            rules={[{ required: true, message: "Please enter account number" }]}
+            rules={[{ required: true, message: "Vui lòng nhập số tài khoản" }]}
           >
             <Input placeholder="e.g., 0123456789012" className="rounded-lg" size="large" />
           </Form.Item>
 
           <Form.Item
-            label={<span className="font-medium text-dark-800 dark:text-dark-200">Bank</span>}
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Ngân hàng</span>}
             name="bankCode"
-            rules={[{ required: true, message: "Please enter bank code" }]}
+            rules={[{ required: true, message: "Vui lòng nhập mã ngân hàng" }]}
           >
             <BankSelect banks={banks} loading={loadingBanks} />
           </Form.Item>
 
           <Form.Item
-            label={<span className="font-medium text-dark-800 dark:text-dark-200">Approval Note</span>}
+            label={<span className="font-medium text-dark-800 dark:text-dark-200">Ghi chú duyệt</span>}
             name="note"
-            rules={[{ required: true, message: "Please enter a note" }]}
+            rules={[{ required: true, message: "Vui lòng nhập ghi chú" }]}
           >
             <Input.TextArea
-              placeholder="Approval note"
+              placeholder="Ghi chú duyệt"
               rows={3}
               className="rounded-lg"
             />
@@ -104,7 +104,7 @@ export const ApprovePayoutModal: React.FC<ApprovePayoutModalProps> = ({
               disabled={loading}
               className="w-full sm:w-auto"
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"
@@ -114,12 +114,12 @@ export const ApprovePayoutModal: React.FC<ApprovePayoutModalProps> = ({
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Approving...
+                  Đang duyệt...
                 </>
               ) : (
                 <>
                   <CheckCircle className="w-4 h-4" />
-                  Approve
+                  Duyệt
                 </>
               )}
             </Button>

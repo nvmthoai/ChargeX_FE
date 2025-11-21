@@ -41,21 +41,21 @@ export default function TransactionManagement() {
     }, [refresh, page]);
     // }, [refresh, page, selectedEmailVerified, selectedIsActive, selectedIsDelete, selectedSortBy, selectedOrder]);
 
-    if (loading) return <div className='admin-container'>Loading</div>
+    if (loading) return <div className='admin-container'>Đang tải</div>
     // if (error) return <div className='admin-container'>Error</div>
     return (
         <div className='admin-container'>
             <div className='inner-container management-container transaction-management-container'>
 
                 <header className='main-header'>
-                    <h1>Transaction Management</h1>
+                    <h1>Quản lý giao dịch</h1>
                 </header>
 
                 <div className='controls'>
                     {/* FIX==search input */}
                     <div className='search-bar'>
                         <i className='fa-solid fa-magnifying-glass' />
-                        <input type='text' placeholder='Find by name or email...' />
+                        <input type='text' placeholder='Tìm theo tên hoặc email...' />
                     </div>
                     {/* <form>
                         <label className={`checkbox-item ${selectedEmailVerified ? '' : 'disabled'}`}>
@@ -85,10 +85,10 @@ export default function TransactionManagement() {
                         </select>
                     </form> */}
                     <button className='btn btn-secondary' onClick={() => setRefresh(p => p + 1)}>
-                        Refresh
+                        Làm mới
                     </button>
                     <button className='btn btn-secondary btn-export'>
-                        <span>Export list</span>
+                        <span>Xuất danh sách</span>
                         <i className='fa-solid fa-chevron-down' />
                     </button>
                 </div>
@@ -98,12 +98,12 @@ export default function TransactionManagement() {
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>CUSTOMER</th>
+                                <th>KHÁCH HÀNG</th>
                                 <th>EMAIL</th>
-                                <th>CREATED</th>
-                                <th>IMAGE</th>
-                                <th>STATUS</th>
-                                <th>ACTIONS</th>
+                                <th>NGÀY TẠO</th>
+                                <th>HÌNH ẢNH</th>
+                                <th>TRẠNG THÁI</th>
+                                <th>HÀNH ĐỘNG</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -121,7 +121,7 @@ export default function TransactionManagement() {
                                     <td>
                                         <div className='email'>
                                             <span>{pay.user?.email}</span>
-                                            {pay.user?.emailVerified && <i className='fa-solid fa-circle-check' title='Verified' />}
+                                            {pay.user?.emailVerified && <i className='fa-solid fa-circle-check' title='Đã xác minh' />}
                                         </div>
                                     </td>
                                     <td>{new Date(pay.createdAt).toLocaleDateString()}</td>
@@ -166,9 +166,9 @@ export default function TransactionManagement() {
 
                 {error && (
                     <ConfirmDialog
-                        title={'THERE IS AN ERROR'}
-                        message={'An error is occured. Please try again later.'}
-                        confirm={'OKAY'}
+                        title={'CÓ LỖI XẢY RA'}
+                        message={'Đã xảy ra lỗi. Vui lòng thử lại sau.'}
+                        confirm={'ĐỒNG Ý'}
                         cancel={''}
                         color={'#dc354580'}
                         onConfirm={() => setError('')}

@@ -26,7 +26,7 @@ export default function CartPage() {
         console.log('FilterItems', FilterItems);
         setItems(FilterItems);
       } catch (error) {
-        setError('Error loading cart items');
+        setError('Lỗi khi tải sản phẩm trong giỏ hàng');
       } finally {
         setLoading(false);
       }
@@ -39,7 +39,7 @@ export default function CartPage() {
     try {
       await deleteData(`/orders/${orderId}`, token);
     } catch (error) {
-      setError('Error removing item');
+      setError('Lỗi khi xóa sản phẩm');
     } finally {
       setLoading(false);
       setRefresh(p => p + 1);

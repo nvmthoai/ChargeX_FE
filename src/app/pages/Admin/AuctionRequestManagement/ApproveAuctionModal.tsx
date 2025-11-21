@@ -76,10 +76,10 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-ocean-400 to-energy-400 bg-clip-text text-transparent flex items-center gap-2">
             <CheckCircle className="w-6 h-6 text-ocean-400" />
-            Approve Auction Request
+            Duyệt yêu cầu đấu giá
           </DialogTitle>
           <DialogDescription>
-            Configure auction settings and approve this request
+            Cấu hình cài đặt đấu giá và duyệt yêu cầu này
           </DialogDescription>
         </DialogHeader>
 
@@ -88,7 +88,7 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
           <Card className="border-ocean-800/30 bg-dark-800">
             <CardContent className="pt-6">
               <Form.Item
-                label={<span className="font-medium text-dark-200">Auction Request ID</span>}
+                label={<span className="font-medium text-dark-200">ID yêu cầu đấu giá</span>}
                 className="mb-0"
               >
                 <Input disabled value={auctionRequestId} className="font-mono text-sm bg-dark-700 text-dark-200 border-ocean-800" />
@@ -101,36 +101,36 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Clock className="w-5 h-5 text-ocean-400" />
-                Auction Time
+                Thời gian đấu giá
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <Form.Item
-                  label={<span className="font-medium text-dark-200">Start Time</span>}
+                  label={<span className="font-medium text-dark-200">Thời gian bắt đầu</span>}
                   name="startTime"
-                  rules={[{ required: true, message: "Please select a start time" }]}
+                  rules={[{ required: true, message: "Vui lòng chọn thời gian bắt đầu" }]}
                 >
                   <DatePicker
                     showTime
                     format="DD/MM/YYYY HH:mm:ss"
                     className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
-                    placeholder="Select start time"
+                    placeholder="Chọn thời gian bắt đầu"
                     disabledDate={disabledDate}
                     disabledTime={disabledTime}
                   />
                 </Form.Item>
 
                 <Form.Item
-                  label={<span className="font-medium text-dark-200">End Time</span>}
+                  label={<span className="font-medium text-dark-200">Thời gian kết thúc</span>}
                   name="endTime"
                   rules={[
-                    { required: true, message: "Please select an end time" },
+                    { required: true, message: "Vui lòng chọn thời gian kết thúc" },
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         const start = getFieldValue('startTime')
                         if (value && start && value.isBefore(start)) {
-                          return Promise.reject(new Error('End time must be after start time'))
+                          return Promise.reject(new Error('Thời gian kết thúc phải sau thời gian bắt đầu'))
                         }
                         return Promise.resolve()
                       }
@@ -141,7 +141,7 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
                     showTime
                     format="DD/MM/YYYY HH:mm:ss"
                     className="w-full bg-dark-700 text-dark-100 border-ocean-800 [&_input]:text-dark-100"
-                    placeholder="Select end time"
+                    placeholder="Chọn thời gian kết thúc"
                     disabledDate={disabledDate}
                     disabledTime={disabledTime}
                   />
@@ -156,8 +156,8 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
               <div className="flex items-start gap-2">
                 <Info className="w-5 h-5 text-ocean-400 mt-1 flex-shrink-0" />
                 <div className="text-sm text-dark-300">
-                  <p className="font-medium text-dark-200 mb-1">Auction Details from Seller Request:</p>
-                  <p className="text-dark-400">Starting Price, Reserve Price, Bid Increment, Anti-Sniping, Buy-Now Price, and Deposit % are already set by the seller. You only need to confirm the auction time window.</p>
+                  <p className="font-medium text-dark-200 mb-1">Chi tiết đấu giá từ yêu cầu người bán:</p>
+                  <p className="text-dark-400">Giá khởi điểm, Giá dự trữ, Bước giá, Chống snipe, Giá mua ngay và % đặt cọc đã được người bán thiết lập. Bạn chỉ cần xác nhận khung thời gian đấu giá.</p>
                 </div>
               </div>
             </CardContent>
@@ -170,7 +170,7 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
               disabled={loading}
               className="w-full sm:w-auto"
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               onClick={() => form.submit()}
@@ -180,12 +180,12 @@ export const ApproveAuctionModal: React.FC<ApproveAuctionModalProps> = ({
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Approving...
+                  Đang duyệt...
                 </>
               ) : (
                 <>
                   <CheckCircle className="w-4 h-4" />
-                  Approve
+                  Duyệt
                 </>
               )}
             </Button>

@@ -336,22 +336,22 @@ const statusStyle: Record<Status, { wrap: string; dot: string; text: string }> =
   active: {
     wrap: "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100",
     dot: "bg-emerald-500",
-    text: "Active",
+    text: "Hoạt động",
   },
   sold: {
     wrap: "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100",
     dot: "bg-blue-500",
-    text: "Sold",
+    text: "Đã bán",
   },
   ended: {
     wrap: "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100",
     dot: "bg-rose-500",
-    text: "Ended",
+    text: "Đã kết thúc",
   },
   draft: {
     wrap: "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100",
     dot: "bg-gray-400",
-    text: "Draft",
+    text: "Bản nháp",
   },
 };
 

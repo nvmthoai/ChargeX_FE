@@ -38,14 +38,14 @@ export default function AuctionRequestModal({
 
       // Validate user data
       if (!userData?.sub) {
-        message.error("User information not found. Please login again.");
+        message.error("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
         setLoading(false);
         return;
       }
 
       // Validate prices
       if (values.reservePrice < values.startingPrice) {
-        message.error("Reserve price must be >= starting price");
+        message.error("Giá dự trữ phải >= giá khởi điểm");
         setLoading(false);
         return;
       }
@@ -53,10 +53,19 @@ export default function AuctionRequestModal({
       // Note: buyNowPrice is optional, but if provided, it should be > reservePrice
       if (values.buyNowPrice !== undefined && values.buyNowPrice !== null && values.buyNowPrice > 0) {
         if (values.buyNowPrice <= values.reservePrice) {
-          message.error(`Buy-now price (${values.buyNowPrice.toLocaleString()}) must be greater than reserve price (${values.reservePrice.toLocaleString()})`);
+          message.error(`Giá mua ngay (${values.buyNowPrice.toLocaleString()}) phải lớn hơn giá dự trữ (${values.reservePrice.toLocaleString()})`);
           setLoading(false);
           return;
         }
+      }
+
+      // Validate deposit: deposit = startingPrice * (bidDepositPercent / 100) must not exceed 5,000,000 VND
+      const depositAmount = values.startingPrice * ((values.bidDepositPercent || 0) / 100);
+      const MAX_DEPOSIT = 5000000; // 5 triệu VND
+      if (depositAmount > MAX_DEPOSIT) {
+        message.error(`Số tiền đặt cọc (${depositAmount.toLocaleString()} VND) không được vượt quá 5,000,000 VND. Vui lòng giảm phần trăm đặt cọc hoặc giá khởi điểm.`);
+        setLoading(false);
+        return;
       }
 
       const submitData = {
@@ -74,15 +83,15 @@ export default function AuctionRequestModal({
       const response = await onSubmit(submitData);
       
       if (response) {
-        message.success("Auction request submitted successfully");
+        message.success("Yêu cầu đấu giá đã được gửi thành công");
         form.resetFields();
         onClose();
       } else {
-        message.warning("Request submitted but no response received");
+        message.warning("Yêu cầu đã được gửi nhưng không nhận được phản hồi");
       }
     } catch (error: any) {
       console.error('Error in handleSubmit:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || "Failed to submit auction request";
+      const errorMessage = error?.response?.data?.message || error?.message || "Không thể gửi yêu cầu đấu giá";
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -95,16 +104,16 @@ export default function AuctionRequestModal({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-ocean-600 to-energy-600 bg-clip-text text-transparent flex items-center gap-2">
             <Gavel className="w-6 h-6 text-ocean-600" />
-            Request Auction Permission
+            Yêu cầu quyền đấu giá
           </DialogTitle>
           <DialogDescription>
-            Request permission to create an auction for your product
+            Yêu cầu quyền tạo đấu giá cho sản phẩm của bạn
           </DialogDescription>
         </DialogHeader>
 
         <div className="p-4 bg-ocean-50 dark:bg-ocean-900/20 rounded-lg mb-4">
           <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-dark-800 dark:text-dark-200">Product:</span>{" "}
+            <span className="font-semibold text-dark-800 dark:text-dark-200">Sản phẩm:</span>{" "}
             <span className="text-dark-700 dark:text-dark-300">{productTitle}</span>
           </p>
         </div>
@@ -114,12 +123,12 @@ export default function AuctionRequestModal({
           <Form.Item
             label={<span className="font-medium text-dark-800 dark:text-dark-200 flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
-              Starting Price
+              Giá khởi điểm
             </span>}
             name="startingPrice"
             rules={[
-              { required: true, message: "Starting price is required" },
-              { type: "number", min: 0, message: "Must be >= 0" },
+              { required: true, message: "Giá khởi điểm là bắt buộc" },
+              { type: "number", min: 0, message: "Phải >= 0" },
             ]}
           >
             <InputNumber
@@ -134,12 +143,12 @@ export default function AuctionRequestModal({
           <Form.Item
             label={<span className="font-medium text-dark-800 dark:text-dark-200 flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
-              Reserve Price (Minimum to Sell)
+              Giá dự trữ (Tối thiểu để bán)
             </span>}
             name="reservePrice"
             rules={[
-              { required: true, message: "Reserve price is required" },
-              { type: "number", min: 0, message: "Must be >= 0" },
+              { required: true, message: "Giá dự trữ là bắt buộc" },
+              { type: "number", min: 0, message: "Phải >= 0" },
             ]}
           >
             <InputNumber
@@ -154,12 +163,12 @@ export default function AuctionRequestModal({
           <Form.Item
             label={<span className="font-medium text-dark-800 dark:text-dark-200 flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
-              Minimum Bid Increment
+              Bước giá tối thiểu
             </span>}
             name="minBidIncrement"
             initialValue={0}
             rules={[
-              { type: "number", min: 0, message: "Must be >= 0" },
+              { type: "number", min: 0, message: "Phải >= 0" },
             ]}
           >
             <InputNumber
@@ -174,14 +183,14 @@ export default function AuctionRequestModal({
           <Form.Item
             label={<span className="font-medium text-dark-800 dark:text-dark-200 flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              Anti-Sniping Time (Seconds)
+              Thời gian chống snipe (Giây)
             </span>}
             name="antiSnipingSeconds"
             initialValue={30}
             rules={[
-              { type: "number", min: 0, message: "Must be >= 0" },
+              { type: "number", min: 0, message: "Phải >= 0" },
             ]}
-            tooltip="Extends auction time if bid is placed within N seconds of end"
+            tooltip="Gia hạn thời gian đấu giá nếu có đặt giá trong N giây cuối"
           >
             <InputNumber
               placeholder="30"
@@ -193,16 +202,16 @@ export default function AuctionRequestModal({
           <Form.Item
             label={<span className="font-medium text-dark-800 dark:text-dark-200 flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
-              Buy Now Price (Optional)
+              Giá mua ngay (Tùy chọn)
             </span>}
             name="buyNowPrice"
             rules={[
-              { type: "number", min: 0, message: "Must be >= 0" },
+              { type: "number", min: 0, message: "Phải >= 0" },
             ]}
-            tooltip="Leave empty to disable buy-now"
+            tooltip="Để trống để tắt tính năng mua ngay"
           >
             <InputNumber
-              placeholder="Leave empty to disable"
+              placeholder="Để trống để tắt"
               className="w-full"
               formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
               parser={(value) => parseFloat(value?.replace(/,/g, '') || '0')}
@@ -213,14 +222,27 @@ export default function AuctionRequestModal({
           <Form.Item
             label={<span className="font-medium text-dark-800 dark:text-dark-200 flex items-center gap-2">
               <Percent className="w-4 h-4" />
-              Bid Deposit Percent (0-100)
+              Phần trăm đặt cọc (0-100)
             </span>}
             name="bidDepositPercent"
             initialValue={10}
             rules={[
-              { type: "number", min: 0, max: 100, message: "Must be between 0 and 100" },
+              { type: "number", min: 0, max: 100, message: "Phải từ 0 đến 100" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const startingPrice = getFieldValue('startingPrice') || 0;
+                  const depositAmount = startingPrice * ((value || 0) / 100);
+                  const MAX_DEPOSIT = 5000000; // 5 triệu VND
+                  if (depositAmount > MAX_DEPOSIT) {
+                    return Promise.reject(
+                      new Error(`Số tiền đặt cọc (${depositAmount.toLocaleString()} VND) không được vượt quá 5,000,000 VND`)
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              }),
             ]}
-            tooltip="Percentage of bid amount to hold as deposit"
+            tooltip="Phần trăm số tiền đặt giá để giữ làm tiền cọc (tối đa 5 triệu VND)"
           >
             <InputNumber
               placeholder="10"
@@ -234,7 +256,7 @@ export default function AuctionRequestModal({
           <Form.Item
             label={<span className="font-medium text-dark-800 dark:text-dark-200 flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Note (Optional)
+              Ghi chú (Tùy chọn)
             </span>}
             name="note"
             rules={[
@@ -246,7 +268,7 @@ export default function AuctionRequestModal({
           >
             <Input.TextArea
               rows={3}
-              placeholder="Add any additional notes for admin review..."
+              placeholder="Thêm ghi chú bổ sung cho admin xem xét..."
               className="rounded-lg"
             />
           </Form.Item>
@@ -259,7 +281,7 @@ export default function AuctionRequestModal({
               disabled={loading}
               className="w-full sm:w-auto"
             >
-              Cancel
+              Hủy
             </Button>
             <Form.Item className="mb-0">
               <Button
@@ -280,12 +302,12 @@ export default function AuctionRequestModal({
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Submitting...
+                    Đang gửi...
                   </>
                 ) : (
                   <>
                     <Gavel className="w-4 h-4" />
-                    Submit Request
+                    Gửi yêu cầu
                   </>
                 )}
               </Button>

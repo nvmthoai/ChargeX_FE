@@ -45,7 +45,7 @@ export const DenyPayoutModal: React.FC<DenyPayoutModalProps> = ({
         onClose();
       }
     } catch (error) {
-      message.error("Failed to deny payout");
+      message.error("Không thể từ chối thanh toán");
     } finally {
       setLoading(false);
     }
@@ -59,10 +59,10 @@ export const DenyPayoutModal: React.FC<DenyPayoutModalProps> = ({
             <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
           <DialogTitle className="text-2xl font-bold text-center">
-            Deny Payout Request
+            Từ chối yêu cầu thanh toán
           </DialogTitle>
           <DialogDescription className="text-center">
-            Please provide a reason for denying this payout request
+            Vui lòng cung cấp lý do từ chối yêu cầu thanh toán này
           </DialogDescription>
         </DialogHeader>
 
@@ -70,13 +70,13 @@ export const DenyPayoutModal: React.FC<DenyPayoutModalProps> = ({
           <Form.Item
             label={<span className="font-medium text-dark-800 dark:text-dark-200 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
-              Reason
+              Lý do
             </span>}
             name="reason"
-            rules={[{ required: true, message: "Please enter a reason" }]}
+            rules={[{ required: true, message: "Vui lòng nhập lý do" }]}
           >
             <Input.TextArea
-              placeholder="Reason for denial"
+              placeholder="Lý do từ chối"
               rows={4}
               className="rounded-lg"
             />
@@ -90,7 +90,7 @@ export const DenyPayoutModal: React.FC<DenyPayoutModalProps> = ({
               disabled={loading}
               className="w-full sm:w-auto"
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"
@@ -101,12 +101,12 @@ export const DenyPayoutModal: React.FC<DenyPayoutModalProps> = ({
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Denying...
+                  Đang từ chối...
                 </>
               ) : (
                 <>
                   <XCircle className="w-4 h-4" />
-                  Deny
+                  Từ chối
                 </>
               )}
             </Button>

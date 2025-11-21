@@ -52,7 +52,7 @@ export default function About() {
             About ChargeX
           </h1>
           <p className="text-xl sm:text-2xl text-ocean-100 max-w-3xl mx-auto animate-slideUp">
-            Your trusted marketplace for premium electric vehicle batteries
+            Nền tảng đáng tin cậy của bạn cho pin xe điện cao cấp
           </p>
         </div>
       </div>
@@ -66,7 +66,7 @@ export default function About() {
               Our Mission
             </h2>
             <p className="text-lg text-dark-800 text-center max-w-3xl mx-auto leading-relaxed font-medium">
-              ChargeX is dedicated to revolutionizing the EV battery marketplace by providing 
+              ChargeX cam kết cách mạng hóa nền tảng pin xe điện bằng cách cung cấp 
               a secure, transparent, and efficient platform for buying and selling premium 
               electric vehicle batteries. We connect buyers and sellers while ensuring quality, 
               safety, and the best possible prices through our innovative auction system.

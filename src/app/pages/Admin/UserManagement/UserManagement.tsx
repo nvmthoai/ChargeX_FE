@@ -104,42 +104,42 @@ const UserManagement = () => {
     const filters: FilterOption[] = [
         {
             key: 'emailVerified',
-            label: 'Email Verified',
+            label: 'Email đã xác minh',
             options: [
-                { value: 'true', label: 'Verified' },
-                { value: 'false', label: 'Unverified' },
+                { value: 'true', label: 'Đã xác minh' },
+                { value: 'false', label: 'Chưa xác minh' },
             ],
         },
         {
             key: 'isActive',
-            label: 'Status',
+            label: 'Trạng thái',
             options: [
-                { value: 'true', label: 'Active' },
-                { value: 'false', label: 'Inactive' },
+                { value: 'true', label: 'Hoạt động' },
+                { value: 'false', label: 'Không hoạt động' },
             ],
         },
         {
             key: 'isDelete',
-            label: 'Deleted',
+            label: 'Đã xóa',
             options: [
-                { value: 'true', label: 'Deleted' },
-                { value: 'false', label: 'Not Deleted' },
+                { value: 'true', label: 'Đã xóa' },
+                { value: 'false', label: 'Chưa xóa' },
             ],
         },
         {
             key: 'sortBy',
-            label: 'Sort By',
+            label: 'Sắp xếp theo',
             options: [
-                { value: 'createdAt', label: 'Created' },
-                { value: 'updatedAt', label: 'Updated' },
+                { value: 'createdAt', label: 'Ngày tạo' },
+                { value: 'updatedAt', label: 'Ngày cập nhật' },
             ],
         },
         {
             key: 'order',
-            label: 'Order',
+            label: 'Thứ tự',
             options: [
-                { value: 'ASC', label: 'ASC' },
-                { value: 'DESC', label: 'DESC' },
+                { value: 'ASC', label: 'Tăng dần' },
+                { value: 'DESC', label: 'Giảm dần' },
             ],
         },
     ];
@@ -182,7 +182,7 @@ const UserManagement = () => {
         },
         {
             key: 'customer',
-            title: 'CUSTOMER',
+            title: 'KHÁCH HÀNG',
             render: (customer) => (
                 <div className="flex items-center gap-3">
                     <img
@@ -214,8 +214,8 @@ const UserManagement = () => {
                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => changeEmailVerified({ index, id: customer.userId, value: e.target.value })}
                             className="h-8 text-xs"
                         >
-                            <option value="true">Verified</option>
-                            <option value="false">Unverified</option>
+                            <option value="true">Đã xác minh</option>
+                            <option value="false">Chưa xác minh</option>
                         </Select>
                     )}
                 </div>
@@ -223,17 +223,17 @@ const UserManagement = () => {
         },
         {
             key: 'phone',
-            title: 'PHONE NUMBER',
+            title: 'SỐ ĐIỆN THOẠI',
             render: (customer) => customer.phone || '-',
         },
         {
             key: 'createdAt',
-            title: 'ASIGN',
+            title: 'NGÀY TẠO',
             render: (customer) => new Date(customer.createdAt).toLocaleDateString(),
         },
         {
             key: 'status',
-            title: 'STATUS',
+            title: 'TRẠNG THÁI',
             render: (customer, index) => (
                 changeIsActiveLoading === index ? (
                     <SmallSpinner />
@@ -243,15 +243,15 @@ const UserManagement = () => {
                         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => changeIsActive({ index, id: customer.userId, value: e.target.value })}
                         className="h-8 text-xs"
                     >
-                        <option value="true">Active</option>
-                        <option value="false">Inactive</option>
+                        <option value="true">Hoạt động</option>
+                        <option value="false">Không hoạt động</option>
                     </Select>
                 )
             ),
         },
         {
             key: 'actions',
-            title: 'ACTIONS',
+            title: 'HÀNH ĐỘNG',
             render: (customer, index) => (
                 <div className="flex items-center gap-2">
                     {customer.isDelete ? (
@@ -260,7 +260,7 @@ const UserManagement = () => {
                             size="sm"
                             onClick={() => setPopupProps({ index, id: customer.id, value: false })}
                         >
-                            Restore
+                            Khôi phục
                         </Button>
                     ) : (
                         <Button
@@ -268,7 +268,7 @@ const UserManagement = () => {
                             size="sm"
                             onClick={() => setPopupProps({ index, id: customer.id, value: true })}
                         >
-                            Delete
+                            Xóa
                         </Button>
                     )}
                 </div>
@@ -278,17 +278,17 @@ const UserManagement = () => {
 
     console.log("Rerender");
 
-    if (loading) return <div className="p-8 text-center">Loading...</div>;
-    if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>;
+    if (loading) return <div className="p-8 text-center">Đang tải...</div>;
+    if (error) return <div className="p-8 text-center text-red-500">Lỗi: {error}</div>;
 
     return (
         <div className="p-6">
             <AdminDataTable
-                title="User Management"
+                title="Quản lý người dùng"
                 data={filteredData}
                 columns={columns}
                 loading={loading}
-                searchPlaceholder="Find by name or email..."
+                searchPlaceholder="Tìm theo tên hoặc email..."
                 searchValue={searchText}
                 onSearchChange={setSearchText}
                 filters={filters}
@@ -304,17 +304,17 @@ const UserManagement = () => {
                 headerActions={
                     <Button>
                         <Plus className="w-4 h-4 mr-2" />
-                        Add more account
+                        Thêm tài khoản
                     </Button>
                 }
             />
 
             {popupProps && Object.keys(popupProps).length > 0 && (
                 <ConfirmDialog
-                    title="DELETE CONFIRMATION"
-                    message="Are you sure you want to delete this customer?"
-                    confirm="DELETE"
-                    cancel="CANCEL"
+                    title="XÁC NHẬN XÓA"
+                    message="Bạn có chắc chắn muốn xóa khách hàng này?"
+                    confirm="XÓA"
+                    cancel="HỦY"
                     color="#dc354580"
                     onConfirm={() => {
                         changeIsDelete();
